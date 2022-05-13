@@ -1,0 +1,75 @@
+/******************************************************************************
+ * 版权所有 (c)
+ * 功能描述   : leetcode 1122. 数组的相对排序  https://leetcode-cn.com/problems/relative-sort-array/
+ * 作    者   :
+ * 生成日期   :
+ ******************************************************************************/
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdbool.h>
+#include <uthash.h>
+#include <math.h>
+#include <assert.h>
+// 如需使用华为安全函数，请加上 #include "securec.h"
+// #include "securec.h"
+
+
+
+// ---------------------------开始-------------------------------------------------------------
+#define MAX_ARRAY_LEN 1001
+
+typedef struct IntArray {
+    int cnt[MAX_ARRAY_LEN];
+} IntArray;
+
+int* relativeSortArray(int* arr1, int arr1Size, int* arr2, int arr2Size, int* returnSize)
+{
+    IntArray cntArray = { 0 };
+
+    int max = INT_MIN;
+    for (int i = 0; i < arr1Size; i++) {
+        cntArray.cnt[arr1[i]]++;
+        max = fmax(max, arr1[i]);
+    }
+
+    int* res = (int *)malloc(sizeof(int) * arr1Size);
+    int index = 0;
+    for (int i = 0; i < arr2Size; i++) {
+        for (int j = 0; j < cntArray.cnt[arr2[i]]; j++) {
+            res[index++] = arr2[i];
+        }
+        cntArray.cnt[arr2[i]] = 0;
+    }
+
+    for (int i = 0; i <= max; i++) {
+        for (int j = 0; j < cntArray.cnt[i]; j++) {
+            res[index++] = i;
+        }
+        cntArray.cnt[i] = 0;
+    }
+
+    *returnSize = index;
+    if (index != arr1Size) {
+        printf("error");
+    }
+
+    return res;
+}
+// ---------------------------结束--------------------------------------------------------------------
+
+
+
+
+int main()
+{
+    int arr1_1[] = { 2,3,1,3,2,4,6,7,9,2,19 };
+    int arr1Size1_1 = sizeof(arr1_1)/ sizeof(arr1_1[0]);
+    int arr2_1[] = { 2,1,4,3,9,6 };
+    int arr1Size2_1 = sizeof(arr2_1)/ sizeof(arr2_1[0]);
+    int returnSize_1 = 4564656;
+    int *res = relativeSortArray(arr1_1, arr1Size1_1, arr2_1, arr1Size2_1, &returnSize_1);
+
+
+    return 0;
+}

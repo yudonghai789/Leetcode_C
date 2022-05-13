@@ -1,0 +1,223 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdbool.h>
+#include <string.h>
+#include <math.h>
+#include <assert.h>
+
+
+
+/* 124. 二叉树中的最大路径和
+ * 树形DP: 
+ * 但是最大路径和是两类最大核的最大值、
+ * 节点a往下的最大路劲和，
+ * 所有节点的最大路径和
+ */
+
+
+
+
+// ---------------------------解法一 开始---从上到下求解 --是使用递归---没有的重复计算的节点，不能用备忘录空间换时间-----------------------------------------------------
+typedef struct TreeNode {
+    int val;
+    struct TreeNode *left;
+    struct TreeNode *right;
+} TreeNode;
+
+
+struct TreeNodeWapper {
+    int thisValue;
+    int val;
+    struct TreeNodeWapper *left;
+    struct TreeNodeWapper *right;
+};
+
+void freeTreeNodeWapper(struct TreeNodeWapper* treeRoot) {
+    if(treeRoot == NULL) {return;}
+    
+    freeTreeNodeWapper(treeRoot->left);
+    freeTreeNodeWapper(treeRoot->right);
+    
+    free(treeRoot);
+}
+
+struct TreeNodeWapper* WapperTree(struct TreeNode* root) {
+    if (root == NULL) { return NULL; }
+    struct TreeNodeWapper* treeNodeWapper = (struct TreeNodeWapper*)malloc(sizeof(struct TreeNodeWapper));
+    treeNodeWapper->thisValue = 0x5a5a5a5a;
+    treeNodeWapper->val = root->val;
+    treeNodeWapper->left = WapperTree(root->left);
+    treeNodeWapper->right = WapperTree(root->right);
+    return treeNodeWapper;
+}
+
+
+int treeDp(struct TreeNodeWapper* rootWapper, int *maxResult) {
+    if (rootWapper == NULL) {
+        return 0;
+    }
+
+    if (rootWapper->thisValue != 0x5a5a5a5a) {
+        return rootWapper->thisValue;
+    }
+
+    // 该节点的最优解 假设abc 分别标识 根 左 右 节点
+    int left = fmax(treeDp(rootWapper->left, maxResult), 0);
+
+    int right = fmax(treeDp(rootWapper->right, maxResult), 0);
+
+    rootWapper->thisValue = fmax(left, right) + rootWapper->val; // 包含该根节点的最大往下路径和
+
+    // 每个节点的左右节点处理完后
+    int res1_abc = rootWapper->val + left + right; // 大于0的左右节点 加上该根节点的和。 
+    *maxResult = fmax(*maxResult, fmax(rootWapper->thisValue, res1_abc)); // 全局最大和。
+
+    // printf("%d, %d, %d ,%x \n", rootWapper->thisValue, res1_abc, *maxResult, maxResult);
+    return rootWapper->thisValue;
+}
+
+
+int maxPathSum(struct TreeNode* root){
+    if (root == NULL) {
+        return 0;
+    }
+
+    if ((root != NULL) && (root->left == NULL) && (root->right == NULL)) {
+        return root->val;
+    }
+
+
+    struct TreeNodeWapper* rootWapper = WapperTree(root);
+
+    int maxResult = -1000;
+    int nodeMax = treeDp(rootWapper, &maxResult);
+
+    freeTreeNodeWapper(rootWapper);
+    return maxResult;
+}
+
+
+
+
+// ---------------------------解法一 结束--------------------------------------------------------
+
+
+char** stringToStringArray(char* string, const char *delim, int *size) {
+    // 获取返回的字符串数组长度
+    if (string != NULL) { *size = 1; } else {return NULL;}
+    for(int i = 0; i < strlen(string); i++){       
+        if (string[i] == delim[0]) {       
+            (*size)++;
+        }
+    }
+
+    char **retArray = (char **)malloc(sizeof(char*) * (*size));
+
+    /* 获取第一个子字符串 */
+    int i = 0;
+    char* token;
+    token = strtok(string, delim);
+    retArray[i] = (char *)malloc(sizeof(char) * 10);
+    memset((void*)retArray[i], 0, sizeof(char) * 10);
+    memcpy(retArray[i], token, strlen(token));
+   
+    /* 继续获取其他的子字符串 */
+    while((token != NULL) && (i < (*size) - 1)) {
+        printf( "%s\n", token );
+        token = strtok(NULL, delim);
+        retArray[++i] = (char *)malloc(sizeof(char) * 10);
+        memset((void*)retArray[i], 0, sizeof(char) * 10);
+        memcpy(retArray[i], token, strlen(token));
+   }
+    printf( "%s\n", token );
+    return retArray;
+}
+
+// 层序遍历 + 非空判断 添加节点
+struct TreeNode* CaseToTree(char** charArray, int count) {
+    if (count == 0) { return NULL; }
+
+    struct TreeNode* treeRoot = (TreeNode*)malloc(sizeof(TreeNode) * count);
+    memset((void*)treeRoot, 0, sizeof(TreeNode) * count);
+
+    for (int i = 0; i < count; i++) {
+        if (strcmp(charArray[i], "null") == 0) {
+            treeRoot[i].val = 0x5a5a5a5a;
+        } else {
+            treeRoot[i].val = atoi(charArray[i]);
+        }
+    }
+
+    int order = 0, useer = 1; 
+    while (order <= useer) {
+        if (treeRoot[order].val != 0x5a5a5a5a) {
+            // 添加左节点 
+            if (useer < count) {
+                if (treeRoot[useer].val != 0x5a5a5a5a) {
+                    treeRoot[order].left = &treeRoot[useer];
+                }
+                ++useer;
+            }
+            // 添加右节点 
+            if (useer < count) {
+                if (treeRoot[useer].val != 0x5a5a5a5a) {
+                    treeRoot[order].right = &treeRoot[useer]; 
+                }
+                ++useer;
+            }
+        }
+        order++;
+    }
+
+    return treeRoot;
+}
+
+
+int main() {
+    char case_1_string[] = {"-10,9,20,null,null,15,7"};
+    int count_1 = 0;
+    char** case_1 = stringToStringArray(case_1_string, ",", &count_1);
+    TreeNode* treeRoot_1 = (TreeNode*)CaseToTree(case_1, count_1);
+    int result_1 = maxPathSum(treeRoot_1);
+    // freeTreeNode(treeRoot_1);  // 不连续申请的内存，递归释放
+    free(treeRoot_1); // 连续申请的内存
+    assert(result_1 == 42);
+
+    char case_2_string[] = {"1,2,3"};
+    int count_2 = 0;
+    char** case_2 = stringToStringArray(case_2_string, ",", &count_2);
+    TreeNode* treeRoot_2 = (TreeNode*)CaseToTree(case_2, count_2);
+    int result_2 = maxPathSum(treeRoot_2);
+    // freeTreeNode(treeRoot_2);  // 不连续申请的内存，递归释放
+    free(treeRoot_2); // 连续申请的内存
+    assert(result_2 == 6);
+
+    char case_3_string[] = {"-2,-1"};
+    int count_3 = 0;
+    char** case_3 = stringToStringArray(case_3_string, ",", &count_3);
+    TreeNode* treeRoot_3 = (TreeNode*)CaseToTree(case_3, count_3);
+    int result_3 = maxPathSum(treeRoot_3);
+    // freeTreeNode(treeRoot_3);  // 不连续申请的内存，递归释放
+    free(treeRoot_3); // 连续申请的内存
+    assert(result_3 == -1);
+
+    char case_4_string[] = {"1,2,3,null,4,null,null,5,6,7"}; // 如果声明为 char* case_4_string =  {"1,2,3,null,4,null,null,5,6,7"} 则为字符串常量，常量是不能修改的，不能用strtok函数切割
+    int count_4 = 0;
+    char** case_4 = stringToStringArray(case_4_string, ",", &count_4);
+    TreeNode* treeRoot_4 = (TreeNode*)CaseToTree(case_4, count_4);
+    int result_4 = maxPathSum(treeRoot_4);
+    // freeTreeNode(treeRoot_4);  // 不连续申请的内存，递归释放
+    free(treeRoot_4); // 连续申请的内存
+    assert(result_4 == 22);
+
+    char case_5_string[] = {"1,2,3,null,4,5,null,6,7,8,9"}; // 如果声明为 char* case_4_string =  {"1,2,3,null,4,null,null,5,6,7"} 则为字符串常量，常量是不能修改的，不能用strtok函数切割
+    int count_5 = 0;
+    char** case_5 = stringToStringArray(case_5_string, ",", &count_5);
+    TreeNode* treeRoot_5 = (TreeNode*)CaseToTree(case_5, count_5);
+    int result_5 = maxPathSum(treeRoot_5);
+    // freeTreeNode(treeRoot_5);  // 不连续申请的内存，递归释放
+    free(treeRoot_5); // 连续申请的内存
+    assert(result_5 == 31);
+
+    return 0;
+}

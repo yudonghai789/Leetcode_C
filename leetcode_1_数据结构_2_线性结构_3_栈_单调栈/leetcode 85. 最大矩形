@@ -1,0 +1,112 @@
+
+```
+/*
+ * Copyright (c) Huawei Technologies Co., Ltd. 2019-2020. All rights reserved.
+ */
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdbool.h>
+#include <uthash.h>
+// 如需使用华为安全函数，请加上 #include "securec.h"
+#include "securec.h"
+#include "disanti.h"
+#include <math.h>
+#include <assert.h>
+
+
+/* leetcode 85. 最大矩形 . https://leetcode-cn.com/problems/maximal-rectangle/
+ */
+# define STACKSIZE 200  // 根据题目的限制大小开内存
+
+typedef struct {
+    int count;   // 栈中数据大小，也是栈顶指针
+    int array[STACKSIZE];
+} IntArrayStack;
+
+void StackPush(int value, IntArrayStack *intArrayStack)
+{
+    intArrayStack->array[intArrayStack->count] = value;
+    intArrayStack->count++;
+}
+
+int StackPeek(IntArrayStack *intArrayStack)
+{
+    if (intArrayStack->count <= 0) { return -1; }
+    return intArrayStack->array[intArrayStack->count - 1];
+}
+
+int StackPop(IntArrayStack *intArrayStack)
+{
+    if (intArrayStack->count <= 0) { return -1; }
+    int value = intArrayStack->array[intArrayStack->count - 1];
+    intArrayStack->array[intArrayStack->count - 1] = 0;
+    intArrayStack->count--;
+    return value;
+}
+
+int ValueOfIndx(int *nums, int numsSize, int index)
+{
+    if (index <= -1) { return INT_MIN; }
+    if (index >= numsSize) { return INT_MIN; }
+    return nums[index];
+}
+
+int largestRectangleArea(int* heights, int heightsSize){
+    if ((heights== NULL) || (heightsSize == 0)) { return 0; }
+    if (heightsSize == 1) { return heights[0]; }
+
+    int result = 0;
+    IntArrayStack intArrayStack = { 0 };
+
+    for (int i = 0; i <= heightsSize; i++) { // i <= heightsSize 等于号是因为要跟最后的哨兵比较
+        while (ValueOfIndx(heights, heightsSize, i) < ValueOfIndx(heights, heightsSize, StackPeek(&intArrayStack))) {
+            int curHeight = ValueOfIndx(heights, heightsSize, StackPop(&intArrayStack));
+            int curWidth = i - StackPeek(&intArrayStack) - 1;
+            result = fmax(result, curHeight * curWidth);
+        }
+        StackPush(i, &intArrayStack);
+    }
+
+    return result;
+}
+
+
+int maximalRectangle(char** matrix, int matrixSize, int* matrixColSize)
+{
+    if ((matrix == NULL) || (matrixSize == 0) || (*matrixColSize == 0)) { return 0; }
+    
+    int result = 0;
+    int lineIArray[200] = { 0 };
+    for (int i = 0; i < matrixSize; i++) {
+        for (int j = 0; j < (*matrixColSize); j++) {
+            if (matrix[i][j] == '1') {
+                lineIArray[j]++;
+            } 
+            if (matrix[i][j] == '0') {
+                lineIArray[j] = 0;
+            }
+        }
+        result = fmax(result, largestRectangleArea(lineIArray, *matrixColSize));
+    }
+    return result;
+}
+
+
+int main(int argc, const char *argv[])
+{
+    char matrix_1[4][5] = { { '1','0','1','0','0' },
+                            { '1','0','1','1','1' },
+                            { '1','1','1','1','1' },
+                            { '1','0','0','1','0' } };
+    int matrixSize_1 = sizeof(matrix_1) / sizeof(matrix_1[0]);
+    int matrixColSize_1 = sizeof(matrix_1[0]) / sizeof(matrix_1[0][0]);
+    char *matrixArray_1[matrixSize_1];
+    for (int i = 0; i < matrixSize_1; i++) { matrixArray_1[i] = &matrix_1[i][0]; }
+    int res_1 = maximalRectangle(matrixArray_1, matrixSize_1, &matrixColSize_1);
+    assert(res_1 == 6);
+
+
+
+    return 0;
+}

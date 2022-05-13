@@ -1,0 +1,390 @@
+/******************************************************************************
+ * 版权所有 (c)
+ * 功能描述   : leetcode 901. 股票价格跨度. https://leetcode-cn.com/problems/online-stock-span/
+ * 作    者   :
+ * 生成日期   :
+
+ * 
+      --- 
+ ******************************************************************************/
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdbool.h>
+#include <uthash.h>
+#include <math.h>
+#include <assert.h>
+// 如需使用华为安全函数，请加上 #include "securec.h"
+// #include "securec.h"
+#include "vos_priorityqueue.h"
+
+
+
+
+
+/*
+901. 股票价格跨度
+编写一个 StockSpanner 类，它收集某些股票的每日报价，并返回该股票当日价格的跨度。
+
+今天股票价格的跨度被定义为股票价格小于或等于今天价格的最大连续日数（从今天开始往回数，包括今天）。
+
+例如，如果未来7天股票的价格是 [100, 80, 60, 70, 60, 75, 85]，那么股票跨度将是 [1, 1, 1, 2, 1, 4, 6]。
+
+ 
+
+示例：
+
+输入：["StockSpanner","next","next","next","next","next","next","next"], [[],[100],[80],[60],[70],[60],[75],[85]]
+输出：[null,1,1,1,2,1,4,6]
+解释：
+首先，初始化 S = StockSpanner()，然后：
+S.next(100) 被调用并返回 1，
+S.next(80) 被调用并返回 1，
+S.next(60) 被调用并返回 1，
+S.next(70) 被调用并返回 2，
+S.next(60) 被调用并返回 1，
+S.next(75) 被调用并返回 4，
+S.next(85) 被调用并返回 6。
+
+注意 (例如) S.next(75) 返回 4，因为截至今天的最后 4 个价格
+(包括今天的价格 75) 小于或等于今天的价格。
+ 
+
+提示：
+
+调用 StockSpanner.next(int price) 时，将有 1 <= price <= 10^5。
+每个测试用例最多可以调用  10000 次 StockSpanner.next。
+在所有测试用例中，最多调用 150000 次 StockSpanner.next。
+此问题的总时间限制减少了 50%。
+*/
+
+
+
+
+
+// ---------------------------解法 开始-----暴力遍历: -----------------------------------------------------
+
+// ---------------------------解法 结束---------------------------------------------------------------------
+
+
+
+
+
+
+
+// ---------------------------解法 开始-----BFS 递归模板: -----------------------------------------------------
+
+// ---------------------------解法 结束---------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+// ---------------------------解法 开始-----BFS 迭代模板: -----------------------------------------------------
+
+// ---------------------------解法 结束-----------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+// ---------------------------解法 开始-----DFS 递归模板: -----------------------------------------------------
+
+// ---------------------------解法 结束----------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+// ---------------------------解法 开始-----DFS 迭代模板: --------------------------------------------------
+
+// ---------------------------解法 结束----------------------------------------------------------------------
+
+
+
+
+
+
+
+
+// ---------------------------解法 开始-----回溯 迭代模板: --------------------------------------------------
+
+// ---------------------------解法 结束----------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+// ---------------------------解法 开始-----动态规划 记忆化搜索: ---------------------
+
+
+// ---------------------------解法 结束----------------------------------------------------------------------
+
+
+
+
+
+
+
+// ---------------------------解法 开始-----动态规划 按顺序递推-----------------------------------------------------
+
+// ---------------------------解法 结束--------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+// ---------------------------解法 开始-----贪心 --------------------------------------------------------
+
+// ---------------------------解法 结束------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// ---------------------------解法 开始-----------单调栈------------------------------------------------
+#define MAX_STACK_LEN (10)
+
+typedef struct Elem {
+    int val;
+    int position;
+} Elem;
+
+typedef struct Stack {
+    int top;
+    Elem elems[MAX_STACK_LEN];
+    int size;
+    int capacity;
+} Stack;
+
+Stack *StackInit(int capacity)
+{
+    Stack *stack = (Stack *)malloc(sizeof(Stack));
+    memset(stack, 0, sizeof(Stack));
+    stack->capacity = (capacity == 0) ? MAX_STACK_LEN: capacity;
+    stack->size = 0;
+    stack->top = -1;
+    return stack;
+}
+
+void StackDestory(Stack* stack)
+{
+    free(stack);
+}
+
+bool StackIsEmpty(Stack* stack)
+{
+    return stack->size == 0;
+}
+
+
+bool StackIsFull(Stack* stack)
+{
+    return stack->size == stack->capacity;
+}
+
+int StackSize(Stack* stack)
+{
+    return stack->size;
+}
+
+int Compare(Elem A, Elem B)
+{
+    return (long long)A.val - (long long)B.val;   // 如果B是负数，可能超过int范围
+}
+
+void StackPush(Stack* stack, Elem newElem)
+{
+    if (stack->size >= stack->capacity) {
+        printf("stack full error \n");
+        return;
+    }
+
+    stack->elems[++stack->top] = newElem;
+    stack->size++;
+}
+
+Elem StackPeek(Stack* stack)
+{
+    if (stack->size == 0) {
+        printf("stack empty error \n");
+        Elem ZeroElem = { 0 };
+        return ZeroElem;
+    }
+
+    return stack->elems[stack->top];
+}
+
+
+void StackPop(Stack* stack)
+{
+    if (stack->size == 0) {
+        printf("stack empty error \n");
+        return;
+    }
+
+    Elem ZeroElem = { 0 };
+    stack->elems[stack->top--] = ZeroElem;
+    stack->size--;
+}
+
+
+bool OrderStackPushCheckIsEmpty(Stack* stack, Elem newElem)
+{
+    // 将所有比当前元素小的元素出栈
+    while ((!StackIsEmpty(stack)) && (Compare(newElem, StackPeek(stack)) >= 0)) {  // 当前温度与之前温度相等，也算连续的
+        StackPop(stack);
+    }
+
+    return StackIsEmpty(stack) ? true: false;
+}
+
+
+
+
+// int* dailyTemperatures(int* temperatures, int temperaturesSize, int* returnSize)
+// {
+//     int *result = (int *)malloc(sizeof(int) * temperaturesSize); 
+//     memset(result, 0, sizeof(int) * temperaturesSize);
+//     *returnSize = temperaturesSize;
+
+//     Stack *stack = StackInit(0);
+//     for (int i = temperaturesSize - 1; i >= 0; i--) {
+//         Elem newElem = { temperatures[i], i };
+//         // 如果栈已经空了
+//         bool isEmpty = OrderStackPushCheckIsEmpty(stack, newElem);
+//         result[i] = (isEmpty) ? 0 : StackPeek(stack).position - i;
+//         StackPush(stack, newElem);
+//     }
+
+//     StackDestory(stack);
+//     return result;
+// }
+
+
+
+typedef struct {
+    int addIndex;
+    int memTable[MAX_STACK_LEN];
+    Stack *stack;
+} StockSpanner;
+
+
+StockSpanner* stockSpannerCreate() {
+    StockSpanner* obj = (StockSpanner*)malloc(sizeof(StockSpanner));
+    memset(obj, 0, sizeof(StockSpanner));
+    obj->stack = StackInit(0);
+    obj->addIndex = 0;
+    return obj;
+}
+
+int stockSpannerNext(StockSpanner* obj, int price)
+{
+    obj->addIndex++;
+    Elem newElem = { price, obj->addIndex };
+
+    bool isEmpty = OrderStackPushCheckIsEmpty(obj->stack, newElem);
+    int result = (isEmpty) ? obj->addIndex : obj->addIndex - StackPeek(obj->stack).position;      // 如果栈已经空了,说明当前元素比之前所有元素都大，如果没有空，当前元素就只比栈顶元素小，比之前其他元素都大
+    StackPush(obj->stack, newElem);
+    
+    obj->memTable[obj->addIndex] = result;
+    
+    return result;
+}
+
+void stockSpannerFree(StockSpanner* obj) {
+    StackDestory(obj->stack);
+    free(obj);
+}
+
+
+
+
+// ---------------------------解法 结束-----------------------------------------------------------------------
+
+
+
+
+
+// ---------------------------解法 开始-----------单调队列------------------------------------------------
+
+// ---------------------------解法 结束-----------------------------------------------------------------------
+
+
+
+
+// ---------------------------解法 开始-----------优先队列------------------------------------------------
+
+// ---------------------------解法 结束-----------------------------------------------------------------------
+
+
+int main() {
+    StockSpanner* obj_1 = stockSpannerCreate();
+
+    int param_1;
+
+    param_1 = stockSpannerNext(obj_1, 100);
+    assert(param_1 = 1);
+    param_1 = stockSpannerNext(obj_1, 80);
+    assert(param_1 = 1);
+    param_1 = stockSpannerNext(obj_1, 60);
+    assert(param_1 = 1);
+    param_1 = stockSpannerNext(obj_1, 70);
+    assert(param_1 = 2);
+    param_1 = stockSpannerNext(obj_1, 60);
+    assert(param_1 = 1);
+    param_1 = stockSpannerNext(obj_1, 75);
+    assert(param_1 = 4);
+    param_1 = stockSpannerNext(obj_1, 85);
+    assert(param_1 = 6);
+    param_1 = stockSpannerNext(obj_1, 85);
+    assert(param_1 = 7);
+    param_1 = stockSpannerNext(obj_1, 85);
+    assert(param_1 = 8);
+
+    stockSpannerFree(obj_1);
+
+    return 0;
+}
+

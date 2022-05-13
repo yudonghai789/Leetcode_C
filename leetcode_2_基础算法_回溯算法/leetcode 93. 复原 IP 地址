@@ -1,0 +1,438 @@
+这个可以直接用循环，不用递归（回溯）。回溯在于需要使用尾巴上的值来一步一步探索。这个明确知道分成四段，三层for循环
+
+/*
+ * Copyright (c) Huawei Technologies Co., Ltd. 2019-2020. All rights reserved.
+ */
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <stdbool.h>
+#include <uthash.h>
+// 如需使用华为安全函数，请加上 #include "securec.h"
+#include "systemDesgin.h"
+#include <math.h>
+#include <assert.h>
+
+/*
+ * leetcode 93. 复原 IP 地址   https://leetcode-cn.com/problems/restore-ip-addresses/
+ * 回溯算法 + 剪枝
+ * 第一个分割点在 int first = [0 , n-3]   第二个分割点 secend = [fisrt + 1, n - 2]   第三个分割点 three = [secend + 1, n - 1]
+ */
+
+// ---------------------------解法一 开始--------------------------------------------------------
+#define MAX_RESULT_SIZE 8000  // 20 * 20 * 20
+#define MAX_RESULT_ITEM_LEN 30
+
+
+bool JudgeIpSection(char *s, int legth, int start, int end)
+{
+    if ((start < 0) || (end >= legth)){
+        printf("error 1");
+    }
+    if ((s[start] == '0') && (start != end)) {
+        return false;
+    }
+
+    if (end - start > 2) {
+        return false;
+    }
+
+    for (int i = start; i <= end; i++) {
+        if ((s[i] < '0') || (s[i] > '9')) {
+            return false;
+        }
+    }
+
+    char inum[5] = { 0 };
+    memcpy(inum, &s[start], sizeof(char) * (end - start + 1));
+    if (atoi(inum) > 255) {
+        return false;
+    }
+
+    return true;
+}
+
+bool JudgeIp(char *s, int legth, int first, int secend, int three)
+{
+    if (JudgeIpSection(s, legth, 0, first) == false) return false;
+    if (JudgeIpSection(s, legth, first + 1, secend) == false) return false;
+    if (JudgeIpSection(s, legth, secend + 1, three) == false) return false;
+    if (JudgeIpSection(s, legth, three + 1, legth - 1) == false) return false;
+    return true;
+}
+
+
+char **restoreIpAddresses(char * s, int* returnSize)
+{
+    (*returnSize) = 0;
+
+    // 基本校验
+    int legth = strlen(s);
+    if (legth > 12 ) return NULL;
+    
+    char **result = (char **)malloc(sizeof(char *) * MAX_RESULT_SIZE);
+    memset(result, 0, sizeof(char *) * MAX_RESULT_SIZE);
+
+    for (int first = ((legth - 10 > 0) ? legth - 10: 0); ((first <= legth - 4) && (first <= 2)); first++) {
+        for (int secend = ((legth - 7 > first + 1) ? legth - 7: first + 1); ((secend <= legth - 3) && (secend <= first + 3)); secend++) {
+            for (int three = ((legth - 4 > secend + 1) ? legth - 4: secend + 1); ((three <= legth - 2) && (three <= secend + 3)); three++) {
+                if (JudgeIp(s, legth, first, secend, three) == true) {
+                    result[*returnSize] = (char *)malloc(sizeof(char) * MAX_RESULT_ITEM_LEN);
+                    memset(result[*returnSize], 0, sizeof(char) * MAX_RESULT_ITEM_LEN);
+                    for (int j = 0, i = 0; j < legth; j++) {
+                        result[(*returnSize)][i++] = s[j];
+                        if ((j == first) || (j == secend) || (j == three)) {
+                            result[(*returnSize)][i++] = '.';
+                        }
+                    }
+
+                    (*returnSize)++;
+                }
+            }
+        }
+    }
+
+    return result;
+}
+
+
+
+
+// ---------------------------解法一 结束--------------------------------------------------------
+int main() {
+    char s_1[] =  "25525511135";
+    int returnSize_1 = 454645445;
+    char** result_1 = restoreIpAddresses(s_1, &returnSize_1);
+    for (int i = 0; i < returnSize_1; i++) {
+        printf("%s \n", result_1[i]);
+    }
+    printf("\n");
+    free(result_1);
+
+
+    char s_2[] =  "0000";
+    int returnSize_2 = 454645445;
+    char** result_2 = restoreIpAddresses(s_2, &returnSize_2);
+    for (int i = 0; i < returnSize_2; i++) {
+        printf("%s \n", result_2[i]);
+    }
+    printf("\n");
+    free(result_2);
+
+
+    char s_3[] =  "1111";
+    int returnSize_3 = 454645445;
+    char** result_3 = restoreIpAddresses(s_3, &returnSize_3);
+    for (int i = 0; i < returnSize_3; i++) {
+        printf("%s \n", result_3[i]);
+    }
+    printf("\n");
+    free(result_3);
+
+
+    char s_4[] =  "010010";
+    int returnSize_4 = 454645445;
+    char** result_4 = restoreIpAddresses(s_4, &returnSize_4);
+    for (int i = 0; i < returnSize_4; i++) {
+        printf("%s \n", result_4[i]);
+    }
+    printf("\n");
+    free(result_4);
+
+
+    char s_5[] =  "101023";
+    int returnSize_5 = 454645445;
+    char** result_5 = restoreIpAddresses(s_5, &returnSize_5);
+    for (int i = 0; i < returnSize_5; i++) {
+        printf("%s \n", result_5[i]);
+    }
+    printf("\n");
+    free(result_5);
+
+    
+    char s_6[] =  "1231231231234";
+    int returnSize_6 = 454645445;
+    char** result_6 = restoreIpAddresses(s_6, &returnSize_6);
+    for (int i = 0; i < returnSize_6; i++) {
+        printf("%s \n", result_6[i]);
+    }
+    printf("\n");
+    free(result_6);
+
+    return 0;
+}
+
+
+
+
+
+
+
+
+
+
+/*
+ * Copyright (c) Huawei Technologies Co., Ltd. 2019-2020. All rights reserved.
+ */
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <stdbool.h>
+#include <uthash.h>
+// 如需使用华为安全函数，请加上 #include "securec.h"
+#include "systemDesgin.h"
+#include <math.h>
+#include <assert.h>
+
+/*
+ * leetcode 93. 复原 IP 地址   https://leetcode-cn.com/problems/restore-ip-addresses/
+ * 回溯算法 + 剪枝
+ * 第一个分割点在 int first = [0 , n-3]   第二个分割点 secend = [fisrt + 1, n - 2]   第三个分割点 three = [secend + 1, n - 1]
+ */
+
+// ---------------------------解法一 开始--------------------------------------------------------
+#define MAX_RESULT_SIZE 8000  // 20 * 20 * 20
+#define MAX_RESULT_ITEM_LEN 30
+
+typedef struct BackTracePointer {
+    int pIndex;
+
+    union spli {
+        int indAy[5];
+        struct ind {
+            int bagin;
+            int first;
+            int secend;
+            int three;
+            int end; 
+        } ind;
+    } spli;
+} BackTracePointer;
+
+typedef enum Arrange {
+    SMALL = 0x1a1a,
+    IN = 0x2a2a,
+    BIG = 0x3a3a,
+    ERROR = 0x5a5a
+} Arrange;
+
+Arrange JudguArrange(char* s, int legth, BackTracePointer *bkp, int i)
+{
+    int first = bkp->spli.ind.first;
+    int secend = bkp->spli.ind.secend;
+
+    switch (bkp->pIndex) {
+        case 1:
+            if (i >= ((legth - 10 > 0) ? legth - 10: 0)) {
+                if ((i <= legth - 4) && (i <= 2)) {
+                    return IN;
+                } else {
+                    return BIG;
+                }
+            } else {
+                return SMALL;
+            }
+
+        case 2:
+            if (i >= ((legth - 7 > first + 1) ? legth - 7: first + 1)) {
+                if ((i <= legth - 3) && (i <= first + 3)) {
+                    return IN;
+                } else {
+                    return BIG;
+                }
+            } else {
+                return SMALL;
+            }
+
+        case 3:
+            if (i >= ((legth - 4 > secend + 1) ? legth - 4: secend + 1)) {
+                if ((i <= legth - 2) && (i <= secend + 3)) {
+                    return IN;
+                } else {
+                    return BIG;
+                }
+            } else {
+                return SMALL;
+            }
+
+        case 4:
+            if (i == legth - 1) {
+                return IN;
+            } else if (i < legth - 1) {
+                return SMALL;
+            } else {
+                return BIG;
+            }
+    
+        default:
+            printf("error");
+            return ERROR;
+    }
+
+    return ERROR;
+}
+
+
+
+bool JudgeIpSection(char *s, int legth, int start, int end)
+{
+    if ((start < 0) || (end >= legth)){
+        printf("error 1");
+    }
+    if ((s[start] == '0') && (start != end)) {
+        return false;
+    }
+
+    if (end - start > 2) {
+        return false;
+    }
+
+    for (int i = start; i <= end; i++) {
+        if ((s[i] < '0') || (s[i] > '9')) {
+            return false;
+        }
+    }
+
+    char inum[5] = { 0 };
+    memcpy(inum, &s[start], sizeof(char) * (end - start + 1));
+    if (atoi(inum) > 255) {
+        return false;
+    }
+
+    return true;
+}
+
+void BackTrace(char* s, int legth, int* returnSize, BackTracePointer bkp, char **result)
+{
+    int first = bkp.spli.ind.first;
+    int secend = bkp.spli.ind.secend;
+    int three = bkp.spli.ind.three;
+    int end = bkp.spli.ind.end;
+
+    if (end == legth - 1) {
+        result[*returnSize] = (char *)malloc(sizeof(char) * MAX_RESULT_ITEM_LEN);
+        memset(result[*returnSize], 0, sizeof(char) * MAX_RESULT_ITEM_LEN);
+        for (int j = 0, i = 0; j < legth; j++) {
+            result[(*returnSize)][i++] = s[j];
+            if ((j == first) || (j == secend) || (j == three)) {
+                result[(*returnSize)][i++] = '.';
+            }
+        }
+        (*returnSize)++;
+        return;
+    }
+
+    int start = bkp.spli.indAy[bkp.pIndex - 1] + 1;
+    for (int i = start; i < legth; i++) {
+        Arrange arrne = JudguArrange(s, legth, &bkp, i);
+        if (arrne == BIG) {
+            return;
+        } else if (arrne != IN) {
+            continue;
+        }
+
+        if (JudgeIpSection(s, legth, start, i) == false) {
+            continue;
+        }
+
+        bkp.spli.indAy[bkp.pIndex] = i;
+        bkp.pIndex++;
+        BackTrace(s, legth, returnSize, bkp, result);
+        bkp.pIndex--;
+        bkp.spli.indAy[bkp.pIndex] = -1;
+    }
+}
+
+char **restoreIpAddresses(char* s, int* returnSize)
+{
+    (*returnSize) = 0;
+
+    // 基本校验
+    int legth = strlen(s);
+    if (legth > 12 ) return NULL;
+    
+    char **result = (char **)malloc(sizeof(char *) * MAX_RESULT_SIZE);
+    memset(result, 0, sizeof(char *) * MAX_RESULT_SIZE);
+    BackTracePointer bkp = { 0 };
+
+    bkp.spli.ind.bagin = -1;
+    bkp.spli.ind.first = -1;
+    bkp.spli.ind.secend = -1;
+    bkp.spli.ind.three = -1;
+    bkp.spli.ind.end = -1;
+    bkp.pIndex = 1;
+
+    BackTrace(s, legth, returnSize, bkp, result);
+
+    return result;
+}
+
+
+
+
+// ---------------------------解法一 结束--------------------------------------------------------
+int main() {
+    char s_1[] =  "25525511135";
+    int returnSize_1 = 454645445;
+    char** result_1 = restoreIpAddresses(s_1, &returnSize_1);
+    for (int i = 0; i < returnSize_1; i++) {
+        printf("%s \n", result_1[i]);
+    }
+    printf("\n");
+    free(result_1);
+
+    char s_2[] =  "0000";
+    int returnSize_2 = 454645445;
+    char** result_2 = restoreIpAddresses(s_2, &returnSize_2);
+    for (int i = 0; i < returnSize_2; i++) {
+        printf("%s \n", result_2[i]);
+    }
+    printf("\n");
+    free(result_2);
+
+
+    char s_3[] =  "1111";
+    int returnSize_3 = 454645445;
+    char** result_3 = restoreIpAddresses(s_3, &returnSize_3);
+    for (int i = 0; i < returnSize_3; i++) {
+        printf("%s \n", result_3[i]);
+    }
+    printf("\n");
+    free(result_3);
+
+
+    char s_4[] =  "010010";
+    int returnSize_4 = 454645445;
+    char** result_4 = restoreIpAddresses(s_4, &returnSize_4);
+    for (int i = 0; i < returnSize_4; i++) {
+        printf("%s \n", result_4[i]);
+    }
+    printf("\n");
+    free(result_4);
+
+
+    char s_5[] =  "101023";
+    int returnSize_5 = 454645445;
+    char** result_5 = restoreIpAddresses(s_5, &returnSize_5);
+    for (int i = 0; i < returnSize_5; i++) {
+        printf("%s \n", result_5[i]);
+    }
+    printf("\n");
+    free(result_5);
+
+    
+    char s_6[] =  "1231231231234";
+    int returnSize_6 = 454645445;
+    char** result_6 = restoreIpAddresses(s_6, &returnSize_6);
+    for (int i = 0; i < returnSize_6; i++) {
+        printf("%s \n", result_6[i]);
+    }
+    printf("\n");
+    free(result_6);
+
+    return 0;
+}
+
+
+
+

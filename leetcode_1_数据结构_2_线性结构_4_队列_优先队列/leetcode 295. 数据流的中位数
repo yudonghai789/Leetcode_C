@@ -1,0 +1,585 @@
+/******************************************************************************
+ * 版权所有 (c)
+ * 功能描述   : leetcode 295. 数据流的中位数. https://leetcode-cn.com/problems/find-median-from-data-stream/
+ * 作    者   :
+ * 生成日期   :
+
+ * 动态规划 
+      --- 
+ ******************************************************************************/
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdbool.h>
+#include <uthash.h>
+#include <math.h>
+#include <assert.h>
+// 如需使用华为安全函数，请加上 #include "securec.h"
+#include "securec.h"
+#include "vos_priorityqueue.h"
+
+
+
+
+
+/*
+295. 数据流的中位数
+中位数是有序列表中间的数。如果列表长度是偶数，中位数则是中间两个数的平均值。
+
+例如，
+
+[2,3,4] 的中位数是 3
+
+[2,3] 的中位数是 (2 + 3) / 2 = 2.5
+
+设计一个支持以下两种操作的数据结构：
+
+void addNum(int num) - 从数据流中添加一个整数到数据结构中。
+double findMedian() - 返回目前所有元素的中位数。
+示例：
+
+addNum(1)
+addNum(2)
+findMedian() -> 1.5
+addNum(3) 
+findMedian() -> 2
+进阶:
+
+如果数据流中所有整数都在 0 到 100 范围内，你将如何优化你的算法？
+如果数据流中 99% 的整数都在 0 到 100 范围内，你将如何优化你的算法？
+*/
+
+
+
+
+
+// ---------------------------解法 开始-----暴力遍历: -----------------------------------------------------
+
+// ---------------------------解法 结束---------------------------------------------------------------------
+
+
+
+
+
+
+
+// ---------------------------解法 开始-----BFS 递归模板: -----------------------------------------------------
+
+// ---------------------------解法 结束---------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+// ---------------------------解法 开始-----BFS 迭代模板: -----------------------------------------------------
+
+// ---------------------------解法 结束-----------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+// ---------------------------解法 开始-----DFS 递归模板: -----------------------------------------------------
+
+// ---------------------------解法 结束----------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+// ---------------------------解法 开始-----DFS 迭代模板: --------------------------------------------------
+
+// ---------------------------解法 结束----------------------------------------------------------------------
+
+
+
+
+
+
+
+
+// ---------------------------解法 开始-----回溯 迭代模板: --------------------------------------------------
+
+// ---------------------------解法 结束----------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+// ---------------------------解法 开始-----动态规划 记忆化搜索: ----memTable一定要注意表达 可以表达唯一结果的递归路径,维度不够时，不同结果的的递归路径被误当做相同的路径，维度太多时，剪枝效果不大------------------
+
+
+// ---------------------------解法 结束----------------------------------------------------------------------
+
+
+
+
+
+
+
+// ---------------------------解法 开始-----动态规划 按顺序递推-----------------------------------------------------
+
+// ---------------------------解法 结束--------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+// ---------------------------解法 开始-----贪心 --------------------------------------------------------
+
+// ---------------------------解法 结束------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+// ---------------------------解法 开始----------使用顺序表优先队列（队列中所有优先级单调性，其实也可以叫做单调队列）---------------------------------------------------
+// #define MINPQSize (10)
+// #define MAXPQSize (100000)    // 做题的时候就不用动态申请，直接写死最大值就好了
+
+// #define MAXDATA (0x7fffffff)
+
+
+// typedef struct EelememtType {
+//     int intVal;
+//     // char charVal;
+// } EelememtType;
+
+// // typedef struct ListStruct {
+// //     int capacity;
+// //     int size;
+// //     EelememtType elems[MAXPQSize];   // 做题的时候就不用动态申请，直接写死最大值就好了
+// //     EelememtType temp[MAXPQSize];   // 用来拷贝
+// // } ListStruct, PriorityQueue;
+
+
+// typedef struct {
+//     int capacity;
+//     int size;
+//     EelememtType elems[MAXPQSize];   // 做题的时候就不用动态申请，直接写死最大值就好了
+//     EelememtType temp[MAXPQSize];   // 用来拷贝
+// } MedianFinder, PriorityQueue;
+
+
+// MedianFinder* medianFinderCreate() {
+//     MedianFinder *PQ = (MedianFinder*)malloc(sizeof(MedianFinder));
+//     memset(PQ, 0, sizeof(MedianFinder));
+//     PQ->capacity = MAXPQSize;
+//     return PQ;
+// }
+
+// bool IsEmpty(PriorityQueue* H)
+// {
+//     return H->size == 0;
+// }
+
+// bool IsFull(PriorityQueue* H)
+// {
+//     return H->size == H->capacity;
+// }
+
+// int QuqueSize(PriorityQueue* H)
+// {
+//     return H->size;
+// }
+
+// void Destroy(PriorityQueue* H)
+// {
+//     free(H);
+// }
+
+
+// int FindInsetPo(PriorityQueue* H, EelememtType *elem)
+// {
+//     if ( H->size == 0) {
+//         return 0;
+//     }
+
+//     int frontBig = 0;
+//     int tailSmall = H->size - 1;
+//     int mid;
+
+
+//     if (elem->intVal > H->elems[0].intVal) {
+//         return 0;
+//     }
+
+//     if (elem->intVal <= H->elems[H->size - 1].intVal) {
+//         return H->size;
+//     }
+
+//     while (frontBig < tailSmall) {
+//         mid = (tailSmall - frontBig) / 2 + frontBig;
+//         if ((frontBig + 1 == tailSmall) && (H->elems[frontBig].intVal >= elem->intVal) && (H->elems[tailSmall].intVal < elem->intVal)) {
+//             return tailSmall;
+//         }
+
+//         if (H->elems[mid].intVal >= elem->intVal) {  // 大于等于不是插入的位置
+//             frontBig = mid;
+//         } else {                                          // 小于有可能是插入的位置
+//             tailSmall = mid;
+//         }
+//     }
+
+//     return 0;
+// }
+
+// void EnQueue(PriorityQueue* H, EelememtType elem)
+// {
+//     if (IsFull(H)) {
+//         printf("full \n");
+//         return;
+//     }
+
+//     int insetPosition = FindInsetPo(H, &elem);
+
+//     memcpy(&H->temp[0], &H->elems[insetPosition], sizeof(EelememtType) * (H->size - insetPosition));
+//     H->elems[insetPosition] = elem;
+//     memcpy(&H->elems[insetPosition + 1], &H->temp[0], sizeof(EelememtType) * (H->size - insetPosition));
+//     memset(&H->temp[0], 0, sizeof(EelememtType) * (H->capacity));
+//     H->size++;
+// }
+
+// EelememtType DeQueue(PriorityQueue* H)
+// {
+//     if (IsEmpty(H)) {
+//         printf("empty \n");
+//         EelememtType error = { 0xffff };
+//         return error;
+//     }
+
+//     EelememtType max = H->elems[0];
+
+//     --H->size;
+//     memcpy(&H->temp[0], &H->elems[1], sizeof(EelememtType) * (H->size));
+//     memcpy(&H->elems[0], &H->temp[0], sizeof(EelememtType) * (H->size));
+//     memset(&H->temp[0], 0, sizeof(EelememtType) * (H->capacity));
+
+//     return max;
+// }
+
+
+// void medianFinderAddNum(MedianFinder* obj, int num) {
+//     EelememtType elem = { num };
+//     EnQueue(obj, elem);
+// }
+
+// double medianFinderFindMedian(MedianFinder* obj) {
+//     int size = QuqueSize(obj);
+
+//     if (size % 2 == 0) {
+//         int po1 = (int)(size / 2);
+//         int po2 = (int)(size / 2) - 1;
+//         int val1 = obj->elems[po1].intVal;
+//         int val2 = obj->elems[po2].intVal;
+
+//         return (double)(((double)val1 + (double)val2) / 2);
+//     } else {
+//         int po = (int)(size / 2);
+//         return (double)obj->elems[po].intVal;
+//     }
+// }
+
+// void medianFinderFree(MedianFinder* obj) {
+//     Destroy(obj);
+// }
+// ---------------------------解法 结束-----------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+// ---------------------------解法 开始----------使用两个优先队列，大小顶堆将数据分为两部分 形成对端优先队列---------------------------------------------------
+// typedef struct {
+//     VosPriQue *priQueueBig;   // 大顶堆，用来存储数据小的部分
+//     VosPriQue *priQueueSmall;  // 小顶堆，用来存储数据大的部分
+// } MedianFinder;
+
+
+// int32_t cmpFunc2(uintptr_t data1, uintptr_t data2)
+// {
+//     return (int32_t)(data2 - data1);
+// }
+
+
+// MedianFinder* medianFinderCreate() {
+//     MedianFinder *obj = (MedianFinder *)malloc(sizeof(MedianFinder));
+//     obj->priQueueBig = VOS_PriQueCreate(VOS_IntCmpFunc, NULL);
+//     obj->priQueueSmall = VOS_PriQueCreate(cmpFunc2, NULL);
+//     return obj;
+// }
+
+
+// void medianFinderAddNum(MedianFinder* obj, int num) {
+//     VosPriQue *priQueueBig = obj->priQueueBig;   // 大顶堆，用来存储数据小的部分
+//     VosPriQue *priQueueSmall = obj->priQueueSmall;  // 小顶堆，用来存储数据大的部分
+
+//     int bigSize = VOS_PriQueSize(priQueueBig);
+//     int smallSize = VOS_PriQueSize(priQueueSmall);
+
+
+//     if (bigSize == smallSize) {
+//         // 保持大顶堆的元素数量大于小顶堆的数量
+//         if (bigSize == 0  || num <= VOS_PriQueTop(priQueueBig)) {
+//             VOS_PriQuePush(priQueueBig, num);
+//         } else {
+//             VOS_PriQuePush(priQueueSmall, num);
+//             VOS_PriQuePush(priQueueBig, VOS_PriQueTop(priQueueSmall));
+//             VOS_PriQuePop(priQueueSmall);
+//         }
+//     } else {
+//         // 大顶堆的元素数量大于小顶堆
+//         if (num > VOS_PriQueTop(priQueueBig)) {
+//             VOS_PriQuePush(priQueueSmall, num);
+//         } else {
+//             VOS_PriQuePush(priQueueBig, num);
+//             VOS_PriQuePush(priQueueSmall, VOS_PriQueTop(priQueueBig));  // 新加入也可被弹出
+//             VOS_PriQuePop(priQueueBig);
+//         }
+//     }
+// }
+
+// double medianFinderFindMedian(MedianFinder* obj) {
+//     VosPriQue *priQueueBig = obj->priQueueBig;   // 大顶堆，用来存储数据小的部分
+//     VosPriQue *priQueueSmall = obj->priQueueSmall;  // 小顶堆，用来存储数据大的部分
+
+//     int bigSize = VOS_PriQueSize(priQueueBig);
+//     int smallSize = VOS_PriQueSize(priQueueSmall);
+
+//     if (bigSize == smallSize) {
+//         return (double)(VOS_PriQueTop(priQueueBig) + VOS_PriQueTop(priQueueSmall)) / 2.0;
+//     } else {
+//         return (double)VOS_PriQueTop(priQueueBig);
+//     }
+// }
+
+// void medianFinderFree(MedianFinder* obj) {
+//     VOS_PriQueDestroy(obj->priQueueBig);
+//     VOS_PriQueDestroy(obj->priQueueSmall);
+//     free(obj);
+// }
+// ---------------------------解法 结束-----------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+// ---------------------------解法 开始----------使用两个优先队列，大小顶堆将数据分为两部分 形成对端优先队列---------------------------------------------------
+typedef struct userData {
+    int val;
+} UserData;
+
+int32_t cmpFunc1(uintptr_t data1, uintptr_t data2)
+{
+    UserData *tmpData1 = (UserData *)data1;
+    UserData *tmpData2 = (UserData *)data2;
+
+    /* 此处比较时，要防止key的未使用空间脏数据的影响 */
+    return tmpData1->val - tmpData2->val;
+}
+
+int32_t cmpFunc2(uintptr_t data1, uintptr_t data2)
+{
+    UserData *tmpData1 = (UserData *)data1;
+    UserData *tmpData2 = (UserData *)data2;
+
+    return tmpData2->val - tmpData1->val;
+}
+void *dupFunc(void *src)
+{
+    UserData *tmpSrc = (UserData *)src;
+
+    UserData *data = (UserData *)malloc(sizeof(UserData));
+    (void)memset_s(data, sizeof(UserData), 0, sizeof(UserData));
+
+    data->val = tmpSrc->val;
+    return data;
+}
+
+
+uint32_t AddOneData(VosPriQue *priQueue, int val)
+{
+    UserData data = { 0 };
+    data.val = val;
+
+    return VOS_PriQuePush(priQueue,(uintptr_t)&data);
+}
+
+typedef struct {
+    VosPriQue *priQueueBig;   // 大顶堆，用来存储数据小的部分
+    VosPriQue *priQueueSmall;  // 小顶堆，用来存储数据大的部分
+} MedianFinder;
+
+
+MedianFinder* medianFinderCreate() {
+    MedianFinder *obj = (MedianFinder *)malloc(sizeof(MedianFinder));
+
+    VosDupFreeFuncPair dataFunc = {dupFunc, free};
+    obj->priQueueBig = VOS_PriQueCreate(cmpFunc1, &dataFunc);
+    obj->priQueueSmall = VOS_PriQueCreate(cmpFunc2, &dataFunc);
+    return obj;
+}
+
+
+void medianFinderAddNum(MedianFinder* obj, int num) {
+    VosPriQue *priQueueBig = obj->priQueueBig;   // 大顶堆，用来存储数据小的部分
+    VosPriQue *priQueueSmall = obj->priQueueSmall;  // 小顶堆，用来存储数据大的部分
+
+    int bigSize = VOS_PriQueSize(priQueueBig);
+    int smallSize = VOS_PriQueSize(priQueueSmall);
+
+
+    if (bigSize == smallSize) {
+        // 保持大顶堆的元素数量大于小顶堆的数量
+        UserData *data = (UserData *)VOS_PriQueTop(priQueueBig);
+        if (bigSize == 0  || num <= data->val) {
+            AddOneData(priQueueBig, num);
+        } else {
+            AddOneData(priQueueSmall, num);
+            data = (UserData *)VOS_PriQueTop(priQueueSmall);
+            AddOneData(priQueueBig, data->val);
+            VOS_PriQuePop(priQueueSmall);
+        }
+    } else {
+        // 大顶堆的元素数量大于小顶堆
+        UserData *data = (UserData *)VOS_PriQueTop(priQueueBig);
+        if (num > data->val) {
+            AddOneData(priQueueSmall, num);
+        } else {
+            AddOneData(priQueueBig, num);
+            UserData *data = (UserData *)VOS_PriQueTop(priQueueBig);
+            AddOneData(priQueueSmall, data->val);  // 新加入也可被弹出
+            VOS_PriQuePop(priQueueBig);
+        }
+    }
+}
+
+double medianFinderFindMedian(MedianFinder* obj) {
+    VosPriQue *priQueueBig = obj->priQueueBig;   // 大顶堆，用来存储数据小的部分
+    VosPriQue *priQueueSmall = obj->priQueueSmall;  // 小顶堆，用来存储数据大的部分
+
+    int bigSize = VOS_PriQueSize(priQueueBig);
+    int smallSize = VOS_PriQueSize(priQueueSmall);
+
+    if (bigSize == smallSize) {
+        UserData *bigTop = (UserData *)VOS_PriQueTop(priQueueBig);
+        UserData *smallTop = (UserData *)VOS_PriQueTop(priQueueSmall);
+
+        return (double)(bigTop->val + smallTop->val) / 2.0;
+    } else {
+        UserData *bigTop = (UserData *)VOS_PriQueTop(priQueueBig);
+        return (double)bigTop->val;
+    }
+}
+
+void medianFinderFree(MedianFinder* obj) {
+    VOS_PriQueDestroy(obj->priQueueBig);
+    VOS_PriQueDestroy(obj->priQueueSmall);
+    free(obj);
+}
+// ---------------------------解法 结束-----------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+int main() {
+    MedianFinder* obj = medianFinderCreate();
+
+    medianFinderAddNum(obj, 6);
+    double param_2 = medianFinderFindMedian(obj);    // 6   (6)
+    medianFinderAddNum(obj, 10);
+    param_2 = medianFinderFindMedian(obj);   // 6 10    (8)
+
+    medianFinderAddNum(obj, 2);
+    param_2 = medianFinderFindMedian(obj);   // 2  6  10    (6)
+
+    medianFinderAddNum(obj, 6);
+    param_2 = medianFinderFindMedian(obj);   // 2  6  6  10    (6)
+
+    medianFinderAddNum(obj, 5);
+    param_2 = medianFinderFindMedian(obj);    // 2   5  6  6  10    (6)
+
+    medianFinderAddNum(obj, 6);
+    param_2 = medianFinderFindMedian(obj);   // 2   5  6  6  6  10    (6)
+
+    medianFinderAddNum(obj, 3);
+    param_2 = medianFinderFindMedian(obj);   // 2  3  5  6  6  6  10    (6)
+
+    medianFinderAddNum(obj, 1);
+    param_2 = medianFinderFindMedian(obj);   // 1  2  3  5  6  6  6  10    (5.5)
+
+    medianFinderAddNum(obj, 0);
+    param_2 = medianFinderFindMedian(obj);  // 0  1  2  3  5  6  6  6  10    (5)
+
+    medianFinderAddNum(obj, 0);
+    param_2 = medianFinderFindMedian(obj);  // 0  0  1  2  3  5  6  6  6  10    (4)
+
+    medianFinderAddNum(obj, 10);
+    param_2 = medianFinderFindMedian(obj);  // 0  0  1  2  3  5  6  6  6  10  10   (5)
+
+    medianFinderAddNum(obj, 10);
+    param_2 = medianFinderFindMedian(obj);  // 0  0  1  2  3  5  6  6  6  10  10  10  (5.5)
+
+    medianFinderAddNum(obj, 10);
+    param_2 = medianFinderFindMedian(obj);  // 0  0  1  2  3  5  6  6  6  10  10  10  10  (6)
+
+
+    medianFinderFree(obj);
+
+    return 0;
+}
+

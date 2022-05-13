@@ -1,0 +1,174 @@
+/******************************************************************************
+ * 版权所有 (c)
+ * 功能描述   : leetcode 1818. 绝对差值和   https://leetcode.cn/problems/minimum-absolute-sum-difference/
+ * 作    者   :
+ * 生成日期   :
+ ******************************************************************************/
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdbool.h>
+#include <uthash.h>
+#include <math.h>
+#include <assert.h>
+// 如需使用华为安全函数，请加上 #include "securec.h"
+// #include "securec.h"
+
+
+
+/*
+1818. 绝对差值和
+给你两个正整数数组 nums1 和 nums2 ，数组的长度都是 n 。
+
+数组 nums1 和 nums2 的 绝对差值和 定义为所有 |nums1[i] - nums2[i]|（0 <= i < n）的 总和（下标从 0 开始）。
+
+你可以选用 nums1 中的 任意一个 元素来替换 nums1 中的 至多 一个元素，以 最小化 绝对差值和。
+
+在替换数组 nums1 中最多一个元素 之后 ，返回最小绝对差值和。因为答案可能很大，所以需要对 109 + 7 取余 后返回。
+
+|x| 定义为：
+
+如果 x >= 0 ，值为 x ，或者
+如果 x <= 0 ，值为 -x
+ 
+
+示例 1：
+
+输入：nums1 = [1,7,5], nums2 = [2,3,5]
+输出：3
+解释：有两种可能的最优方案：
+- 将第二个元素替换为第一个元素：[1,7,5] => [1,1,5] ，或者
+- 将第二个元素替换为第三个元素：[1,7,5] => [1,5,5]
+两种方案的绝对差值和都是 |1-2| + (|1-3| 或者 |5-3|) + |5-5| = 3
+示例 2：
+
+输入：nums1 = [2,4,6,8,10], nums2 = [2,4,6,8,10]
+输出：0
+解释：nums1 和 nums2 相等，所以不用替换元素。绝对差值和为 0
+示例 3：
+
+输入：nums1 = [1,10,4,4,2,7], nums2 = [9,3,5,1,7,4]
+输出：20
+解释：将第一个元素替换为第二个元素：[1,10,4,4,2,7] => [10,10,4,4,2,7]
+绝对差值和为 |10-9| + |10-3| + |4-5| + |4-1| + |2-7| + |7-4| = 20
+ 
+
+提示：
+
+n == nums1.length
+n == nums2.length
+1 <= n <= 105
+1 <= nums1[i], nums2[i] <= 105
+*/
+
+
+
+
+// ---------------------------解法 开始--------hash-------------------------------------
+#define MAX_ARRAY_LEN 100010
+#define MAX_NUM_VAL 100010
+#define MOD 1000000007
+
+typedef struct TwoArr {
+    int arr1;
+    int arr2;
+    int diff;
+} TwoArr;
+TwoArr g_arr[MAX_ARRAY_LEN];
+int CompareStrcut(const void *a, const void* b)
+{
+    TwoArr *structA = (TwoArr *)a;
+    TwoArr *structB = (TwoArr *)b;
+
+    return structB->diff - structA->diff;
+}
+
+bool g_arrEle[2][MAX_NUM_VAL];
+
+int minAbsoluteSumDiff(int* nums1, int nums1Size, int* nums2, int nums2Size)
+{
+    unsigned long long res = 0;
+    memset(g_arr, 0, sizeof(g_arr));
+    memset(g_arrEle, 0, sizeof(g_arrEle));
+    for (int i = 0; i < nums1Size; i++) {
+        g_arr[i].arr1 = nums1[i];
+        g_arr[i].arr2 = nums2[i];
+        g_arr[i].diff = abs(nums1[i] - nums2[i]);
+        res = (res + g_arr[i].diff ) % (MOD * 2);
+        g_arrEle[0][nums1[i]] = true;
+        g_arrEle[1][nums2[i]] = true;
+    }
+
+    unsigned long long max = 0;
+    qsort(g_arr, nums1Size, sizeof(TwoArr), CompareStrcut);
+    for (int i = 0; i < nums1Size; i++) {
+        if (g_arr[i].diff == 0) {
+            break;
+        } else {
+            int temp = g_arr[i].diff;
+            if (max >= temp) {
+                break;
+            }
+
+            for (; temp > max; temp--) {
+                int a = g_arr[i].diff - temp;
+                if ((g_arr[i].arr2 - a >= 0 && g_arrEle[0][g_arr[i].arr2 - a] == true) ||
+                    (g_arr[i].arr2 + a < MAX_NUM_VAL && g_arrEle[0][g_arr[i].arr2 + a] == true)) {
+                    max = fmax(max, temp);
+                    break;
+                }
+            }
+        }
+    }
+
+    return (int)((res - max) % MOD);
+}
+// ---------------------------解法 结束-------------------------------------------------------
+
+
+
+
+
+int main(void)
+{
+    int nums1_1[] = { 1,7,5 };
+    int nums1Size_1 = sizeof(nums1_1) / sizeof(nums1_1[0]);
+    int nums2_1[] = { 2,3,5 };
+    int nums2Size_1 = sizeof(nums2_1) / sizeof(nums2_1[0]); 
+    int res_1 = minAbsoluteSumDiff(nums1_1, nums1Size_1, nums2_1, nums2Size_1);
+    assert(res_1 == 3);
+
+
+    int nums1_2[] = { 2,4,6,8,10 };
+    int nums1Size_2 = sizeof(nums1_2) / sizeof(nums1_2[0]);
+    int nums2_2[] = { 2,4,6,8,10 };
+    int nums2Size_2 = sizeof(nums2_2) / sizeof(nums2_2[0]); 
+    int res_2 = minAbsoluteSumDiff(nums1_2, nums1Size_2, nums2_2, nums2Size_2);
+    assert(res_2 == 0);
+
+
+    int nums1_3[] = { 1,10,4,4,2,7 };
+    int nums1Size_3 = sizeof(nums1_3) / sizeof(nums1_3[0]);
+    int nums2_3[] = { 9,3,5,1,7,4 };
+    int nums2Size_3 = sizeof(nums2_3) / sizeof(nums2_3[0]); 
+    int res_3 = minAbsoluteSumDiff(nums1_3, nums1Size_3, nums2_3, nums2Size_3);
+    assert(res_3 == 20);
+
+
+    int nums1_4[] = { 5000, 5000, 5000 };
+    int nums1Size_4 = sizeof(nums1_4) / sizeof(nums1_4[0]);
+    int nums2_4[] = { 1,1,1 };
+    int nums2Size_4 = sizeof(nums2_4) / sizeof(nums2_4[0]); 
+    int res_4 = minAbsoluteSumDiff(nums1_4, nums1Size_4, nums2_4, nums2Size_4);
+    assert(res_4 == 14997);
+
+
+    int nums1_5[] = { 53,48,14,71,31,55,6,80,28,19,15,40,7,21,69,15,5,42,86,15,11,54,44,62,9,100,2,26,81,87,87,18,45,29,46,100,20,87,49,86,14,74,74,52,52,60,8,25,21,96,7,90,91,42,32,34,55,20,66,36,64,67,44,51,4,46,25,57,84,23,10,84,99,33,51,28,59,88,50,41,59,69,59,65,78,50,78,50,39,91,44,78,90,83,55,5,74,96,77,46 };
+    int nums1Size_5 = sizeof(nums1_5) / sizeof(nums1_5[0]);
+    int nums2_5[] = { 39,49,64,34,80,26,44,3,92,46,27,88,73,55,66,10,4,72,19,37,40,49,40,58,82,32,36,91,62,21,68,65,66,55,44,24,78,56,12,79,38,53,36,90,40,73,92,14,73,89,28,53,52,46,84,47,51,31,53,22,24,14,83,75,97,87,66,42,45,98,29,82,41,36,57,95,100,2,71,34,43,50,66,52,6,43,94,71,93,61,28,84,7,79,23,48,39,27,48,79 };
+    int nums2Size_5 = sizeof(nums2_5) / sizeof(nums2_5[0]); 
+    int res_5 = minAbsoluteSumDiff(nums1_5, nums1Size_5, nums2_5, nums2Size_5);
+    assert(res_5 == 14997);
+
+    return 0;
+}

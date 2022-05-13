@@ -1,0 +1,43 @@
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <stdbool.h>
+#include <math.h>
+#include <assert.h>
+
+/*
+ * leetcode 215. 数组中的第K个最大元素   https://leetcode-cn.com/problems/kth-largest-element-in-an-array/
+ * 
+ */
+
+// ---------------------------解法一 开始--------------------------------------------------------
+int CompareInt(const void *a, const void* b)
+{
+    return  *(int *)b - *(int *)a;
+}
+
+int findKthLargest(int* nums, int numsSize, int k){
+    
+    qsort(nums, numsSize, sizeof(int), CompareInt);
+
+    return nums[k-1];
+}
+
+
+// ---------------------------解法一 结束--------------------------------------------------------
+int main() {
+    int nums_1[] =  { 3,2,1,5,6,4 };
+    int numsSize_1 = sizeof(nums_1) / sizeof (nums_1[0]);
+    int k_1 = 2;
+    int result_1 = findKthLargest(nums_1, numsSize_1, k_1);
+    assert(result_1 == 5);
+
+    int nums_2[] =  { 3,2,3,1,2,4,5,5,6 };
+    int numsSize_2 = sizeof(nums_2) / sizeof (nums_2[0]);
+    int k_2 = 4;
+    int result_2 = findKthLargest(nums_2, numsSize_2, k_2);
+    assert(result_2 == 4);
+
+
+    return 0;
+}

@@ -1,0 +1,526 @@
+/******************************************************************************
+ * 版权所有 (c)
+ * 功能描述   : leetcode 321. 拼接最大数. https://leetcode-cn.com/problems/create-maximum-number/
+ * 作    者   :
+ * 生成日期   :
+
+ * 
+      --- 
+ ******************************************************************************/
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdbool.h>
+#include <uthash.h>
+#include <math.h>
+#include <assert.h>
+// 如需使用华为安全函数，请加上 #include "securec.h"
+// #include "securec.h"
+#include "vos_priorityqueue.h"
+
+
+
+
+
+/*
+321. 拼接最大数
+给定长度分别为 m 和 n 的两个数组，其元素由 0-9 构成，表示两个自然数各位上的数字。现在从这两个数组中选出 k (k <= m + n) 个数字拼接成一个新的数，要求从同一个数组中取出的数字保持其在原数组中的相对顺序。
+
+求满足该条件的最大数。结果返回一个表示该最大数的长度为 k 的数组。
+
+说明: 请尽可能地优化你算法的时间和空间复杂度。
+
+示例 1:
+
+输入:
+nums1 = [3, 4, 6, 5]
+nums2 = [9, 1, 2, 5, 8, 3]
+k = 5
+输出:
+[9, 8, 6, 5, 3]
+示例 2:
+
+输入:
+nums1 = [6, 7]
+nums2 = [6, 0, 4]
+k = 5
+输出:
+[6, 7, 6, 0, 4]
+示例 3:
+
+输入:
+nums1 = [3, 9]
+nums2 = [8, 9]
+k = 3
+输出:
+[9, 8, 9]
+*/
+
+
+
+
+
+// ---------------------------解法 开始-----暴力遍历: -----------------------------------------------------
+
+// ---------------------------解法 结束---------------------------------------------------------------------
+
+
+
+
+
+
+
+// ---------------------------解法 开始-----BFS 递归模板: -----------------------------------------------------
+
+// ---------------------------解法 结束---------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+// ---------------------------解法 开始-----BFS 迭代模板: -----------------------------------------------------
+
+// ---------------------------解法 结束-----------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+// ---------------------------解法 开始-----DFS 递归模板: -----------------------------------------------------
+
+// ---------------------------解法 结束----------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+// ---------------------------解法 开始-----DFS 迭代模板: --------------------------------------------------
+
+// ---------------------------解法 结束----------------------------------------------------------------------
+
+
+
+
+
+
+
+
+// ---------------------------解法 开始-----回溯 迭代模板: --------------------------------------------------
+
+// ---------------------------解法 结束----------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+// ---------------------------解法 开始-----动态规划 记忆化搜索: ---------------------
+
+
+// ---------------------------解法 结束----------------------------------------------------------------------
+
+
+
+
+
+
+
+// ---------------------------解法 开始-----动态规划 按顺序递推-----------------------------------------------------
+
+// ---------------------------解法 结束--------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+// ---------------------------解法 开始-----贪心 --------------------------------------------------------
+
+// ---------------------------解法 结束------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// ---------------------------解法 开始-----------单调栈------------------------------------------------
+#define MAX_STACK_LEN (15)
+
+typedef struct Elem {
+    int val;
+    int position;
+    char charter;
+} Elem;
+
+typedef struct Stack {
+    int top;
+    Elem elems[MAX_STACK_LEN];
+    int size;
+    int capacity;
+} Stack;
+
+Stack *StackInit(int capacity)
+{
+    Stack *stack = (Stack *)malloc(sizeof(Stack));
+    memset(stack, 0, sizeof(Stack));
+    stack->capacity = (capacity == 0) ? MAX_STACK_LEN: capacity;
+    stack->size = 0;
+    stack->top = -1;
+    return stack;
+}
+
+void StackDestory(Stack* stack)
+{
+    free(stack);
+}
+
+bool StackIsEmpty(Stack* stack)
+{
+    return stack->size == 0;
+}
+
+
+bool StackIsFull(Stack* stack)
+{
+    return stack->size == stack->capacity;
+}
+
+int StackSize(Stack* stack)
+{
+    return stack->size;
+}
+
+void StackPrint(Stack* stack)
+{
+    for (int i = 0; i < stack->size; i++) {
+        printf("{%c %d %d }-->", stack->elems[i].charter, stack->elems[i].val, stack->elems[i].position);
+    }
+    printf("\n");
+}
+
+int Compare(Elem A, Elem B)
+{
+    return (long long)A.val - (long long)B.val;   // 如果B是负数，可能超过int范围
+}
+
+void StackPush(Stack* stack, Elem newElem)
+{
+    if (stack->size >= stack->capacity) {
+        printf("stack full error \n");
+        return;
+    }
+
+    stack->elems[++stack->top] = newElem;
+    stack->size++;
+}
+
+Elem StackPeek(Stack* stack)
+{
+    if (stack->size == 0) {
+        printf("stack empty error \n");
+        Elem ZeroElem = { 0 };
+        return ZeroElem;
+    }
+
+    return stack->elems[stack->top];
+}
+
+
+void StackPop(Stack* stack)
+{
+    if (stack->size == 0) {
+        printf("stack empty error \n");
+        return;
+    }
+
+    Elem ZeroElem = { 0 };
+    stack->elems[stack->top--] = ZeroElem;
+    stack->size--;
+}
+
+
+// bool OrderStackPushCheckIsEmpty(Stack* stack, Elem newElem)
+// {
+//     // 将所有比当前元素小的元素出栈
+//     while ((!StackIsEmpty(stack)) && (Compare(newElem, StackPeek(stack)) >= 0)) {
+//         StackPop(stack);
+//     }
+
+//     return StackIsEmpty(stack) ? true: false;
+// }
+
+
+
+#define MAX_RES_LEN MAX_STACK_LEN
+
+int array1[MAX_RES_LEN];
+int array2[MAX_RES_LEN];
+
+
+
+
+
+int compare(int* subseq1, int subseq1Size, int index1, int* subseq2, int subseq2Size, int index2) {
+    while (index1 < subseq1Size && index2 < subseq2Size) {
+        int difference = subseq1[index1] - subseq2[index2];
+        if (difference != 0) {
+            return difference;
+        }
+        index1++;
+        index2++;
+    }
+    return (subseq1Size - index1) - (subseq2Size - index2); // 谁还有剩余选谁,  0  03 选03
+}
+
+
+int* merge(int* subseq1, int subseq1Size, int* subseq2, int subseq2Size)
+{
+    int mergeLength = subseq1Size + subseq2Size;
+    int* merged = (int*)malloc(sizeof(int) * (subseq1Size + subseq2Size));
+    memset(merged, 0, sizeof(int) * (subseq1Size + subseq2Size));
+    if (subseq1Size == 0) {
+        memcpy(merged, subseq2, sizeof(int) * (subseq2Size));
+        return merged;
+    }
+    if (subseq2Size == 0) {
+        memcpy(merged, subseq1, sizeof(int) * (subseq1Size));
+        return merged;
+    }
+
+    int index1 = 0, index2 = 0;
+    for (int i = 0; i < mergeLength; i++) {
+        if (compare(subseq1, subseq1Size, index1, subseq2, subseq2Size, index2) > 0) {
+            merged[i] = subseq1[index1++];
+        } else {
+            merged[i] = subseq2[index2++];
+        }
+    }
+    return merged;
+}
+
+int* maxNumber(int* nums1, int nums1Size, int* nums2, int nums2Size, int k, int* returnSize)
+{
+    int *result = (int *)malloc(sizeof(int) * MAX_RES_LEN);
+    memset(result, 0, sizeof(int) * MAX_RES_LEN);
+    
+    for (int array1Num = fmax(k - nums2Size, 0); array1Num <= fmin(nums1Size, k); array1Num++) {
+        Stack *stack1 = StackInit(0);
+        int deleteNum1 = nums1Size - array1Num;
+        for (int i = 0; i < nums1Size; i++) {
+            // 将所有比当前元素小的元素出栈
+            Elem newElem = { nums1[i], 1, 'f' };
+            while ((!StackIsEmpty(stack1)) && (Compare(newElem, StackPeek(stack1)) > 0) && deleteNum1 > 0) { 
+                StackPop(stack1);
+                deleteNum1--;
+            }
+            StackPush(stack1, newElem);
+            // StackPrint(stack1);
+        }
+        memset(array1, 0, sizeof(array1));
+        for (int i = 0; i < array1Num; i++) {
+            array1[i] = stack1->elems[i].val;
+        }
+
+
+        Stack *stack2 = StackInit(0);
+        int deleteNum2 = nums2Size - (k - array1Num);
+        for (int i = 0; i < nums2Size; i++) {
+            // 将所有比当前元素小的元素出栈
+            Elem newElem = { nums2[i], 1, 'f' };
+            while ((!StackIsEmpty(stack2)) && (Compare(newElem, StackPeek(stack2)) > 0) && deleteNum2 > 0) { 
+                StackPop(stack2);
+                deleteNum2--;
+            }
+            StackPush(stack2, newElem);
+            // StackPrint(stack2);
+        }
+        memset(array2, 0, sizeof(array2));
+        for (int i = 0; i < (k - array1Num); i++) {
+            array2[i] = stack2->elems[i].val;
+        }
+
+
+        int* res = merge(array1, array1Num, array2, k - array1Num);
+        if (compare(result, k, 0, res, k, 0) < 0) {
+            memcpy(result, res, sizeof(int) * k);
+        }
+
+        StackDestory(stack1);
+        StackDestory(stack2);
+        free(res);
+    }
+    
+
+    int *resultNoneZero = (int *)malloc(sizeof(int) * k);
+    memset(resultNoneZero, 0, sizeof(int) * k);
+    int resultNoneZeroLen = 0;
+
+
+    bool begin = 0;
+    for (int i = 0; i < k; i++) {
+        if ((begin == 0) && (result[i] != 0)) {
+            begin = 1;
+        }
+
+        if (begin == 1) {
+            resultNoneZero[resultNoneZeroLen++] = result[i];
+        }
+    }
+
+    if (resultNoneZeroLen == 0) {
+        resultNoneZero[0] = 0;
+        resultNoneZeroLen = 1;
+    }
+
+    *returnSize = resultNoneZeroLen;
+    return resultNoneZero;
+}
+
+// ---------------------------解法 结束-----------------------------------------------------------------------
+
+
+
+
+
+// ---------------------------解法 开始-----------单调队列------------------------------------------------
+
+// ---------------------------解法 结束-----------------------------------------------------------------------
+
+
+
+
+// ---------------------------解法 开始-----------优先队列------------------------------------------------
+
+// ---------------------------解法 结束-----------------------------------------------------------------------
+
+
+int main() {
+
+    int nums1_1[] = { 3, 4, 6, 5 };
+    int nums1Size_1 = sizeof(nums1_1) / sizeof (nums1_1[0]);
+    int nums2_1[] = { 9, 1, 2, 5, 8, 3 };
+    int nums2Size_1 = sizeof(nums2_1) / sizeof (nums2_1[0]);
+    int k_1 = 5;
+    int returnSize_1 = 4564342;
+    int *res_1 = maxNumber(nums1_1, nums1Size_1, nums2_1, nums2Size_1, k_1, &returnSize_1);          // "9, 8, 6, 5, 3"
+    for (int i = 0; i < returnSize_1; i++) {
+        printf("%d ", res_1[i]);  
+    }
+    printf("\n");  
+
+
+
+
+    int nums1_2[] = { 6, 7 };
+    int nums1Size_2 = sizeof(nums1_2) / sizeof (nums1_2[0]);
+    int nums2_2[] = { 6, 0, 4 };
+    int nums2Size_2 = sizeof(nums2_2) / sizeof (nums2_2[0]);
+    int k_2 = 5;
+    int returnSize_2 = 4564342;
+    int *res_2 = maxNumber(nums1_2, nums1Size_2, nums2_2, nums2Size_2, k_2, &returnSize_2);          // "6, 7, 6, 0, 4"
+    for (int i = 0; i < returnSize_2; i++) {
+        printf("%d ", res_2[i]);  
+    }
+    printf("\n");  
+
+
+    int nums1_3[] = { 3, 9 };
+    int nums1Size_3 = sizeof(nums1_3) / sizeof (nums1_3[0]);
+    int nums2_3[] = { 8, 9 };
+    int nums2Size_3 = sizeof(nums2_3) / sizeof (nums2_3[0]);
+    int k_3 = 3;
+    int returnSize_3 = 4564342;
+    int *res_3 = maxNumber(nums1_3, nums1Size_3, nums2_3, nums2Size_3, k_3, &returnSize_3);          // "9, 8, 9"
+    for (int i = 0; i < returnSize_3; i++) {
+        printf("%d ", res_3[i]);  
+    }
+    printf("\n");  
+
+
+
+    int nums1_4[] = { 0, 0, 0, 0 };
+    int nums1Size_4 = sizeof(nums1_4) / sizeof (nums1_4[0]);
+    int nums2_4[] = { 0, 0, 0, 0, 0, 0 };
+    int nums2Size_4 = sizeof(nums2_4) / sizeof (nums2_4[0]);
+    int k_4 = 5;
+    int returnSize_4 = 4564342;
+    int *res_4 = maxNumber(nums1_4, nums1Size_4, nums2_4, nums2Size_4, k_4, &returnSize_4);          // "0"
+    for (int i = 0; i < returnSize_4; i++) {
+        printf("%d ", res_4[i]);  
+    }
+    printf("\n");  
+
+
+    int nums1_5[] = { 0, 0, 0, 1 };
+    int nums1Size_5 = sizeof(nums1_5) / sizeof (nums1_5[0]);
+    int nums2_5[] = { 0, 0, 0, 0, 0, 3 };
+    int nums2Size_5 = sizeof(nums2_5) / sizeof (nums2_5[0]);
+    int k_5 = 2;
+    int returnSize_5 = 4564342;
+    int *res_5 = maxNumber(nums1_5, nums1Size_5, nums2_5, nums2Size_5, k_5, &returnSize_5);          // "3 , 1"
+    for (int i = 0; i < returnSize_5; i++) {
+        printf("%d ", res_5[i]);  
+    }
+    printf("\n");  
+
+
+
+
+    int nums1_6[] = { 2,5,6,4,4,0 };
+    int nums1Size_6 = sizeof(nums1_6) / sizeof (nums1_6[0]);
+    int nums2_6[] = { 7,3,8,0,6,5,7,6,2 };
+    int nums2Size_6 = sizeof(nums2_6) / sizeof (nums2_6[0]);
+    int k_6 = 15;
+    int returnSize_6 = 4564342;
+    int *res_6 = maxNumber(nums1_6, nums1Size_6, nums2_6, nums2Size_6, k_6, &returnSize_6);          // "7,3,8,2,5,6,4,4,0,6,5,7,6,2,0"
+    for (int i = 0; i < returnSize_6; i++) {
+        printf("%d ", res_6[i]);  
+    }
+    printf("\n");  
+
+
+
+
+
+
+    return 0;
+}
+

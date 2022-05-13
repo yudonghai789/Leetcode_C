@@ -1,0 +1,156 @@
+/******************************************************************************
+ * 版权所有 (c)
+ * 功能描述   : leetcode 576. 出界的路径数  https://leetcode-cn.com/problems/out-of-boundary-paths/
+ * 作    者   :
+ * 生成日期   :
+ * https://leetcode-cn.com/problems/out-of-boundary-paths/solution/gong-shui-san-xie-yi-ti-shuang-jie-ji-yi-asrz/
+ https://leetcode-cn.com/leetbook/detail/path-problems-in-dynamic-programming/
+ ******************************************************************************/
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdbool.h>
+#include <uthash.h>
+#include <math.h>
+#include <assert.h>
+// 如需使用华为安全函数，请加上 #include "securec.h"
+// #include "securec.h"
+
+
+
+
+
+// ---------------------------解法 开始-----BFS 递归模板: -----------------------------------------------------
+
+// ---------------------------解法 结束-------------------------------------------------------------
+
+
+
+// ---------------------------解法 开始-----BFS 迭代模板: -----------------------------------------------------
+
+// ---------------------------解法 结束-------------------------------------------------------------
+
+
+
+
+
+// ---------------------------解法 开始-----DFS 递归模板: ----DFS+备忘录-------------------------------------------------
+// #define MOD 1000000007
+
+// #define MAX_STEP 51
+// #define MAX_SIZE 51
+
+// int g_memTable[MAX_SIZE][MAX_SIZE][MAX_STEP];
+
+// int g_movePostion[4][2] = {
+//     { 1, 0 },
+//     { -1, 0 },
+//     { 0, 1 },
+//     { 0, -1 },
+// };
+
+// int DfsReCursive(int m, int n, int maxMove, int startRow, int startColumn)
+// {
+//     if ((startRow < 0) || (startRow >= m) || (startColumn < 0) || (startColumn >= n)) {
+//         return 1;
+//     }
+//     if (maxMove <= 0) {
+//         return 0;
+//     }
+
+//     if (g_memTable[startRow][startColumn][maxMove] != 0xf0f0f0f0) {
+//         return g_memTable[startRow][startColumn][maxMove];
+//     }
+
+//     int thisRes = 0;
+//     for (int i = 0; i < 4; i++) {
+//         thisRes = (thisRes + (DfsReCursive(m, n, maxMove - 1, startRow + g_movePostion[i][0], startColumn + g_movePostion[i][1]) % MOD)) % MOD;
+//     }
+//     g_memTable[startRow][startColumn][maxMove] = thisRes;
+//     return thisRes;
+// }
+
+// int findPaths(int m, int n, int maxMove, int startRow, int startColumn)
+// {
+//     if (maxMove == 0) {
+//         return 0;
+//     }
+
+//     memset(g_memTable, 0xf0, sizeof(g_memTable));
+
+//     return DfsReCursive(m, n, maxMove, startRow, startColumn);
+// }
+// ---------------------------解法 结束-------------------------------------------------------------
+
+
+// ---------------------------解法 开始-----DFS 迭代模板: -----迭代的写法十分复杂，维护队列，栈十分困难--未完成----------------------------------------------
+
+// ---------------------------解法 结束-------------------------------------------------------------
+
+
+
+// ---------------------------解法 开始-----动态规划 -----将递归过程中的重复的递归过程记录下来------------------------------------------------
+#define MOD 1000000007
+
+#define MAX_STEP 51
+#define MAX_ROW 51
+#define MAX_COL 51
+
+
+int g_dpTable[MAX_ROW][MAX_COL][MAX_STEP];
+
+int g_movePostion[4][2] = {
+    { 1, 0 },
+    { -1, 0 },
+    { 0, 1 },
+    { 0, -1 },
+};
+int GetDp(int m, int n, int maxMove, int startRow, int startColumn)
+{
+    if ((startRow < 0) || (startRow >= m) || (startColumn < 0) || (startColumn >= n)) {
+        return 1;
+    }
+    if (maxMove <= 0) {
+        return 0;
+    }
+
+    return g_dpTable[startRow][startColumn][maxMove];
+}
+void Dp(int m, int n, int maxMove)
+{
+    for (int k = 1; k <= maxMove; k++) {
+        for (int i = 0; i < m; i++) {
+            for (int j = 0; j < n; j++) {
+                for (int dir = 0; dir < 4; dir++) {
+                    int preRow = i + g_movePostion[dir][0];
+                    int preCol = j + g_movePostion[dir][1];
+                    g_dpTable[i][j][k] = (g_dpTable[i][j][k] + (GetDp(m,n,k-1,preRow, preCol) % MOD)) % MOD;
+                }
+            }
+        }
+    }
+}
+
+int findPaths(int m, int n, int maxMove, int startRow, int startColumn)
+{
+    if (maxMove == 0) {
+        return 0;
+    }
+
+    memset(g_dpTable, 0, sizeof(g_dpTable));
+
+    Dp(m, n, maxMove);
+    return g_dpTable[startRow][startColumn][maxMove];
+}
+// ---------------------------解法 结束-------------------------------------------------------------
+
+
+
+
+
+
+int main()
+{
+    findPaths(1, 3, 3 ,0 ,1);
+    return 0;
+}

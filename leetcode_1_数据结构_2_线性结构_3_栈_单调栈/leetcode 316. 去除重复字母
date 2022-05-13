@@ -1,0 +1,368 @@
+/******************************************************************************
+ * 版权所有 (c)
+ * 功能描述   : leetcode 316. 去除重复字母. https://leetcode-cn.com/problems/remove-duplicate-letters/
+ * 作    者   :
+ * 生成日期   :
+
+ * 
+      --- 
+ ******************************************************************************/
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdbool.h>
+#include <uthash.h>
+#include <math.h>
+#include <assert.h>
+// 如需使用华为安全函数，请加上 #include "securec.h"
+// #include "securec.h"
+#include "vos_priorityqueue.h"
+
+
+
+
+
+/*
+316. 去除重复字母
+给你一个字符串 s ，请你去除字符串中重复的字母，使得每个字母只出现一次。需保证 返回结果的字典序最小（要求不能打乱其他字符的相对位置）。
+
+ 
+
+示例 1：
+
+输入：s = "bcabc"
+输出："abc"
+示例 2：
+
+输入：s = "cbacdcbc"
+输出："acdb"
+ 
+
+提示：
+
+1 <= s.length <= 104
+s 由小写英文字母组成
+*/
+
+
+
+
+
+// ---------------------------解法 开始-----暴力遍历: -----------------------------------------------------
+
+// ---------------------------解法 结束---------------------------------------------------------------------
+
+
+
+
+
+
+
+// ---------------------------解法 开始-----BFS 递归模板: -----------------------------------------------------
+
+// ---------------------------解法 结束---------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+// ---------------------------解法 开始-----BFS 迭代模板: -----------------------------------------------------
+
+// ---------------------------解法 结束-----------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+// ---------------------------解法 开始-----DFS 递归模板: -----------------------------------------------------
+
+// ---------------------------解法 结束----------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+// ---------------------------解法 开始-----DFS 迭代模板: --------------------------------------------------
+
+// ---------------------------解法 结束----------------------------------------------------------------------
+
+
+
+
+
+
+
+
+// ---------------------------解法 开始-----回溯 迭代模板: --------------------------------------------------
+
+// ---------------------------解法 结束----------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+// ---------------------------解法 开始-----动态规划 记忆化搜索: ---------------------
+
+
+// ---------------------------解法 结束----------------------------------------------------------------------
+
+
+
+
+
+
+
+// ---------------------------解法 开始-----动态规划 按顺序递推-----------------------------------------------------
+
+// ---------------------------解法 结束--------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+// ---------------------------解法 开始-----贪心 --------------------------------------------------------
+
+// ---------------------------解法 结束------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// ---------------------------解法 开始-----------单调栈------------------------------------------------
+#define MAX_STACK_LEN (10001)
+
+typedef struct Elem {
+    int val;
+    int position;
+    char charter;
+} Elem;
+
+typedef struct Stack {
+    int top;
+    Elem elems[MAX_STACK_LEN];
+    int size;
+    int capacity;
+} Stack;
+
+Stack *StackInit(int capacity)
+{
+    Stack *stack = (Stack *)malloc(sizeof(Stack));
+    memset(stack, 0, sizeof(Stack));
+    stack->capacity = (capacity == 0) ? MAX_STACK_LEN: capacity;
+    stack->size = 0;
+    stack->top = -1;
+    return stack;
+}
+
+void StackDestory(Stack* stack)
+{
+    free(stack);
+}
+
+bool StackIsEmpty(Stack* stack)
+{
+    return stack->size == 0;
+}
+
+
+bool StackIsFull(Stack* stack)
+{
+    return stack->size == stack->capacity;
+}
+
+int StackSize(Stack* stack)
+{
+    return stack->size;
+}
+
+void StackPrint(Stack* stack)
+{
+    for (int i = 0; i < stack->size; i++) {
+        printf("{%c %d %d }-->", stack->elems[i].charter, stack->elems[i].val, stack->elems[i].position);
+    }
+    printf("\n");
+}
+
+int Compare(Elem A, Elem B)
+{
+    return (long long)A.val - (long long)B.val;   // 如果B是负数，可能超过int范围
+}
+
+void StackPush(Stack* stack, Elem newElem)
+{
+    if (stack->size >= stack->capacity) {
+        printf("stack full error \n");
+        return;
+    }
+
+    stack->elems[++stack->top] = newElem;
+    stack->size++;
+}
+
+Elem StackPeek(Stack* stack)
+{
+    if (stack->size == 0) {
+        printf("stack empty error \n");
+        Elem ZeroElem = { 0 };
+        return ZeroElem;
+    }
+
+    return stack->elems[stack->top];
+}
+
+
+void StackPop(Stack* stack)
+{
+    if (stack->size == 0) {
+        printf("stack empty error \n");
+        return;
+    }
+
+    Elem ZeroElem = { 0 };
+    stack->elems[stack->top--] = ZeroElem;
+    stack->size--;
+}
+
+
+// bool OrderStackPushCheckIsEmpty(Stack* stack, Elem newElem)
+// {
+//     // 将所有比当前元素小的元素出栈
+//     while ((!StackIsEmpty(stack)) && (Compare(newElem, StackPeek(stack)) >= 0)) {
+//         StackPop(stack);
+//     }
+
+//     return StackIsEmpty(stack) ? true: false;
+// }
+
+
+
+#define MAX_RES_LEN 10001
+
+typedef struct CharNumMap {
+    char key;
+    int cnt;
+    bool inRes;
+} CharNumMap; 
+
+CharNumMap g_map[26];
+
+int GetCharIndex(char c)
+{
+    return c - 'a';
+}
+
+
+
+
+
+
+
+char * removeDuplicateLetters(char * s)
+{
+    int len =  strlen(s);
+
+    memset(g_map, 0, sizeof(g_map));
+    for (int i = 0; i < len; i++) {
+        g_map[GetCharIndex(s[i])].key = s[i];
+        g_map[GetCharIndex(s[i])].cnt++;
+    }
+
+    Stack *stack = StackInit(0);
+    for (int i = 0; i < len; i++) {
+        int index = GetCharIndex(s[i]);
+        Elem newElem = { index, i, s[i] };
+        // 将所有比当前元素小的元素出栈
+        while ((!StackIsEmpty(stack)) && (Compare(newElem, StackPeek(stack)) < 0) && g_map[newElem.val].inRes == false && g_map[StackPeek(stack).val].cnt > 0) {  // 1)当前字符不在栈内 2)之前的字母 字典序大，且后面还有该字母
+            g_map[StackPeek(stack).val].inRes = false;
+            StackPop(stack);
+        }
+
+        if (g_map[index].inRes == false) {
+            g_map[index].inRes = true;
+            StackPush(stack, newElem);
+        }
+        g_map[index].cnt--;
+        StackPrint(stack);
+    }
+
+
+    char *res = (char *)malloc(sizeof(char) * MAX_RES_LEN);
+    memset(res, 0, sizeof(char) * MAX_RES_LEN);
+    int resLen = 0;
+    for (int i = 0; i < StackSize(stack); i++) {
+        res[resLen++] = stack->elems[i].charter;
+    }
+
+    StackDestory(stack);
+    return res;
+}
+
+// ---------------------------解法 结束-----------------------------------------------------------------------
+
+
+
+
+
+// ---------------------------解法 开始-----------单调队列------------------------------------------------
+
+// ---------------------------解法 结束-----------------------------------------------------------------------
+
+
+
+
+// ---------------------------解法 开始-----------优先队列------------------------------------------------
+
+// ---------------------------解法 结束-----------------------------------------------------------------------
+
+
+int main() {
+
+    char string[] = "bcafdagfgfjytadasdbc";
+    removeDuplicateLetters(string);          // "adfgjytsbc"
+
+
+
+    return 0;
+}
+

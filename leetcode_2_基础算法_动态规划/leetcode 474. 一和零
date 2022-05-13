@@ -1,0 +1,179 @@
+/*
+ * Copyright (c) Huawei Technologies Co., Ltd. 2019-2020. All rights reserved.
+ */
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <stdbool.h>
+#include <uthash.h>
+// 如需使用华为安全函数，请加上 #include "securec.h"
+#include "securec.h"
+#include "systemDesgin.h"
+#include <math.h>
+#include <assert.h>
+
+
+/**
+ * leetcode 474. 一和零  https://leetcode-cn.com/problems/ones-and-zeroes/
+ * 二维费用  0 / 1 背包的问题， 数组中数只能用一次
+ */
+
+
+// ---------------------------解法一 从上到下递归   没有备忘录开始--------------------------------------------------------------------
+
+// ---------------------------解法一 结束--------------------------------------------------------
+
+
+// ---------------------------解法一 从上到下递归   有备忘录开始开始--------------------------------------------------------------------
+
+// ---------------------------解法一 结束--------------------------------------------------------
+
+
+// ---------------------------解法一 自底向上---解答错误，物品的二维费用失去了关联-----------------------------------
+// typedef struct Cost {
+//     int zoroCnt;
+//     int oneCnt;
+// } Cost;
+
+// Cost* GenCostList(char** strs, int strsSize)
+// {
+//     Cost* costList = (Cost*)malloc(sizeof(Cost) * strsSize);
+//     memset(costList, 0, sizeof(Cost) * strsSize);
+//     for (int i = 0; i < strsSize; i++) {
+//         for (int j = 0; j < strlen(strs[i]); j++) {
+//             if (strs[i][j] == '0') {
+//                 costList[i].zoroCnt++;
+//             }
+//             if (strs[i][j] == '1') {
+//                 costList[i].oneCnt++;
+//             }
+//         }
+//     }
+
+//     return costList;
+// }
+
+// #define MAX_STR_LENGTH 610
+// #define MAX_M_NUM 110
+// #define MAX_N_NUM 110
+// int dpM[MAX_STR_LENGTH][MAX_M_NUM];
+// int dpN[MAX_STR_LENGTH][MAX_N_NUM];
+// int findMaxForm(char** strs, int strsSize, int m, int n)
+// {
+//     Cost* costList = GenCostList(strs, strsSize);
+
+//     memset(dpM, 0, sizeof(dpM));
+//     for (int strPtr = 1; strPtr <= strsSize; strPtr++) {
+//         for (int zeroSun = 0; zeroSun <= m; zeroSun++) {
+//             dpM[strPtr][zeroSun] = dpM[strPtr - 1][zeroSun];
+//             if (zeroSun - (costList[strPtr - 1].zoroCnt) >= 0) {
+//                 dpM[strPtr][zeroSun] = fmax(dpM[strPtr - 1][zeroSun - (costList[strPtr - 1].zoroCnt)] + 1, dpM[strPtr - 1][zeroSun]);
+//             }
+//         }
+//     }
+
+//     memset(dpN, 0, sizeof(dpN));
+//     for (int strPtr = 1; strPtr <= strsSize; strPtr++) {
+//         for (int oneSun = 0; oneSun <= n; oneSun++) {
+//             dpN[strPtr][oneSun] = dpN[strPtr - 1][oneSun];
+//             if (oneSun - (costList[strPtr - 1].oneCnt) >= 0) {
+//                 dpN[strPtr][oneSun] = fmax(dpN[strPtr - 1][oneSun - (costList[strPtr - 1].oneCnt)] + 1, dpN[strPtr - 1][oneSun]);
+//             }
+//         }
+//     }
+
+//     free(costList);
+//     return fmin(dpM[strsSize][m], dpN[strsSize][n]);
+// }
+// ---------------------------解法一 结束--------------------------------------------------------
+
+
+// ---------------------------解法一 自底向上--------------------------------------------------------------------
+typedef struct Cost {
+    int zoroCnt;
+    int oneCnt;
+} Cost;
+
+Cost* GenCostList(char** strs, int strsSize)
+{
+    Cost* costList = (Cost*)malloc(sizeof(Cost) * strsSize);
+    memset(costList, 0, sizeof(Cost) * strsSize);
+    for (int i = 0; i < strsSize; i++) {
+        for (int j = 0; j < strlen(strs[i]); j++) {
+            if (strs[i][j] == '0') {
+                costList[i].zoroCnt++;
+            }
+            if (strs[i][j] == '1') {
+                costList[i].oneCnt++;
+            }
+        }
+    }
+
+    return costList;
+}
+
+#define MAX_STR_LENGTH 610
+#define MAX_M_NUM 110
+#define MAX_N_NUM 110
+int dp[MAX_STR_LENGTH][MAX_M_NUM][MAX_N_NUM];
+int findMaxForm(char** strs, int strsSize, int m, int n)
+{
+    Cost* costList = GenCostList(strs, strsSize);
+
+    memset(dp, 0, sizeof(dp));
+    for (int strPtr = 1; strPtr <= strsSize; strPtr++) {
+        for (int zeroSun = 0; zeroSun <= m; zeroSun++) {
+            for (int oneSun = 0; oneSun <= n; oneSun++) {
+                dp[strPtr][zeroSun][oneSun] = dp[strPtr - 1][zeroSun][oneSun];
+                if ((zeroSun - (costList[strPtr - 1].zoroCnt) >= 0) && (oneSun - (costList[strPtr - 1].oneCnt) >= 0)) {
+                    dp[strPtr][zeroSun][oneSun] = fmax(dp[strPtr - 1][zeroSun - (costList[strPtr - 1].zoroCnt)][oneSun - (costList[strPtr - 1].oneCnt)] + 1, dp[strPtr - 1][zeroSun][oneSun]);
+                }
+            }
+        }
+    }
+
+    free(costList);
+    return dp[strsSize][m][n];
+}
+// ---------------------------解法一 结束--------------------------------------------------------
+
+
+
+int main()
+{
+    char *strs_1[]= { "10", "0001", "111001", "1", "0" };
+    int strsSize_1 = sizeof(strs_1) / sizeof(strs_1[0]);
+    int m_1 = 5;
+    int n_1 = 3;
+    for (int i = 0; i < strsSize_1; i++) {
+        printf("%s \n", strs_1[i]);
+    }
+    int result_1 = findMaxForm(strs_1, strsSize_1, m_1, n_1);
+    assert(result_1 == 4);
+
+    char *strs_2[]= { "10", "0", "1" };
+    int strsSize_2 = sizeof(strs_2) / sizeof(strs_2[0]);
+    int m_2 = 1;
+    int n_2 = 1;
+    for (int i = 0; i < strsSize_2; i++) {
+        printf("%s \n", strs_2[i]);
+    }
+    int result_2 = findMaxForm(strs_2, strsSize_2, m_2, n_2);
+    assert(result_2 == 2);
+
+
+    char *strs_3[]= { "10","0001","111001","1","0" };
+    int strsSize_3 = sizeof(strs_3) / sizeof(strs_3[0]);
+    int m_3 = 4;
+    int n_3 = 3;
+    for (int i = 0; i < strsSize_3; i++) {
+        printf("%s \n", strs_3[i]);
+    }
+    int result_3 = findMaxForm(strs_3, strsSize_3, m_3, n_3);
+    assert(result_3 == 3);
+
+
+
+    return 0;
+}
+

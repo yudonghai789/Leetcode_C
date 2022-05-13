@@ -1,0 +1,77 @@
+/*
+ * Copyright (c) Huawei Technologies Co., Ltd. 2019-2020. All rights reserved.
+ */
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <stdbool.h>
+#include <uthash.h>
+// 如需使用华为安全函数，请加上 #include "securec.h"
+#include "securec.h"
+#include "systemDesgin.h"
+#include <math.h>
+#include <assert.h>
+
+
+
+
+/* leetcode 1143. 最长公共子序列  https://leetcode-cn.com/problems/longest-common-subsequence/
+ * 
+ */
+
+// ---------------------------解法一 开始-----------
+
+// ---------------------------解法一 结束--------------------------------------------------------
+
+// ---------------------------解法一 结束--------------------------------------------------------
+int dpRes[1003][1003];
+
+int longestCommonSubsequence(char * text1, char * text2)
+{
+    memset(dpRes, 0, sizeof(dpRes));
+
+    int strlen1 = strlen(text1);
+    int strlen2 = strlen(text2);
+
+    for (int i = 1; i <= strlen1; i++) {
+        for (int j = 1; j <= strlen2; j++) {
+            if (text1[i - 1] == text2[j - 1]) {
+                dpRes[i][j] = dpRes[i - 1][j - 1] + 1;
+            } else {
+                dpRes[i][j] = fmax(dpRes[i - 1][j], dpRes[i][j - 1]);
+            }
+        }
+    }
+
+    return dpRes[strlen1][strlen2];
+}
+// ---------------------------解法二 开始-----------
+
+
+// ---------------------------解法二 结束--------------------------------------------------------
+
+
+int main() {
+    char text1_1[8] = "abcde";
+    char text2_1[8] = "ace";
+    int result_1 = longestCommonSubsequence(text1_1, text2_1);
+    assert(result_1 == 3);
+
+
+    char text1_2[8] = "abc";
+    char text2_2[8] = "abc";
+    int result_2 = longestCommonSubsequence(text1_2, text2_2);
+    assert(result_2 == 3);
+
+
+    char text1_3[8] = "abc";
+    char text2_3[8] = "def";
+    int result_3 = longestCommonSubsequence(text1_3, text2_3);
+    assert(result_3 == 0);
+
+
+
+    return 0;
+}
+
+

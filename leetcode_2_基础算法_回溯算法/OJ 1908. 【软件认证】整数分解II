@@ -1,0 +1,209 @@
+/******************************************************************************
+ * 版权所有 (c)
+ * 功能描述   : OJ 1908. 【软件认证】整数分解II. https://oj.rnd.huawei.com/problems/1908/details
+ * 作    者   :
+ * 生成日期   :
+
+ * 
+      --- 
+ ******************************************************************************/
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdbool.h>
+#include <uthash.h>
+#include <math.h>
+#include <limits.h>
+#include <assert.h>
+// 如需使用华为安全函数，请加上 #include "securec.h"
+#include "securec.h"
+// #include "vos_priorityqueue.h"
+
+
+
+
+
+/*
+题目描述
+正整数 N 的 K-P 分解是指将 N 写成 K 个正整数的 P 次方的和，表示为：
+N = n[1]^P + ... n[K]^P
+
+其中 n[i] (i = 1, …, K) 是第 i 个分解因子。
+
+现给定正整数 N、K、P，请计算 N 的 K-P 分解，并按如下规则返回结果：
+
+如果有多个解，请找出分解因子的和最大的，并按降序返回分解因子的序列；
+如果分解因子的和最大的有多个，则选择序列最大的。序列比较方式：降序排列后，依次进行数值比较。
+如果无解，返回空序列 。
+解答要求
+时间限制：1000ms, 内存限制：256MB
+输入
+输入3 个正整数，N, K, P
+N取值范围[1, 400]
+K取值范围[1, N]
+P取值范围[2, 7]
+
+输出
+符合要求的序列
+
+样例
+输入样例 1 复制
+
+169 5 2
+输出样例 1
+
+[6 6 6 6 5]
+提示样例 1
+169 的 5-2 分解就存在 9 个解，如:12^2 + 4^2 + 2^2 + 2^2 + 1^2 或 11^2 + 6^2 + 2^2 + 2^2 + 2^2 或 6^2 + 6^2 + 6^2 + 6^2 + 5^2 等等，它们对应的分解因子的和分别为 12 + 4 + 2 + 2 + 1 = 21 、 11 + 6 + 2 + 2 + 2 = 23、 6 + 6 + 6 + 6 + 5 = 29，等等。
+分解因子的和最大为 29 且只有一个，降序输出该分解因子的序列为 [6 6 6 6 5] 。
+
+
+
+输入样例 2 复制
+
+169 167 3
+输出样例 2
+
+[]
+提示样例 2
+无解，返回空。
+
+
+
+输入样例 3 复制
+
+28 4 2
+输出样例 3
+
+[4 2 2 2]
+提示样例 3
+28 的 4-2 分解存在 3 个解，它们对应的分解因子的和分别为 3 + 3 + 3 + 1 = 10 、 4 + 2 + 2 + 2 = 10、 5 + 1 + 1 + 1 = 8，和最大值为 10 有两个序列，降序比较后最大的为 [4 2 2 2] 。
+
+*/
+
+
+
+
+// ---------------------------解法 ----N数之和问题---包含重复元素，结果不能重复的组合问题--------------------------------------------------
+#define MAX_RES_LEN 400
+typedef struct Trace {
+    int cnt;
+    int item[MAX_RES_LEN];
+    int itemSum;
+    int resSum; // 指数和
+
+    int maxitem[MAX_RES_LEN];
+    int maxItemSum;
+} Trace;
+
+
+void BackTrace(int nValue, int kValue, int pValue, int max, Trace* trace)
+{
+    if (trace->cnt == kValue && trace->resSum == nValue) {
+       if (trace->itemSum > trace->maxItemSum) {
+           trace->maxItemSum = trace->itemSum;
+           for (int i = 0; i < trace->cnt; i++) {
+               trace->maxitem[i] = trace->item[i];
+           }
+       }
+
+       return;
+    }
+
+    for (int i = max; i >= 1; i--) {
+        int addCnt = trace->cnt + 1;
+        int addResSum = trace->resSum + (int)pow(i, pValue);
+        if (addCnt > kValue || addResSum > nValue) {
+            continue;
+        }
+
+        trace->item[trace->cnt++] = i;
+        trace->itemSum += i;
+        trace->resSum = addResSum;
+        BackTrace(nValue, kValue, pValue, i, trace);
+        trace->item[--trace->cnt] = 0;
+        trace->itemSum -= i;
+        trace->resSum -= (int)pow(i, pValue);
+    }
+}
+
+// int g_p2[] = { (int)pow(1, 2), (int)pow(2, 2), (int)pow(3, 2), (int)pow(4, 2), (int)pow(5, 2), (int)pow(6, 2),
+//                             (int)pow(7, 2), (int)pow(8, 2), (int)pow(9, 2), (int)pow(10, 2), (int)pow(11, 2), (int)pow(12, 2),
+//                             (int)pow(13, 2), (int)pow(14, 2), (int)pow(15, 2), (int)pow(16, 2), (int)pow(17, 2), (int)pow(18, 2),
+//                             (int)pow(19, 2), (int)pow(20, 2) };
+// int g_p3[] = { (int)pow(1, 3), (int)pow(2, 3), (int)pow(3, 3), (int)pow(4, 3), (int)pow(5, 3), (int)pow(6, 3), (int)pow(7, 3) };
+// int g_p4[] = { (int)pow(1, 4), (int)pow(2, 4), (int)pow(3, 4), (int)pow(4, 4)};
+// int g_p5[] = { (int)pow(1, 5), (int)pow(2, 5), (int)pow(3, 5)};
+// int g_p6[] = { (int)pow(1, 6), (int)pow(2, 6) };
+// int g_p7[] = { (int)pow(1, 7), (int)pow(2, 7) };
+
+int FindMax(int nValue, int kValue, int pValue)
+{
+    int max = nValue - kValue + 1;
+
+    int hight = max;
+    int low = 0;
+    while (hight > low) {
+        int mid = (hight + low) / 2;
+        if (pow(mid, pValue) > max) {
+            hight = mid - 1;
+        } else if (pow(mid, pValue) < max) {
+            low = mid + 1;
+        } else {
+            return mid;
+        }
+    }
+
+    return low; // 零值注意
+}
+
+// 待实现函数，在此函数中填入答题代码
+int *GetDecomposeResult(int nValue, int kValue, int pValue, int *outputSize)
+{
+    // max的值可以通过计算缩小一下
+    int max = FindMax(nValue, kValue, pValue);
+
+    Trace trace = { 0 };
+    BackTrace(nValue, kValue, pValue, max, &trace);
+
+    int *output = (int *)malloc(sizeof(int) * kValue);
+    memset_s(output, (size_t)sizeof(int) * kValue, 0, (size_t)sizeof(int) * kValue);
+    if (trace.maxItemSum == 0) {
+        *outputSize = 0;
+        return output;
+    }
+    for (int i = 0; i < kValue; i++) {
+        output[i] = trace.maxitem[i];
+    }
+    *outputSize = kValue;
+    return output;
+}
+
+int main(void)
+{
+    int nValue;
+    if (scanf_s("%d", &nValue) != 1) { return -1; }
+    int kValue;
+    if (scanf_s("%d", &kValue) != 1) { return -1; }
+    int pValue;
+    if (scanf_s("%d", &pValue) != 1) { return -1; }
+
+    int outputSize = 0;
+    int *output = GetDecomposeResult(nValue, kValue, pValue, &outputSize);
+
+    printf("[");
+    for (int i = 0; i < outputSize; i++) {
+        if (i == 0) {
+            printf("%d", output[i]);
+        } else {
+            printf(" %d", output[i]);
+        }
+    }
+    printf("]");
+    free(output);
+    return 0;
+}
+
+// ---------------------------解法 结束---------------------------------------------------------------------
+
+

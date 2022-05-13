@@ -1,0 +1,200 @@
+/*
+ * Copyright (c) Huawei Technologies Co., Ltd. 2019-2020. All rights reserved.
+ */
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <stdbool.h>
+#include <uthash.h>
+// 如需使用华为安全函数，请加上 #include "securec.h"
+#include "securec.h"
+#include "systemDesgin.h"
+#include <math.h>
+#include <assert.h>
+
+
+/**
+ * leetcode 5 判断字符串是否为回文 https://leetcode-cn.com/problems/longest-palindromic-substring/
+ * 1、暴力求解
+ * 思路：双层遍历输入字符串，从而穷举出输入字符串的所有子串，然后再用一层循环，判断子串是否为回文字符串，思路清晰简单，代码略。
+ * 2. 中心扩散算法
+ * 思路：遍历输入的字符串s，以每个字符mid为中心，分别计算mid为中心的奇数位（例如"cabac"中以"b"为中心的回文字符串）和偶数位（例如"cabbac"以"bb"为中心的回文字符串）的最长回文字符串，记录最长回文字符串出现的起始下标及长度max。
+ * 3. 动态规划
+ * 4. manacher 算法
+ */
+
+
+// ---------------------------解法一 开始--------------------------------------------------------------------
+/**
+ * 中心扩散算法
+ * 从每一个书开始作为中心,获取最长的回文子串长度
+ */
+// char *longestPalindrome(char *s){
+//     int len = strlen(s);
+//     int start = 0;
+//     int mid = 0;
+//     int max = 0;
+//     int extend = 0;
+//     for (mid = 0; mid < len; mid++) {
+//          while(mid - extend >= 0 && mid + extend + 1 < len && s[mid - extend] == s[mid + extend + 1]){
+//             extend++;
+//         }
+//         if(2 * extend >= max){
+//             max = 2 * extend;
+//             start = mid - extend + 1;
+//         }
+//         //计算形如 "cabac"中以"b"为中心的回文字符串
+//         extend = 0;
+//         while(mid - extend - 1 >= 0 && mid + extend + 1 < len && s[mid - extend - 1] == s[mid + extend + 1]){
+//             extend++;
+//         }
+//         if(2 * extend + 1 >= max){
+//             max = 2 * extend + 1;
+//             start = mid - extend;
+//         }
+//     }
+
+//     char *result = (char *)malloc((max + 1) * sizeof(char));
+//     for(int i = 0;i < max; i++){
+//         result[i] = s[start + i];
+//     }
+//     result[max] = '\0';
+    
+//     return result;
+// }
+// ---------------------------解法一 结束--------------------------------------------------------
+
+
+// ---------------------------解法一 开始--------------------------------------------------------------------
+/**
+ * 动态规划  dp数组的填充顺序
+ */
+// bool dpRes[1010][1010];
+// typedef struct Result {
+//     int len;
+//     int low;
+//     int high;
+// } Result;
+// char * longestPalindrome(char * s)
+// {
+//     memset(dpRes, 0, sizeof(dpRes));
+
+//     int len = strlen(s);
+//     for (int i = 0; i < len; i++) {
+//         dpRes[i][i] = true;
+//     }
+
+
+//     Result result = { 1, 0, 0 };
+//     for (int left = 1; left < len; left++) {
+//         for (int right = 0; right < left; right++) {
+//             if (s[left] == s[right]) {
+//                 if (left - right == 1) {
+//                     dpRes[right][left] = true;
+//                 } else {
+//                     dpRes[right][left] = dpRes[right + 1][left - 1];  // 注意赋值的顺序
+//                 }
+//             } else {
+//                 dpRes[right][left] = false;
+//             }
+
+//             if ((dpRes[right][left] == true) && (result.len < left - right + 1)) {
+//                 result.len = left - right + 1;
+//                 result.low = right;
+//                 result.high = left;
+//             }
+//         }
+//     }
+
+//     char *resStr = (char *) malloc(sizeof(char) * (result.len + 1));
+//     memset(resStr, 0, sizeof(char) * (result.len + 1));
+//     memcpy(resStr, &s[result.low], (sizeof(char) * result.len));
+//     return resStr;
+// }
+
+// ---------------------------解法一 结束--------------------------------------------------------
+
+/**
+ * 动态规划  dp数组的填充顺序
+ */
+bool dpRes[1010][1010];
+typedef struct Result {
+    int len;
+    int low;
+    int high;
+} Result;
+
+bool GetDpValue(int right, int left)
+{
+    if ((right > left)) {
+        return true;
+    }
+
+    return dpRes[right][left];
+}
+
+char * longestPalindrome(char * s)
+{
+    memset(dpRes, 0, sizeof(dpRes));
+
+    int len = strlen(s);
+    for (int i = 0; i < len; i++) {
+        dpRes[i][i] = true;
+    }
+
+
+    Result result = { 1, 0, 0 };
+    for (int length = 1; length <= len; length++) {
+        for (int right = 0; right + length < len; right++) {
+            int left = right + length;
+            if (s[left] == s[right]) {
+                dpRes[right][left] = GetDpValue(right + 1, left - 1);  // 注意赋值的顺序
+            } else {
+                dpRes[right][left] = false;
+            }
+
+            if ((dpRes[right][left] == true) && (result.len < left - right + 1)) {
+                result.len = left - right + 1;
+                result.low = right;
+                result.high = left;
+            }
+        }
+    }
+
+    char *resStr = (char *) malloc(sizeof(char) * (result.len + 1));
+    memset(resStr, 0, sizeof(char) * (result.len + 1));
+    memcpy(resStr, &s[result.low], (sizeof(char) * result.len));
+    return resStr;
+}
+
+// ---------------------------解法一 结束--------------------------------------------------------
+
+
+
+int main()
+{
+    char string_1[]= "babad";
+	char* result_1 = longestPalindrome(string_1);
+	printf("%s \n", result_1);
+    free(result_1);
+
+    char string_2[]= "cbbd";
+	char* result_2 = longestPalindrome(string_2);
+	printf("%s \n", result_2);
+    free(result_2);
+
+
+    char string_3[]= "a";
+	char* result_3 = longestPalindrome(string_3);
+	printf("%s \n", result_3);
+    free(result_3);
+    
+    char string_4[]= "aaaa";
+	char* result_4 = longestPalindrome(string_4);
+	printf("%s \n", result_4);
+    free(result_4);
+
+
+    return 0;
+}
+

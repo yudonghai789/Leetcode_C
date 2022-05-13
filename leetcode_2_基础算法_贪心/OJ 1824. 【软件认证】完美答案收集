@@ -1,0 +1,183 @@
+/******************************************************************************
+ * 版权所有 (c)
+ * 功能描述   : OJ 1824. 【软件认证】完美答案收集. https://oj.rnd.huawei.com/problems/1824/details
+ * 作    者   :
+ * 生成日期   :
+
+ * 
+      --- 
+ ******************************************************************************/
+#include <corecrt.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdbool.h>
+#include <uthash.h>
+#include <math.h>
+#include <limits.h>
+#include <assert.h>
+// 如需使用华为安全函数，请加上 #include "securec.h"
+#include "securec.h"
+// #include "vos_priorityqueue.h"
+
+
+
+
+
+/*
+题目描述
+考生在在线平台考试结束后，可以查看自己每道题的结果（包括题干、选项、答案、回答正确或错误），针对回答错误的题目并没有给出正确答案。这时需要综合多个考生的正确答案才能得到一份该试卷的完美答案（即包含所有题目的正确答案）。
+
+假设共有 questionsCount 道题，题目编号从 1 到 questionsCount。现给出每个考生的答对题目的编号，格式如1 3，表示答对第1到3题；9 9表示答对第9题。
+说明：
+
+考生答对的题目是连续的。
+每个考生至少答对1道题。
+请计算至少需综合多少个考生的正确答案才能得到完美答案，如果无法综合到完美答案，则输出-1。
+
+解答要求
+时间限制：3000ms, 内存限制：256MB
+输入
+第一行一个整数，表示题目的总数量questionsCount，范围 [1, 1024]
+第二行一个整数，表示考生人数peopleCount，范围 [1, 1024]
+接下来peopleCount行，每行两个整数start end， 1 <= start <=end <= questionsCount
+
+输出
+一个整数，表示可以综合到完美答案的最少人数；如果无法综合到完美答案，则输出-1 。
+
+样例
+输入样例 1 复制
+
+10
+6
+1 3
+4 6
+1 6
+6 10
+5 8
+10 10
+输出样例 1
+
+2
+提示样例 1
+试卷一共有10道题；
+第一位同学答对了1~3题；
+第二位同学答对了4~6题；
+第三位同学答对了1~6题；
+第四位同学答对了6~10题；
+第五位同学答对了5~8题；
+第六位同学只答对了第10题一个题。
+
+要综合到所有题的正确答案，可以有多种方法，例如：综合第一、二、四这3位考生的答案，或者综合第三、四这2位考生的答案。 至少需要综合2位考生的答案。
+*/
+
+
+
+
+// ---------------------------解法 ----射穿气球差不多-----贪心策略---------------------------------------------
+
+#define MAX_STUDENT_SIZE 1024
+ 
+
+int CompareArray(const void *a, const void *b)
+{
+    int **arrayA = (int **)a;
+    int **arrayB = (int **)b;
+
+    return ((*arrayA)[0] - (*arrayB)[0] != 0)?
+            (*arrayA)[0] - (*arrayB)[0]:
+                (*arrayA)[1] - (*arrayB)[1];
+}
+
+int BfsSeatch(int questionsCount, int peopleCount, int **correctRange)
+{
+    int queue[peopleCount];
+    int head = 0;
+    int tail = 0;
+    for (int i = 0; i < peopleCount; i++) {
+        if (correctRange[i][0] == 1) {
+            queue[head++] = i;
+        }
+    }
+
+    if (head == 0) {
+        return -1;
+    }
+
+    int posiStart = 1;
+    int posEnd = 1;
+    int resStep = 1;
+    while (head > tail) {
+        // for (int i = tail; i < head; i++) {
+        //     printf("{%d %d} ", correctRange[queue[i]][0], correctRange[queue[i]][1]);
+        // }
+        // printf("\n");
+
+        int start = tail;
+        int end = head;
+        for (; start < end; start++) {
+            int index = queue[start];
+            posEnd = fmax(posEnd, correctRange[index][1]);
+        }
+
+        if (posEnd == questionsCount) {
+            return resStep;
+        }
+
+        tail = start;
+        posiStart = posEnd;
+
+        for (int i = queue[head - 1] + 1; i < peopleCount; i++) {
+            if (correctRange[i][0] <= posiStart + 1) {
+                queue[head++] = i;
+                continue;
+            }
+            break;
+        }
+        resStep++;
+    }
+
+    return -1;
+}
+
+
+/* 待实现函数，在此函数中填入答题代码。 */
+int GetMinPeople(int questionsCount, int peopleCount, int correctRange[][2])
+{
+    int *corrArray[peopleCount];
+    for (int i = 0; i < peopleCount; i++) {
+        corrArray[i] = &correctRange[i][0];
+    }
+    qsort(corrArray, peopleCount, sizeof(int*), CompareArray);
+
+    return BfsSeatch(questionsCount, peopleCount, corrArray);
+}
+
+int main(void)
+{
+    int questionsCount;
+    int peopleCount;
+
+    if (scanf_s("%d", &questionsCount) != 1) {
+        return -1;
+    }
+    if (scanf_s("%d", &peopleCount) != 1) {
+        return -1;
+    }
+
+    static int correctRange[MAX_STUDENT_SIZE][2];
+    int i;
+    for (i = 0; i < peopleCount; i++) {
+        int *head = &correctRange[i][0];
+        int *tail = &correctRange[i][1];
+        if (scanf_s("%d %d", head, tail) != 2) {
+            return -1;
+        }
+    }
+    int ret = GetMinPeople(questionsCount, peopleCount, correctRange);
+    (void)printf("%d", ret);
+    return 0;
+}
+// ---------------------------解法 结束---------------------------------------------------------------------
+
+

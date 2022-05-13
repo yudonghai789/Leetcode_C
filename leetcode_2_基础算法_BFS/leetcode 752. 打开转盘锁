@@ -1,0 +1,350 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdbool.h>
+
+
+/* 752. 打开转盘锁
+ * 遍历统计 + 贪心算法问题
+ * 1.先分析归纳：
+     不论两行之间的差别。1）如果 x-y x-y 或者 y - x  y - x,则这两行的可以通过交换一次；2）如果是x-y y-x,则需要交换两次。
+     将所有有差别的行统计出来。先通过这种第一种方式交换，再使用第二种方式交换。
+ */
+
+
+// ---------------------------解法一 开始-------------------------------------------------
+#define MAX_DEAD_NUMBER 500
+#define MAX_NUMBER_COUNT 10000
+ 
+typedef struct {
+    int number;
+    int round;
+} Node;
+ 
+typedef struct {
+    int size;
+    int count;
+    int head;
+    int tail;
+    Node* node;
+} Queue;
+ 
+Queue* CreateQueue(int size)
+{
+    Queue* queue = (Queue*)malloc(sizeof(Queue));
+    queue->node = (Node*)malloc(size * sizeof(Node));
+    if (queue == NULL || queue->node == NULL) {
+        return NULL;
+    }
+ 
+    queue->size = size;
+    queue->count = 0;
+    queue->head = 0;
+    queue->tail = 0;
+    return queue;
+}
+// *(Queue(*)[10000])0x8f0080
+ 
+void Destory(Queue* queue)
+{
+    free(queue->node);
+    free(queue);
+}
+ 
+bool IsEmpty(Queue* queue)
+{
+    return queue->count == 0;
+}
+ 
+bool IsFull(Queue* queue)
+{
+    return queue->size == queue->count;
+}
+ 
+bool EnQueue(Queue* queue, int number, int round)
+{
+    if (IsFull(queue)) {
+        return false;
+    }
+ 
+    Node* node = &queue->node[queue->tail];
+    node->number = number;
+    node->round = round;
+    queue->count++;
+    queue->tail = (queue->tail + 1) % queue->size;
+    return true;
+}
+ 
+Node* DeQueue(Queue* queue)
+{
+    if (IsEmpty(queue)) {
+        return NULL;
+    }
+ 
+    Node* node = &queue->node[queue->head];
+    queue->count--;
+    queue->head = (queue->head + 1) % queue->size;
+    return node;
+}
+ 
+void SpiltNumber(int num[4], int number)
+{
+    num[0] = number % 10;
+    num[1] = number % 100 / 10;
+    num[2] = number % 1000 / 100;
+    num[3] = number / 1000;
+}
+ 
+int BuildNumber(int num[4])
+{
+    return num[3] * 1000 + num[2] * 100 + num[1] * 10 + num[0];
+}
+ 
+int GetNextAddNumber(int num[4], int i)
+{
+    if (num[i] < 9) {
+        num[i]++;
+    } else {
+        num[i] = 0;
+    }
+    return BuildNumber(num);
+}
+ 
+int GetNextSubNumber(int num[4], int i)
+{
+    if (num[i] > 0) {
+        num[i]--;
+    } else {
+        num[i] = 9;
+    }
+    return BuildNumber(num);
+}
+ 
+int openLock(char** deadends, int deadendsSize, char* target)
+{
+    if (target == NULL) {
+        return -1;
+    }
+ 
+    Queue* queue = CreateQueue(MAX_NUMBER_COUNT);
+    int start = 0;
+    int end = atoi(target);
+    int visited[MAX_NUMBER_COUNT] = {0};
+    int num[4]; //千百十个位
+    visited[start] = 1;
+    // 将不能走的数添加到访问过的数据中，进行统计管理；同时判断开始0000是否在不能走的数组里
+    for (int i = 0; i < deadendsSize; ++i) {
+        int deadNum = atoi(deadends[i]);
+        if (start == deadNum) {
+            return -1;
+        }
+        visited[deadNum] = 1;
+    }
+    EnQueue(queue, start, 0);
+    while (!IsEmpty(queue)) {
+        Node* node = DeQueue(queue);
+        printf("%d,%d\n", node->number, node->round);
+        int curNum = node->number;
+        if (curNum == end) {
+            return node->round;
+        }
+        
+        SpiltNumber(num, curNum);
+        for (int i = 0; i < 4; ++i) {
+            int oldNum = num[i];
+            int nextNum = GetNextAddNumber(num, i);
+            if (!visited[nextNum]) {
+                EnQueue(queue, nextNum, node->round + 1);
+                visited[nextNum] = 1;
+            }
+            num[i] = oldNum;
+            nextNum = GetNextSubNumber(num, i);
+            if (!visited[nextNum]) {
+                EnQueue(queue, nextNum, node->round + 1);
+                visited[nextNum] = 1;
+            }
+            num[i] = oldNum;
+        }
+    }
+ 
+    Destory(queue);
+    return -1;
+}
+// ---------------------------解法结束-------------------------------------------------
+
+// ---------------------------解法二 开始-------------------------------------------------
+// #define MAX_DEAD_NUMBER 500
+// #define MAX_NUMBER_COUNT 10000
+
+
+// typedef struct {
+//     char number[5]; //密码字符串
+// } Node;
+ 
+// typedef struct {
+//     int size; // 队列大小
+//     int count; // 队列中元素的个数
+//     int head; // 出队列
+//     int tail; // 入队列
+//     Node* node;
+// } Queue;
+ 
+// Queue* CreateQueue(int size)
+// {
+//     Queue* queue = (Queue*)malloc(sizeof(Queue));
+//     queue->node = (Node*)malloc(size * sizeof(Node));
+//     if (queue == NULL || queue->node == NULL) {
+//         return NULL;
+//     }
+ 
+//     queue->size = size;
+//     queue->count = 0;
+//     queue->head = 0;
+//     queue->tail = 0;
+//     return queue;
+// }
+// // *(Queue(*)[10000])0x8f0080
+ 
+// void Destory(Queue* queue)
+// {
+//     free(queue->node);
+//     free(queue);
+// }
+ 
+// bool IsEmpty(Queue* queue)
+// {
+//     return queue->count == 0;
+// }
+ 
+// bool IsFull(Queue* queue)
+// {
+//     return queue->size == queue->count;
+// }
+ 
+// bool EnQueue(Queue* queue, char *number)
+// {
+//     if (IsFull(queue)) {
+//         return false;
+//     }
+ 
+//     Node* node = &queue->node[queue->tail];
+//     strcpy(&node->number[0], number);
+//     queue->count++;
+//     queue->tail = (queue->tail + 1) % queue->size;
+//     return true;
+// }
+ 
+// Node* DeQueue(Queue* queue)
+// {
+//     if (IsEmpty(queue)) {
+//         return NULL;
+//     }
+ 
+//     Node* node = &queue->node[queue->head];
+//     queue->count--;
+//     queue->head = (queue->head + 1) % queue->size;
+//     return node;
+// }
+
+// void plusOne(char *inPut, int position, char *outPut) {
+//     strcpy(outPut, inPut);
+//     if (inPut[position] == '9') {
+//         outPut[position] = '0';
+//     } else {
+//         outPut[position] = inPut[position] + 1;
+//     }
+// }
+
+// void minusOne(char *inPut, int position, char *outPut) {
+//     strcpy(outPut, inPut);
+//     if (inPut[position] == '0') {
+//         outPut[position] = '9';
+//     } else {
+//         outPut[position] = inPut[position] - 1;
+//     }
+// }
+
+// char visited[MAX_NUMBER_COUNT][5];
+// bool visitContain(char *string) {
+//     for (int i = 0; i < MAX_NUMBER_COUNT; i++) {
+//         if () {
+            
+//         }
+//     }
+// }
+
+// void visitAdd(char *string) {
+//     for (int i = 0; i < MAX_NUMBER_COUNT; i++) {
+//         if () {
+            
+//         }
+//     }
+// }
+
+// bool IsTarget(char *string, char *target) {
+//     for (int i = 0; i < MAX_NUMBER_COUNT; i++) {
+//         if () {
+            
+//         }
+//     }
+// }
+
+// int openLock(char **deadends, int deadendsSize, char * target)
+// {
+//     if (target == NULL) {
+//         return -1;
+//     }
+ 
+//     Queue* queue = CreateQueue(MAX_NUMBER_COUNT);
+//     visitAdd("0000");
+//     // 将不能走的数添加到访问过的数据中，进行统计管理；同时判断开始0000是否在不能走的数组里
+//     for (int i = 0; i < deadendsSize; ++i) {
+//         visitAdd(deadends[i]);
+//     }
+//     visitContain("0000");
+//     EnQueue(queue, "0000");
+//     int step = 0;
+//     while (!IsEmpty(queue)) {
+//         Node* node = DeQueue(queue);
+//         char *curNum = node->number;
+//         if (IsTarget(curNum, target)) {
+//             return step;
+//         }
+        
+//         for (int i = 0; i < 4; ++i) {
+//             char nextNumber[5];
+//             plusOne(node, i, nextNumber);
+//             if (!visitContain(nextNumber)) {
+//                 EnQueue(queue, nextNumber);
+//                 visitAdd(nextNumber);
+//             }
+
+//             minusOne(node, i, nextNumber);
+//             if (!visitContain(nextNumber)) {
+//                 EnQueue(queue, nextNumber);
+//                 visitAdd(nextNumber);
+//             }
+//         }
+//         step++;
+//     }
+ 
+//     Destory(queue);
+//     return -1;
+// }
+// ---------------------------解法结束-------------------------------------------------
+
+
+int main()
+{
+	int result = 0;
+
+    char *deadends[] = {"0201","0101","0102","1212","2002"};
+    int deadendsSize = 5;
+    char *target = "0202";
+    
+	result = openLock(deadends, deadendsSize, target);
+	printf("%d", result);
+
+    system("pause");
+    return 0;
+}

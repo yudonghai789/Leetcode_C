@@ -1,0 +1,104 @@
+/*
+ * Copyright (c) Huawei Technologies Co., Ltd. 2019-2020. All rights reserved.
+ */
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <stdbool.h>
+#include <uthash.h>
+// 如需使用华为安全函数，请加上 #include "securec.h"
+#include "systemDesgin.h"
+#include <math.h>
+#include <assert.h>
+
+/*
+ * leetcode 77. 组合 https://leetcode-cn.com/problems/combinations/
+ * 回溯算法 + 剪枝
+ * 
+ */
+
+// ---------------------------解法一 开始--------------------------------------------------------
+#define MAX_RESULT_SIZE 10000
+#define MAX_RESULT_ITEM_LEN 21
+
+typedef struct BackTracePointer {
+    int item[MAX_RESULT_ITEM_LEN];
+    int len;
+} BackTracePointer;
+
+void BackTrace(int n, int k, int index, BackTracePointer *backTracePointer, int* returnSize, int **result)
+{
+    if (backTracePointer->len == k) {
+        result[(*returnSize)] = (int *)malloc(sizeof(int) * k);
+        memcpy(result[(*returnSize)], backTracePointer->item, sizeof(int) * k);
+
+        (*returnSize)++;
+        if ((*returnSize < 0) || (*returnSize >= MAX_RESULT_SIZE)) {
+            printf("error 46");
+        }
+
+        return;
+    }
+
+    for (int i = index; i <= n; i++) {
+        backTracePointer->item[backTracePointer->len] = i;
+        backTracePointer->len++;
+        if ((backTracePointer->len < 0) || (backTracePointer->len >= MAX_RESULT_ITEM_LEN)) {
+            printf("error 53");
+        }
+
+        BackTrace(n, k, i + 1, backTracePointer, returnSize, result);
+        backTracePointer->len--;
+        backTracePointer->item[backTracePointer->len] = 0;
+        if ((backTracePointer->len < 0) || (backTracePointer->len >= MAX_RESULT_ITEM_LEN)) {
+            printf("error 53");
+        }
+    }
+}
+
+int** combine(int n, int k, int* returnSize, int** returnColumnSizes)
+{
+    // 基本校验
+    
+    BackTracePointer backTracePointer = { 0 };
+    (*returnSize) = 0;
+    int **result = (int **)malloc(sizeof(int*) * MAX_RESULT_SIZE);
+    memset(result, 0, sizeof(int*) * MAX_RESULT_SIZE);
+
+    (*returnColumnSizes) = (int *)malloc(sizeof(int) * MAX_RESULT_SIZE);
+    memset((*returnColumnSizes), 0, sizeof(int) * MAX_RESULT_SIZE);
+
+    BackTrace(n, k, 1, &backTracePointer, returnSize, result);
+
+    for (int i = 0; i < (*returnSize); i++) {
+        (*returnColumnSizes)[i] = k;
+    }
+
+    return result;
+}
+
+
+
+
+// ---------------------------解法一 结束--------------------------------------------------------
+int main() {
+    int n_1 = 4;
+    int k_1 = 2;
+    int returnSize_1 = 44554;
+    int* returnColumnSizes_1 = NULL;
+    int** result_1 = combine(n_1, k_1, &returnSize_1, &returnColumnSizes_1);
+    for (int i = 0; i < returnSize_1; i++) {
+        for (int j = 0; j < returnColumnSizes_1[i]; j++) {
+            printf("%d", result_1[i][j]);
+        }
+        printf("\n");
+    }
+    printf("\n");
+    for (size_t i = 0; i < returnSize_1; i++) { free(result_1[i]);}
+    free(result_1);
+    free(returnColumnSizes_1);
+
+
+
+    return 0;
+}

@@ -1,0 +1,402 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdbool.h>
+#include <string.h>
+#include <math.h>
+#include <assert.h>
+
+
+/* leetcode 1091. 二进制矩阵中的最短路径 hhttps://leetcode-cn.com/problems/shortest-path-in-binary-matrix/
+ * BFS广度优先搜索
+ */
+
+
+// ---------------------------解法一 开始---广度优先搜索--单向BFS--超时--------------------------------------------------
+
+// typedef struct Node{
+//     int row;
+//     int collum;
+//     struct Node *nextNode;     // 下一个节点
+// } Node;
+ 
+// typedef struct {
+//     int currentCount;   // 当前队列中元素的数目
+//     Node* headNode;      // 当前队列头，出队列的元素的指针
+//     Node* tailNode;
+// } Queue;                // 这个队列没有大小限制
+
+
+// // 根据首个值创建第一个节点以及队列
+// Queue* CreateQueue(int row, int collum) {
+//     Queue* queue = (Queue *)malloc(sizeof(Queue));
+//     memset((void *)queue, 0, sizeof(Queue));
+
+//     Node *node = (Node*)malloc(sizeof(Node));
+//     memset((void *)node, 0, sizeof(Node));
+//     node->row = row;
+//     node->collum = collum;
+//     node->nextNode = NULL;
+ 
+//     queue->currentCount = 1;
+//     queue->headNode = node;
+//     queue->tailNode = node;
+//     return queue;
+// }
+
+// void freeNode(Node* node) {
+//     if (node->nextNode != NULL) {
+//         free(node->nextNode);
+//     }
+
+//     if (node != NULL) {
+//         free(node);
+//     }
+// }
+
+// void Destory(Queue* queue) {
+//     if (queue->headNode) {
+//         freeNode(queue->headNode);
+//     }
+
+//     free(queue);
+// }
+ 
+// bool IsEmpty(Queue* queue)
+// {
+//     return queue->currentCount == 0;
+// }
+ 
+// bool EnQueue(Queue* queue, int row, int collum) {
+//     Node *node = (Node*)malloc(sizeof(Node));
+//     memset((void *)node, 0, sizeof(Node));
+//     node->row = row;
+//     node->collum = collum;
+//     node->nextNode = NULL;
+
+//     queue->tailNode->nextNode = node;
+//     queue->tailNode = node;
+//     queue->currentCount++;
+
+//     return true;
+// }
+
+
+// bool DeQueue(Queue* queue) {
+//     Node *node = queue->headNode;
+
+//     queue->headNode = node->nextNode;
+//     queue->currentCount--;
+
+//     free(node);
+//     return true;
+// }
+
+// bool IsNeedSeach(int** grid, int row, int col, int i, int j) {
+//     if ((i < 0) || (j < 0) || (i >= row) || (j >= col)) {
+//         return false;
+//     } 
+//     if (grid[i][j] != 0) {
+//          return false;
+//     }
+//     return true;
+// }
+
+// bool DFS(int** grid, int row, int col, int* step) {
+//     if (grid[0][0] != 0) {
+//         return false;
+//     }
+
+//     Queue* que = CreateQueue(0, 0);
+//     (*step) = 1;
+//     grid[0][0] = 0x5a5a5a5a;
+        
+//     while(!IsEmpty(que)) {
+//         int thisloopSize = que->currentCount;
+//         for (int k = 0; k < thisloopSize; k++) {
+//             int i = que->headNode->row;
+//             int j = que->headNode->collum;
+
+//             if((i == row - 1) && (j == col - 1)) {
+//                 Destory(que);
+//                 return true;
+//             }
+
+//             if (IsNeedSeach(grid, row, col, i - 1, j)) {
+//                 EnQueue(que, i - 1, j);
+//             }
+//             if (IsNeedSeach(grid, row, col, i - 1, j + 1)) {
+//                 EnQueue(que, i - 1, j + 1);
+//             }
+//             if (IsNeedSeach(grid, row, col, i, j + 1)) {
+//                 EnQueue(que, i, j + 1);
+//             }
+//             if (IsNeedSeach(grid, row, col, i + 1, j + 1)) {
+//                 EnQueue(que, i + 1, j + 1);
+//             }
+//             if (IsNeedSeach(grid, row, col, i + 1, j)) {
+//                 EnQueue(que, i + 1, j);
+//             }
+//             if (IsNeedSeach(grid, row, col, i + 1, j - 1)) {
+//                 EnQueue(que, i + 1, j - 1);
+//             }
+//             if (IsNeedSeach(grid, row, col, i, j - 1)) {
+//                 EnQueue(que, i, j - 1);
+//             }
+//             if (IsNeedSeach(grid, row, col, i - 1, j - 1)) {
+//                 EnQueue(que, i - 1, j - 1);
+//             }
+//             grid[i][j] = 0x5a5a5a5a;
+//             DeQueue(que);
+//         }
+//         (*step)++;
+//     }
+
+//     Destory(que);
+//     return false;
+// }
+
+
+
+// int shortestPathBinaryMatrix(int** grid, int gridSize, int* gridColSize){
+//     bool result = false;
+//     int step = 0;
+
+//     result = DFS(grid, gridSize, *gridColSize, &step);
+    
+//     if (result == true) {
+//         return step;
+//     } else {
+//         return -1;
+//     }
+// }
+
+
+// ---------------------------解法一 结束---单向BFS--超时-------------------------------------------------
+
+
+
+// ---------------------------解法二 开始---广度优先搜索--单向BFS--加上备忘录--------------------------------------------------
+typedef struct Node{
+    int row;
+    int collum;
+    struct Node *nextNode;     // 下一个节点
+} Node;
+ 
+typedef struct {
+    int currentCount;   // 当前队列中元素的数目
+    Node* headNode;      // 当前队列头，出队列的元素的指针
+    Node* tailNode;
+} Queue;                // 这个队列没有大小限制
+
+// 根据首个值创建第一个节点以及队列
+Queue* CreateQueue(int row, int collum) {
+    Queue* queue = (Queue *)malloc(sizeof(Queue));
+    memset((void *)queue, 0, sizeof(Queue));
+
+    Node *node = (Node*)malloc(sizeof(Node));
+    memset((void *)node, 0, sizeof(Node));
+    node->row = row;
+    node->collum = collum;
+    node->nextNode = NULL;
+ 
+    queue->currentCount = 1;
+    queue->headNode = node;
+    queue->tailNode = node;
+    return queue;
+}
+
+void freeNode(Node* node) {
+    if (node->nextNode != NULL) {
+        free(node->nextNode);
+    }
+
+    if (node != NULL) {
+        free(node);
+    }
+}
+
+void Destory(Queue* queue) {
+    if (queue->headNode) {
+        freeNode(queue->headNode);
+    }
+
+    free(queue);
+}
+ 
+bool IsEmpty(Queue* queue)
+{
+    return queue->currentCount == 0;
+}
+ 
+bool EnQueue(Queue* queue, int row, int collum) {
+    Node *node = (Node*)malloc(sizeof(Node));
+    memset((void *)node, 0, sizeof(Node));
+    node->row = row;
+    node->collum = collum;
+    node->nextNode = NULL;
+
+    queue->tailNode->nextNode = node;
+    queue->tailNode = node;
+    queue->currentCount++;
+
+    return true;
+}
+
+
+bool DeQueue(Queue* queue) {
+    Node *node = queue->headNode;
+
+    queue->headNode = node->nextNode;
+    queue->currentCount--;
+
+    free(node);
+    return true;
+}
+
+bool IsNeedSeach(int** grid, int row, int col, int i, int j, int **dpPointer) {
+    if ((i < 0) || (j < 0) || (i >= row) || (j >= col)) { return false; } 
+    if (grid[i][j] != 0) { return false; }
+    if (dpPointer[i][j] != -1) { return false; }
+
+    return true;
+}
+
+bool BFS(int** grid, int row, int col, int *step)
+{
+    int dpArray[row][col];
+    memset(dpArray, -1, sizeof(int) * row * (col));
+	int *dpPointer[row];
+    for (int i = 0; i < row; i++) { dpPointer[i] = &dpArray[i][0]; }
+    dpArray[0][0] = 1;
+    Queue* que = CreateQueue(0, 0);
+    (*step) = 1;
+    grid[0][0] = 0x5a5a5a5a;
+
+    while (!(IsEmpty(que))) {
+        int thisloopSize = que->currentCount;
+        for (int k = 0; k < thisloopSize; k++) {
+            int i = que->headNode->row;
+            int j = que->headNode->collum;
+
+            if((i == row - 1) && (j == col - 1)) {
+                Destory(que);
+                return true;
+            }
+
+            if (IsNeedSeach(grid, row, col, i - 1, j, dpPointer)) {
+                EnQueue(que, i - 1, j);
+                dpArray[i - 1][j] = (*step) + 1;
+            }
+            if (IsNeedSeach(grid, row, col, i - 1, j + 1, dpPointer)) {
+                EnQueue(que, i - 1, j + 1);
+                dpArray[i - 1][j + 1] = (*step) + 1;
+            }
+            if (IsNeedSeach(grid, row, col, i, j + 1, dpPointer)) {
+                EnQueue(que, i, j + 1);
+                dpArray[i][j + 1] = (*step) + 1;
+            }
+            if (IsNeedSeach(grid, row, col, i + 1, j + 1, dpPointer)) {
+                EnQueue(que, i + 1, j + 1);
+                dpArray[i + 1][j + 1] = (*step) + 1;
+            }
+            if (IsNeedSeach(grid, row, col, i + 1, j, dpPointer)) {
+                EnQueue(que, i + 1, j);
+                dpArray[i + 1][j] = (*step) + 1;
+            }
+            if (IsNeedSeach(grid, row, col, i + 1, j - 1, dpPointer)) {
+                EnQueue(que, i + 1, j - 1);
+                dpArray[i + 1][j - 1] = (*step) + 1;
+            }
+            if (IsNeedSeach(grid, row, col, i, j - 1, dpPointer)) {
+                EnQueue(que, i, j - 1);
+                dpArray[i][j - 1] = (*step) + 1;
+            }
+            if (IsNeedSeach(grid, row, col, i - 1, j - 1, dpPointer)) {
+                EnQueue(que, i - 1, j - 1);
+                dpArray[i - 1][j - 1] = (*step) + 1;
+            }
+
+            grid[i][j] = 0x5a5a5a5a;
+            DeQueue(que);
+        }
+
+        (*step)++;
+    }
+
+    Destory(que);
+    return false;
+}
+
+int shortestPathBinaryMatrix(int** grid, int gridSize, int* gridColSize)
+{
+    if ((grid == NULL) || (gridSize == 0) || ((*gridColSize) == 0)) { return -1; } // 特殊case 校验
+    if (grid[0][0] != 0) { return -1; } // 特殊case 校验
+    if (grid[gridSize -  1][(*gridColSize) -1] != 0) { return -1; } // 特殊case 校验
+    
+    int step = 0;
+
+    bool result = BFS(grid, gridSize, *gridColSize, &step);
+
+    return result ? step : -1;
+}
+// ---------------------------解法二结束---------------------------------------------------
+
+int main(int argc, char *argv[]) {
+	int gradCharData_1[2][2] = {
+		{0,1},
+		{1,0},
+	};
+	int row_1 = 2;
+	int cloum_1 = 2;
+	int *gradRowPointer_1[row_1];
+    for (int i = 0; i < row_1; i++) {
+		gradRowPointer_1[i] = &gradCharData_1[i][0];
+	}
+	int result_1 = shortestPathBinaryMatrix(gradRowPointer_1, row_1, &cloum_1);
+    assert(result_1 == 2);
+
+
+	int gradCharData_2[3][3] = {
+		{0,0,0},
+		{1,1,0},
+		{1,1,0},
+	};
+	int row_2 = 3;
+	int cloum_2 = 3;
+	int *gradRowPointer_2[row_2];
+    for (int i = 0; i < row_2; i++) {
+		gradRowPointer_2[i] = &gradCharData_2[i][0];
+	}
+	int result_2 = shortestPathBinaryMatrix(gradRowPointer_2, row_2, &cloum_2);
+    assert(result_2 == 4);
+
+
+	int gradCharData_3[3][3] = {
+		{1,0,0},
+		{1,1,0},
+		{1,1,0},
+	};
+	int row_3 = 3;
+	int cloum_3 = 3;
+	int *gradRowPointer_3[row_3];
+    for (int i = 0; i < row_3; i++) {
+		gradRowPointer_3[i] = &gradCharData_3[i][0];
+	}
+	int result_3 = shortestPathBinaryMatrix(gradRowPointer_3, row_3, &cloum_3);
+    assert(result_3 == -1);
+
+	int gradCharData_4[1][1] = {
+		{0},
+	};
+	int row_4 = 1;
+	int cloum_4 = 1;
+	int *gradRowPointer_4[row_4];
+    for (int i = 0; i < row_4; i++) {
+		gradRowPointer_4[i] = &gradCharData_4[i][0];
+	}
+	int result_4 = shortestPathBinaryMatrix(gradRowPointer_4, row_4, &cloum_4);
+    assert(result_4 == 1);
+
+
+    return 0;
+}

@@ -1,0 +1,99 @@
+
+/*
+ * Copyright (c) Huawei Technologies Co., Ltd. 2019-2020. All rights reserved.
+ */
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdbool.h>
+#include <uthash.h>
+// 如需使用华为安全函数，请加上 #include "securec.h"
+#include "systemDesgin.h"
+#include <math.h>
+#include <assert.h>
+/*
+ * Copyright (c) Huawei Technologies Co., Ltd. 2019-2020. All rights reserved.
+ */
+
+
+
+/* leetcode 1845. 座位预约管理系统 https://leetcode-cn.com/problems/seat-reservation-manager/
+ * 系统设计
+ */
+
+// ---------------------------解法一 开始---从上到下求解 --是使用递归---没有的重复计算的节点，不能用备忘录空间换时间-----------------------------------------------------
+#define MAX_SEAT_NUM 100000
+
+typedef struct Seat {
+    int index;
+    bool isValable;
+} Seat;
+
+typedef struct {
+    int seatNum;
+    int seatIndex;
+    Seat seats[MAX_SEAT_NUM];
+} SeatManager;
+
+SeatManager* seatManagerCreate(int n) {
+    SeatManager *seatManager = (SeatManager *)malloc(sizeof(SeatManager));
+    memset(seatManager, 0, sizeof(SeatManager));
+    seatManager->seatNum = n;
+    seatManager->seatIndex = 1;
+    for (int i = 0; i < seatManager->seatNum; i++) {
+        seatManager->seats[i].index = i + 1;
+        seatManager->seats[i].isValable = true;
+    }
+    return seatManager;
+}
+
+int seatManagerReserve(SeatManager* obj) {
+    for (int i = 0; i < obj->seatNum; i++) {
+        if (obj->seats[i].isValable == true) {
+            obj->seats[i].isValable = false;
+            return obj->seats[i].index;
+        }
+    }
+
+    printf("error all seatUnvalible \n");
+    return -1;
+}
+
+void seatManagerUnreserve(SeatManager* obj, int seatNumber) {
+    obj->seats[seatNumber - 1].isValable = true;
+}
+
+void seatManagerFree(SeatManager* obj) {
+    free(obj);
+}
+
+/**
+ * Your SeatManager struct will be instantiated and called as such:
+ * SeatManager* obj = seatManagerCreate(n);
+ * int param_1 = seatManagerReserve(obj);
+ 
+ * seatManagerUnreserve(obj, seatNumber);
+ 
+ * seatManagerFree(obj);
+*/
+// ---------------------------解法一 结束--------------------------------------------------------
+
+int main() {
+    SeatManager* seatManager_1 = seatManagerCreate(6);
+    int index_1 = seatManagerReserve(seatManager_1);
+    assert(index_1 == 1);
+    index_1 = seatManagerReserve(seatManager_1);
+    assert(index_1 == 2);
+    seatManagerUnreserve(seatManager_1, 2);
+    index_1 = seatManagerReserve(seatManager_1);
+    assert(index_1 == 2);
+    index_1 = seatManagerReserve(seatManager_1);
+    assert(index_1 == 3);
+    index_1 = seatManagerReserve(seatManager_1);
+    assert(index_1 == 4);
+    index_1 = seatManagerReserve(seatManager_1);
+    assert(index_1 == 5);
+    seatManagerUnreserve(seatManager_1, 5);
+
+    return 0;
+}

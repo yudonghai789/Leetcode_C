@@ -1,0 +1,217 @@
+/******************************************************************************
+ * 版权所有 (c)
+ * 功能描述   : OJ 1219. 【软件认证】最小路由时延和. https://oj.rnd.huawei.com/problems/1219/details
+ * 作    者   :
+ * 生成日期   :
+
+ * 
+      --- 
+ ******************************************************************************/
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdbool.h>
+#include <uthash.h>
+#include <math.h>
+#include <limits.h>
+#include <assert.h>
+// 如需使用华为安全函数，请加上 #include "securec.h"
+#include "securec.h"
+// #include "vos_priorityqueue.h"
+
+
+
+
+
+/*
+题目描述
+某网络中有 n 台路由器，编号从 1 … n，即：R1 … Rn，某两个路由器之间最多只有一条网线双向连通，其通信时延为 t（连通双向，R1到R2的时延，与R2到R1的时延是相等的）
+
+现给定 m 个连通关系和时延，以及指定的两个路由器 Ri 和 Rj，请计算 Ri 和 Rj 之间的最小时延（各时延之和）。如果两个路由器之间未连通，则返回 -1。
+
+解答要求
+时间限制：1000ms, 内存限制：256MB
+输入
+第一行包含两个整数：分别表示路由器个数 n、连通关系个数 m , 其取值范围： 1 <= n, m <= 10000
+第二行开始的 m 行代表连通关系，每行 3 个整数：路由器a 路由器b 通信时延t，1 <= t <= 10000，a 和 b 在 [1,n] 范围内。
+最后一行包括两个整数，为指定的两个路由器 Ri 和 Rj，i 和 j 在 [1,n] 范围内
+
+输出
+一个整数，表示两个路由器之间的最小时延
+
+样例
+输入样例 1 复制
+
+6 4
+1 2 2
+1 3 4
+2 5 3
+5 6 2
+2 6
+输出样例 1
+
+5
+提示样例 1
+一共6台路由器，4个连通关系，2号路由器和6号路由器之间的最小时延为5：2->5->6,其时延为2+3。
+*/
+
+
+
+
+// ---------------------------解法 开始---带权值有向图的 非负权有向图的单源最短路径问题-----------------------------------------------------
+
+/*
+https://www.cnblogs.com/skywang12345/p/3711512.html
+*/
+
+
+#define MAX_LEN 10001
+
+struct RouterDelayInfo {
+    int router1;
+    int router2;
+    int delay;
+};
+
+
+# define VERTEX_NUM MAX_LEN   // 图顶点的最大数量
+#define INF 0xffff // 没有路径时，将权值置位无效
+typedef struct {
+    int number;                   // 在图中的位置，也就是邻接矩阵的索引
+    struct VERTEX_DATA_TYPE {
+        int intVal;
+        // char carVal;
+    } info;                     // 顶点的数据类型定义.
+} Vertex;
+typedef struct
+{
+    int vertextNum;                             // 顶点的数量
+    int edgeNum;                                // 边的数量.
+    Vertex vex[VERTEX_NUM];                     // 顶点的列表.
+    unsigned short edges[VERTEX_NUM][VERTEX_NUM];        // 边的列表（邻接矩阵，大小表示边的权值）.
+} MGraph;
+MGraph g_mG;
+
+
+void GenGraph(int routerNum, struct RouterDelayInfo* info, int infoCnt)
+{
+    g_mG.vertextNum = routerNum;
+    g_mG.edgeNum = infoCnt * 2;
+    
+    for (int i = 0; i < g_mG.vertextNum; i++) {
+        for (int j = 0; j < g_mG.vertextNum; j++) {
+            g_mG.edges[i][j] = INF;
+        }
+        g_mG.edges[i][i] = 0;
+        g_mG.vex[i].number = i;
+        g_mG.vex[i].info.intVal = i + 1;
+    }
+
+    
+    for (int i = 0; i < infoCnt; i++) {
+        g_mG.edges[info[i].router1 - 1][info[i].router2 - 1] = info[i].delay;
+        g_mG.edges[info[i].router2 - 1][info[i].router1 - 1] = info[i].delay;
+    }
+}
+
+
+
+/*
+ * Dijkstra最短路径。
+ * 即，统计图(g_mG)中"顶点vs"到其它各个顶点的最短路径。
+ *
+ * 参数说明：
+ *        g_mG -- 图
+ *     beginVex -- 起始顶点(start vertex)。即计算"顶点beginVex"到其它顶点的最短路径。
+ *     preVex -- preVex[i]的值是"顶点vs"到"顶点i"的最短路径所经历的全部顶点中，位于"顶点i"之前的那个顶点。
+ *     distance -- 长度数组。即，distance[i]是"顶点vs"到"顶点i"的最短路径的长度。
+ */
+void Dijkstra(int beginVex, int preVex[], int distance[])
+{
+    bool visit[g_mG.vertextNum];      // visit[i]=1表示"顶点vs"到"顶点i"的最短路径已成功获取。
+
+    // 第一步初始化，先将顶点加入到已经确认的点，更新已经确认点到其他所有顶点的距离
+    for (int vexIdx = 0; vexIdx < g_mG.vertextNum; vexIdx++) {
+        visit[vexIdx] = false;              // 顶点i的最短路径还没获取到。
+        distance[vexIdx] = g_mG.edges[beginVex][vexIdx];// 顶点i的最短路径为"顶点vs"到"顶点i"的权。
+        preVex[vexIdx] = (distance[vexIdx] == INF) ? -1 : beginVex;       // 顶点i的前驱顶点为自己， 其他顶点-1表示没有路径到达。
+    }
+    visit[beginVex] = true;
+    distance[beginVex] = 0;
+
+    // 第二步进入循环  遍历G.vertextNum-1次；每次找出一个顶点的最短路径。
+    for (int vexIdx = 1; vexIdx < g_mG.vertextNum; vexIdx++) {
+        // 寻找当前最小的路径；即，在未获取最短路径的顶点中，找到离beginVex最近的顶点(minVex)。
+        unsigned short minDis = INF;
+        int minVex; // 离beginVex最近的顶点(k)。
+        for (int j = 0; j < g_mG.vertextNum; j++) {
+            if (visit[j] == 0 && distance[j] < minDis) {
+                minDis = distance[j];
+                minVex = j;
+            }
+        }
+        if (minDis == INF) {
+            break; // 孤立的点，没有路径
+        }
+        // 找到离beginVex最近的顶点(minVex)。 标记"minVex"为已经获取到最短路径
+        visit[minVex] = 1;
+
+        // 因为更新了一个最短路径中的点，其他顶点到起始点的路径可能变短，如果从新确定顶点的距离更短，更新路径与前驱顶点  修正当前最短路径和前驱顶点.  即，当已经"顶点k的最短路径"之后，更新"未获取最短路径的顶点的最短路径和前驱顶点"。
+        for (int k = 0; k < g_mG.vertextNum; k++) {
+            unsigned short tmp = (g_mG.edges[minVex][k] == INF ? INF : (minDis + g_mG.edges[minVex][k])); // 防止溢出,要小心权值是否会达到最大值
+            if (visit[k] == 0 && (tmp  < distance[k])) {
+                distance[k] = tmp;
+                preVex[k] = minVex;
+            }
+        }
+    }
+
+    //打印dijkstra最短路径的结果
+    printf("dijkstra(%d) distance: \n", g_mG.vex[beginVex].info.intVal);
+    for (int i = 0; i < g_mG.vertextNum; i++) {
+        printf(" shortest(%d, %d) = %d \n", g_mG.vex[beginVex].info.intVal, g_mG.vex[i].info.intVal, distance[i]);
+    }
+}
+
+
+// 待实现函数，在此函数中填入答题代码
+static int GetMinDelay(int routerNum, struct RouterDelayInfo* info, int infoCnt, int routerRi, int routerRj)
+{
+    memset_s(&g_mG, (size_t)sizeof(g_mG), 0, (size_t)sizeof(g_mG));
+    GenGraph(routerNum, info, infoCnt);
+
+    int preVex[MAX_LEN] = { 0 };
+    int distance[MAX_LEN] = { 0 };
+    Dijkstra(routerRi - 1, preVex, distance);
+    return (distance[routerRj - 1] == INF) ? -1: distance[routerRj - 1];
+}
+
+
+
+int main(void)
+{
+    int routerNum = 0;
+    if (scanf_s("%d", &routerNum) != 1) { return -1; }
+    int infoCnt = 0;
+    if (scanf_s("%d\n", &infoCnt) != 1) { return -1; }
+    static struct RouterDelayInfo infos[MAX_LEN];
+    int i;
+    for (i = 0; i < infoCnt; i++) {
+        if (scanf_s("%d %d %d\n",
+                    &infos[i].router1,
+                    &infos[i].router2,
+                    &infos[i].delay) != 3) { return -1; }
+    }
+
+    int router1 = 0;
+    if (scanf_s("%d", &router1) != 1) { return -1; }
+    int router2 = 0;
+    if (scanf_s("%d", &router2) != 1) { return -1; }
+    int result = GetMinDelay(routerNum, infos, infoCnt, router1, router2);
+    (void)printf("%d", result);
+
+    return 0;
+}
+
+// ---------------------------解法 结束---------------------------------------------------------------------
+

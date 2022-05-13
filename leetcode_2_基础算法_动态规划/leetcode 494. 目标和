@@ -1,0 +1,98 @@
+/*
+ * Copyright (c) Huawei Technologies Co., Ltd. 2019-2020. All rights reserved.
+ */
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <stdbool.h>
+#include <uthash.h>
+// 如需使用华为安全函数，请加上 #include "securec.h"
+#include "securec.h"
+#include "systemDesgin.h"
+#include <math.h>
+#include <assert.h>
+
+
+/**
+ * leetcode 494. 目标和  https://leetcode-cn.com/problems/target-sum/
+ * 0 / 1 背包的问题， 数组中数只能用一次,而且必须用一次
+ */
+
+
+// ---------------------------解法一 从上到下递归   没有备忘录开始--------------------------------------------------------------------
+
+// ---------------------------解法一 结束--------------------------------------------------------
+
+
+// ---------------------------解法一 从上到下递归   有备忘录开始开始--------------------------------------------------------------------
+
+// ---------------------------解法一 结束--------------------------------------------------------
+
+
+// ---------------------------解法一 自底向上--------------------------------------------------------------------
+#define MAX_ARRAY_LEN 21
+
+#define OFFEST_SUM 1000
+#define MAX_SUM OFFEST_SUM * 2 + 1
+
+int dp[MAX_ARRAY_LEN][MAX_SUM];
+int findTargetSumWays(int* nums, int numsSize, int target)
+{
+    // 特殊场景校验
+    int sum = 0;
+    for (int i = 0; i < numsSize; i++) {
+        sum = sum + nums[i];
+    }
+
+    if ((sum > 1000) || (target > sum) || (target < -sum)) {
+        return 0;
+    }
+
+    memset(dp, 0, sizeof(dp));
+
+    dp[0][OFFEST_SUM + nums[0]]++;
+    dp[0][OFFEST_SUM - nums[0]]++; // 用++ 不用 = 1. 因为等于0的时候，+-0 = 0,是两种方案
+    for (int numPtr = 1; numPtr < numsSize; numPtr++) {
+        
+        for (int tempSun = - sum; tempSun <= sum; tempSun++) {
+            // if (tempSun + offest < 0 ) { printf("error 2"); }
+            // if (tempSun - nums[numPtr] + offest < 0 ) { printf("error 3: tempSun(%d), nums[numPtr](%d),offest(%d) \n", tempSun, nums[numPtr], offest); }
+
+            dp[numPtr][OFFEST_SUM + tempSun] = ((OFFEST_SUM + tempSun - nums[numPtr] >= 0) ? dp[numPtr - 1][OFFEST_SUM + tempSun - nums[numPtr]]: 0) + 
+                                               ((OFFEST_SUM + tempSun + nums[numPtr] < MAX_SUM) ? dp[numPtr - 1][OFFEST_SUM + tempSun + nums[numPtr]]: 0);
+        }
+    }
+
+    return dp[numsSize - 1][OFFEST_SUM + target];
+}
+// ---------------------------解法一 结束--------------------------------------------------------
+
+
+
+int main()
+{
+    int nums_1[]= { 1,1,1,1,1 };
+    int numsSize_1 = sizeof(nums_1) / sizeof(nums_1[0]);
+    int target_1 = 3;
+    int result_1 = findTargetSumWays(nums_1, numsSize_1, target_1);
+    assert(result_1 == 5);
+
+
+
+    int nums_2[]= { 0,0,0,0,0,0,0,0,1 };
+    int numsSize_2 = sizeof(nums_2) / sizeof(nums_2[0]);
+    int target_2 = 1;
+    int result_2 = findTargetSumWays(nums_2, numsSize_2, target_2);
+    assert(result_2 == 256);
+
+
+    int nums_3[]= {1,999 };
+    int numsSize_3 = sizeof(nums_3) / sizeof(nums_3[0]);
+    int target_3 = 998;
+    int result_3 = findTargetSumWays(nums_3, numsSize_3, target_3);
+    assert(result_3 == 256);
+
+
+    return 0;
+}
+

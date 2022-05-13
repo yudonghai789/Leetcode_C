@@ -1,0 +1,151 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdbool.h>
+
+
+/* 1386. 安排电影院座位
+ * 贪心算法问题 + 排序问题
+ * 1.多排最优解等于每一排的最优解的和
+ * 2.每一排能够获取到的4联排座位的个数可以计算为：
+    1）将座位分为具有 左（1~4）、中（3~6）、右（5~8）三种连续的空排的状态。
+    2）这三种状态中，左、右可以同时满足，但是的其他状态不能同时满足，如果左、右同时满足，则取2.如果只满足其中一种，则取1。如果都不满足，则取0
+ */
+
+// ---------------------------------方法1 开始；该方法数组内存过大---------------------------------------------------------
+// int seatPoint[1000000][10] = {0};
+
+// int maxNumberPerline(int i) {
+//     int sizePerLine = 0;
+//     int left = 0, middle = 0, right = 0;
+//     if ((seatPoint[i][1] == 0) && (seatPoint[i][2] == 0) && (seatPoint[i][3] == 0) && (seatPoint[i][4] == 0)) {
+//         left = 1;
+//     }
+
+//     if ((seatPoint[i][3] == 0) && (seatPoint[i][4] == 0) && (seatPoint[i][5] == 0) && (seatPoint[i][6] == 0)) {
+//         middle = 1;
+//     }
+
+//     if ((seatPoint[i][5] == 0) && (seatPoint[i][6] == 0) && (seatPoint[i][7] == 0) && (seatPoint[i][8] == 0)) {
+//         right = 1;
+//     }
+
+//     if ((left == 1) && (right == 1)) {
+//         sizePerLine = 2;
+//     } else if ((left == 1) || (middle == 1) || (right == 1)) {
+//         sizePerLine = 1;
+//     } else {
+//         sizePerLine = 0;
+//     }
+
+//     return sizePerLine;
+// }
+
+// int maxNumberOfFamilies(int n, int** reservedSeats, int reservedSeatsSize, int* reservedSeatsColSize){
+//     int result = 0;
+
+
+//     // 1.排序: 直接遍历到二维数组表中
+//     for (int i = 0; i < reservedSeatsSize; i++) {
+//         seatPoint[(reservedSeats[i][0]) - 1][(reservedSeats[i][1]) - 1] = 1;
+//     }
+
+//     // 2.贪心算法
+//     for (int i = 0; i < n; i++) {
+//         result = result + maxNumberPerline(i);
+//     }
+
+//     return result;
+// }
+
+
+// -------------------------方法1 结束-----------------------------------------------------------------
+
+
+
+
+
+
+
+// -------------------------方法2 开始----------------------------------------------------------------
+
+int seatPoint[100] = {0}; // 用比特位代替
+
+int maxNumberPerline(int i) {
+    int sizePerLine = 0;
+    int left = 0, middle = 0, right = 0;
+
+    if (!((seatPoint[i]) & 0b0000011110)) {
+        left = 1;
+    }
+
+    if (!((seatPoint[i]) & 0b0001111000)) {
+        middle = 1;
+    }
+
+    if (!((seatPoint[i]) & 0b0111100000)) {
+        right = 1;
+    }
+
+    if ((left == 1) || (middle == 1) || (right == 1)) {
+        sizePerLine = 1;
+        if ((left == 1) && (right == 1)) {
+            sizePerLine = 2;
+        }
+    } else {
+        sizePerLine = 0;
+    }
+    return sizePerLine;
+}
+
+int maxNumberOfFamilies(int n, int** reservedSeats, int reservedSeatsSize, int* reservedSeatsColSize){
+    int result = 0;
+
+
+    // 1.排序: 直接遍历到二维数组表中
+    for (int i = 0; i < reservedSeatsSize; i++) {
+        seatPoint[(reservedSeats[i][0]) - 1] = (seatPoint[(reservedSeats[i][0]) - 1]) | (1 << ((reservedSeats[i][1]) - 1));
+    }
+
+    // 2.贪心算法
+    for (int i = 0; i < n; i++) {
+        result = result + maxNumberPerline(i);
+    }
+
+    return result;
+}
+// -------------------------方法2 结束-----------------------------------------------------------------
+
+
+
+int main() {
+    // int n = 3;
+    // int reservedSeat[6][2] = {
+	// 	{1,2},
+	// 	{1,3},
+	// 	{1,8},
+	// 	{2,6},
+	// 	{3,1},
+	// 	{3,10},
+	// };
+    // int row = 6;
+	// int cloum = 2;
+
+
+    int n = 4;
+    int allReservedSeat[4][2] = {
+		{4,3},
+		{1,4},
+		{4,6},
+		{1,7}
+	};
+    int row = 4;
+	int cloum = 2;
+
+	int *reservedSeats[4];
+    for (int i = 0; i < row; i++) {
+		reservedSeats[i] = &allReservedSeat[i][0];
+	}
+
+    maxNumberOfFamilies(n, reservedSeats, row, &cloum);
+}

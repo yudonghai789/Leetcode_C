@@ -1,0 +1,199 @@
+/******************************************************************************
+ * 版权所有 (c)
+ * 功能描述   : leetcode 778. 水位上升的泳池中游泳  https://leetcode.cn/problems/swim-in-rising-water/
+ * 作    者   :
+ * 生成日期   :
+ ******************************************************************************/
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdbool.h>
+#include <uthash.h>
+#include <math.h>
+#include <assert.h>
+// 如需使用华为安全函数，请加上 #include "securec.h"
+// #include "securec.h"
+
+
+
+/*
+778. 水位上升的泳池中游泳
+在一个 n x n 的整数矩阵 grid 中，每一个方格的值 grid[i][j] 表示位置 (i, j) 的平台高度。
+
+当开始下雨时，在时间为 t 时，水池中的水位为 t 。你可以从一个平台游向四周相邻的任意一个平台，但是前提是此时水位必须同时淹没这两个平台。假定你可以瞬间移动无限距离，也就是默认在方格内部游动是不耗时的。当然，在你游泳的时候你必须待在坐标方格里面。
+
+你从坐标方格的左上平台 (0，0) 出发。返回 你到达坐标方格的右下平台 (n-1, n-1) 所需的最少时间 。
+
+ 
+
+示例 1:
+
+
+
+输入: grid = [[0,2],[1,3]]
+输出: 3
+解释:
+时间为0时，你位于坐标方格的位置为 (0, 0)。
+此时你不能游向任意方向，因为四个相邻方向平台的高度都大于当前时间为 0 时的水位。
+等时间到达 3 时，你才可以游向平台 (1, 1). 因为此时的水位是 3，坐标方格中的平台没有比水位 3 更高的，所以你可以游向坐标方格中的任意位置
+示例 2:
+
+
+
+输入: grid = [[0,1,2,3,4],[24,23,22,21,5],[12,13,14,15,16],[11,17,18,19,20],[10,9,8,7,6]]
+输出: 16
+解释: 最终的路线用加粗进行了标记。
+我们必须等到时间为 16，此时才能保证平台 (0, 0) 和 (4, 4) 是连通的
+ 
+
+提示:
+
+n == grid.length
+n == grid[i].length
+1 <= n <= 50
+0 <= grid[i][j] < n2
+grid[i][j] 中每个值 均无重复
+*/
+
+
+
+
+// ---------------------------解法 开始-------DFS------双向--------------------------------
+#define MAX_gridSize 50
+typedef struct Position {
+    int row;
+    int col;
+} Position;
+
+int g_direct[4][2] = {
+    { 1, 0 },
+    { -1, 0 },
+    { 0, 1 },
+    { 0, -1 },
+};
+
+typedef struct Queue {
+    Position queue[MAX_gridSize * MAX_gridSize];
+    int head;
+    int tail;
+} Queue;
+Queue g_queue[2]; // 0 起点开始  1 终点开始
+bool g_visit[2][MAX_gridSize][MAX_gridSize] = { 0 };
+
+
+bool Bfs(int** grid, int gridSize, int level)
+{
+    int chose;
+    while (g_queue[0].head > g_queue[0].tail && g_queue[1].head > g_queue[1].tail) {
+        if (g_queue[0].head - g_queue[0].tail <= g_queue[1].head - g_queue[1].tail) {
+            chose = 0;
+        } else {
+            chose = 1;
+        }
+        int start = g_queue[chose].tail;
+        int end = g_queue[chose].head;
+        for (; start < end; start++) {
+            Position po = g_queue[chose].queue[start];
+            int row = po.row;
+            int col = po.col;
+            if (g_visit[1 - chose][row][col] == true) {
+                return true;
+            }
+
+            for (int i = 0; i < 4; i++) {
+                int nextRow = row + g_direct[i][0];
+                int nextCol = col + g_direct[i][1];
+                if (nextRow >= 0 && nextRow < gridSize && nextCol >= 0 && nextCol < gridSize && grid[nextRow][nextCol] <= level && g_visit[chose][nextRow][nextCol] == false) {
+                    g_visit[chose][nextRow][nextCol] = true;
+                    Position nextpo = { nextRow, nextCol };
+                    g_queue[chose].queue[g_queue[chose].head++] = nextpo;
+                }
+            }
+        }
+        g_queue[chose].tail = start;
+    }
+
+    return false;
+}
+
+int swimInWater(int** grid, int gridSize, int* gridColSize)
+{
+    int startLevel = fmax(grid[0][0], grid[gridSize - 1][gridSize - 1]);
+    for (; startLevel < MAX_gridSize * MAX_gridSize; startLevel++) {
+        memset(&g_queue, 0, sizeof(g_queue));
+        Position postart = { 0, 0 };
+        g_queue[0].queue[g_queue[0].head++] = postart;
+        Position poEnd = { gridSize - 1, gridSize - 1 };
+        g_queue[1].queue[g_queue[1].head++] = poEnd;
+        memset(g_visit, 0, sizeof(g_visit));
+        g_visit[0][0][0] = true;
+        g_visit[1][gridSize - 1][gridSize - 1] = true;
+        if (Bfs(grid, gridSize, startLevel)) {
+            return startLevel;
+        };
+    }
+    return -1;
+}
+// ---------------------------解法 结束-------------------------------------------------------
+
+
+#define MAX_LEN 201
+
+typedef struct Matrix {
+    int matrixSize;
+    int matrixColSize[MAX_LEN];
+    int matrix[MAX_LEN][MAX_LEN];
+    int* matrixPoin[MAX_LEN];
+} Matrix;
+
+void printfMatrix(int a[][MAX_LEN], int n, int m)
+{
+    for (int i  = 0; i < n; i++) {
+        for (int j  = 0; j < m; j++) {
+            printf("%-10d", a[i][j]);
+        }
+        printf("\n");
+    }
+    printf("\n");
+}
+
+int main()
+{
+    Matrix matrix_1 = {
+        2,
+        { 2, 2 },
+        {
+            { 0,2 },
+            { 1,3 },
+        }
+    };
+    for (int i = 0; i < matrix_1.matrixSize; i++) {
+        matrix_1.matrixPoin[i] = &matrix_1.matrix[i][0];
+    }
+    printfMatrix(matrix_1.matrix, matrix_1.matrixSize, matrix_1.matrixColSize[0]);
+    int res_1 = swimInWater(matrix_1.matrixPoin, matrix_1.matrixSize, matrix_1.matrixColSize);
+    assert(res_1 == 3);
+
+
+
+    Matrix matrix_2 = {
+        5,
+        { 5, 5, 5, 5 ,5 },
+        {
+            { 0,1,2,3,4 },
+            { 24,23,22,21,5 },
+            { 12,13,14,15,16 },
+            { 11,17,18,19,20 },
+            { 10,9,8,7,6 },
+        }
+    };
+    for (int i = 0; i < matrix_2.matrixSize; i++) {
+        matrix_2.matrixPoin[i] = &matrix_2.matrix[i][0];
+    }
+    printfMatrix(matrix_2.matrix, matrix_2.matrixSize, matrix_2.matrixColSize[0]);
+    int res_2 = swimInWater(matrix_2.matrixPoin, matrix_2.matrixSize, matrix_2.matrixColSize);
+    assert(res_2 == 16);
+
+
+    return 0;
+}

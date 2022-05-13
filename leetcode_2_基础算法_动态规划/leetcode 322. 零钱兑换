@@ -1,0 +1,306 @@
+/******************************************************************************
+ * 版权所有 (c)
+ * 功能描述   : leetcode 322. 零钱兑换  https://leetcode-cn.com/problems/coin-change/
+ * 作    者   :
+ * 生成日期   :
+ * 动态规划 : 无限（完全）背包
+ ******************************************************************************/
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdbool.h>
+#include <uthash.h>
+#include <math.h>
+#include <assert.h>
+// 如需使用华为安全函数，请加上 #include "securec.h"
+// #include "securec.h"
+
+
+
+/*
+322. 零钱兑换
+给你一个整数数组 coins ，表示不同面额的硬币；以及一个整数 amount ，表示总金额。
+
+计算并返回可以凑成总金额所需的 最少的硬币个数 。如果没有任何一种硬币组合能组成总金额，返回 -1 。
+
+你可以认为每种硬币的数量是无限的。
+
+ 
+
+示例 1：
+
+输入：coins = [1, 2, 5], amount = 11
+输出：3 
+解释：11 = 5 + 5 + 1
+示例 2：
+
+输入：coins = [2], amount = 3
+输出：-1
+示例 3：
+
+输入：coins = [1], amount = 0
+输出：0
+ 
+
+提示：
+
+1 <= coins.length <= 12
+1 <= coins[i] <= 231 - 1
+0 <= amount <= 104
+
+*/
+
+
+
+
+
+// ---------------------------解法 开始-----自顶向下---递归-----------------------------------------------------
+// int Recursive(int* coins, int coinsSize, int amount)
+// {
+//     if (amount == 0) { 
+//         return 0;
+//     }
+
+//     if (amount < 0) { 
+//         return -1;
+//     }
+
+//     int res = INT_MAX;
+//     for (int i = 0; i < coinsSize; i++) {
+//         int subProblem = Recursive(coins, coinsSize, amount - coins[i]);
+//         if (subProblem == -1) continue;
+//         res = fmin(res, subProblem + 1);
+//     }
+
+//     if (res == INT_MAX) { res = -1;}
+//     return res;
+// }
+
+// int coinChange(int* coins, int coinsSize, int amount)
+// {
+//     int result = Recursive(coins, coinsSize, amount);
+//     return result;
+// }
+// ---------------------------解法一 结束-------------------------------------------------------------
+
+
+
+// ---------------------------解法 开始------自顶向下---递归 + 备忘录-----回溯算法 + 备忘录-------------------------------------------------
+// int Recursive(int *mem, int* coins, int coinsSize, int amount)
+// {
+//     if (amount == 0) { 
+//         return 0;
+//     }
+
+//     if (amount < 0) { 
+//         return -1;
+//     }
+
+//     if (mem[amount] != INT_MAX) {
+//         return mem[amount];
+//     }
+
+//     int res = INT_MAX;
+//     for (int i = 0; i < coinsSize; i++) {
+//         int subProblem = Recursive(mem, coins, coinsSize, amount - coins[i]);
+//         if (subProblem == -1) continue;
+//         res = fmin(res, subProblem + 1);
+//     }
+
+//     if (res == INT_MAX) { res = -1;}
+//     mem[amount] = res;
+//     return mem[amount];
+// }
+
+// int coinChange(int* coins, int coinsSize, int amount)
+// {
+//     int* mem = (int *)malloc(sizeof(int) * (amount + 1));
+//     for (size_t i = 0; i < (amount + 1); i++) {
+//         mem[i] = INT_MAX;
+//     }
+
+//     int result = Recursive(mem, coins, coinsSize, amount);
+//     free(mem);
+//     return result;
+// }
+// ---------------------------解法 结束--------------------------------------------------------
+
+
+
+
+
+// ---------------------------解法 开始-----自底向上---递归+剪枝----其实就是回溯算法--------------------------------------------
+// void Recursive(int* coins, int coinsSize, int amount, int stepVal, int currentcnt, int *result)
+// {
+//     if (stepVal == amount) {
+//         *result = fmin(currentcnt, *result);
+//         return;
+//     } else if (stepVal > amount) {
+//         return;
+//     }
+
+//     for (int i = coinsSize - 1; i >= 0; i--) {
+//         if ((long long)stepVal + coins[i] > (long long)amount) {
+//             continue;
+//         }
+
+//         if (currentcnt >= *result) {
+//             continue;
+//         }
+
+//         Recursive(coins, coinsSize, amount, stepVal + coins[i], currentcnt + 1, result);
+//     }
+// }
+
+// int coinChange(int* coins, int coinsSize, int amount)
+// {
+//     if (amount == 0) { 
+//         return 0;
+//     }
+
+//     if (amount < 0) { 
+//         return -1;
+//     }
+
+//     int result = INT_MAX;
+//     Recursive(coins, coinsSize, amount, 0, 0, &result);
+
+//     if (result == INT_MAX) { result = -1;}
+//     return result;
+// }
+// ---------------------------解法 结束-------------------------------------------------------------
+
+
+// ---------------------------解法 开始-----自底向上---递归+剪枝----其实就是回溯算法----------记录了值，但是不能用，因为不知道是不是最终结果，-自底向上时，底部i的值还没有确定，就计算i以上的值--------------------------
+int g_memTable[10001];
+#define INITVAL 100000000
+void Recursive(int* coins, int coinsSize, int amount, int stepVal, int currentcnt, int *result)
+{
+    g_memTable[stepVal] = fmin(g_memTable[stepVal], currentcnt);
+
+    if (stepVal == amount) {
+        *result = fmin(currentcnt, *result);
+        return;
+    } else if (stepVal > amount) {
+        return;
+    }
+
+    for (int i = coinsSize - 1; i >= 0; i--) {
+        if ((long long)stepVal + coins[i] > (long long)amount) {
+            continue;
+        }
+
+        if (currentcnt >= *result) {
+            continue;
+        }
+
+        Recursive(coins, coinsSize, amount, stepVal + coins[i], currentcnt + 1, result);
+    }
+}
+
+int coinChange(int* coins, int coinsSize, int amount)
+{
+    if (amount == 0) { 
+        return 0;
+    }
+
+    if (amount < 0) { 
+        return -1;
+    }
+
+    for (int val = 0; val <= amount; val++) {
+        g_memTable[val] = INITVAL;
+    }
+
+    int result = INITVAL;
+    Recursive(coins, coinsSize, amount, 0, 0, &result);
+
+    if (result == INITVAL) { result = -1; }
+    return result;
+}
+// ---------------------------解法 结束-------------------------------------------------------------
+
+
+
+
+
+// ---------------------------解法 开始-------子底向上-----动态规划（就是递归的迭代写法）--DpTable---------但是动态规划的自底向上，是指将值自底向上计算出来，相当于递归的从最后往前（自顶向下）递归调用压栈，然后从前往后计算（自底向上）--------------
+// int g_dpTable[10001];
+
+// #define INITVAL 100000000
+
+// int coinChange(int* coins, int coinsSize, int amount)
+// {
+//     if (amount == 0) { 
+//         return 0;
+//     }
+
+//     if (amount < 0) { 
+//         return -1;
+//     }
+
+//     for (int val = 0; val <= amount; val++) {
+//         g_dpTable[val] = INITVAL;
+//     }
+
+//     g_dpTable[0] = 0;
+//     for (int val = 1; val <= amount; val++) {
+//         for (int i = 0; i < coinsSize; i++) {
+//             if (coins[i] <= val) {
+//                 g_dpTable[val] = fmin(g_dpTable[val], g_dpTable[val - coins[i]] + 1);
+//             }
+//         }
+//     }
+
+//     if (g_dpTable[amount] == INITVAL) { return -1; }
+//     return g_dpTable[amount];
+// }
+// ---------------------------解法 结束-------------------------------------------------------------
+
+
+
+
+
+
+// ---------------------------解法 开始---子底向上-----动态规划--DpTable优化-------------------------------------------------------------
+
+
+// ---------------------------解法 结束-------------------------------------------------------------
+
+
+
+int main()
+{
+    int coins_1[] = { 2 };
+    int coinsSize_1 = sizeof(coins_1) / sizeof(coins_1[0]);
+    int amount_1 = 3;
+    int result_1 = coinChange(coins_1, coinsSize_1, amount_1);
+    assert(result_1 == -1);
+
+
+    int coins_2[] = { 2 };
+    int coinsSize_2 = sizeof(coins_2) / sizeof(coins_2[0]);
+    int amount_2 = 3;
+    int result_2 = coinChange(coins_2, coinsSize_2, amount_2);
+    assert(result_2 == -1);
+
+
+
+    int coins_3[] = { 1 };
+    int coinsSize_3 = sizeof(coins_3) / sizeof(coins_3[0]);
+    int amount_3 = 0;
+    int result_3 = coinChange(coins_3, coinsSize_3, amount_3);
+    assert(result_3 == 0);
+
+
+    int coins_4[] = { 1, 2, 5 };
+    int coinsSize_4 = sizeof(coins_4) / sizeof(coins_4[0]);
+    int amount_4 = 11;
+    int result_4 = coinChange(coins_4, coinsSize_4, amount_4);
+    assert(result_4 = 3);
+
+    return 0;
+}
+
+
+

@@ -1,0 +1,365 @@
+/******************************************************************************
+ * 版权所有 (c)
+ * 功能描述   : OJ 1019. 【软件认证】简单负载均衡. https://oj.rnd.huawei.com/problems/1019/details
+ * 作    者   :
+ * 生成日期   :
+
+ * 
+      --- 
+ ******************************************************************************/
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdbool.h>
+#include <uthash.h>
+#include <math.h>
+#include <limits.h>
+#include <assert.h>
+// 如需使用华为安全函数，请加上 #include "securec.h"
+#include "securec.h"
+#include "vos_priorityqueue.h"
+
+
+
+
+
+/*
+题目描述
+某工程师为了解决服务器负载过高的问题，决定使用多个服务器来分担请求消息。
+
+现给定 k 台服务器（编号从 1 到 k），以及一批请求消息的信息，格式为到达时刻 负载大小，消息说明：
+
+每个时刻最多只有一条消息到达；
+负载大小表示服务器处理该消息所需时长。
+请计算在负载分担规则下，哪些服务器处理的负载最高（服务器处理的负载为所处理的所有消息的负载累加和），并以升序返回这些服务器的编号。
+
+负载分担规则：
+
+按顺序循环分配服务器，如：有3台服务器且都空闲，分配的方式为 1->2->3->1… ；
+如果某台服务器繁忙，则跳过该服务器；
+如果一条消息到达时所有服务器繁忙，则丢弃这条消息。
+解答要求
+时间限制：1000ms, 内存限制：512MB
+输入
+第一行为服务器的个数 k，k 的范围 [1, 50000]
+第二行为请求消息个数 n，n 的范围 [1, 50000]
+随后的 n 行为各条消息的到达时刻和负载大小（注意并非按到达时刻升序给出）。
+消息到达时刻的范围 [1, 10^9]，负载大小的范围 [1, 10^9]
+
+输出
+处理负载最多的服务器编号，注意按升序输出。
+
+样例
+输入样例 1 复制
+
+3
+7
+1 15
+2 10
+12 10
+5 10
+6 10
+30 15
+32 10
+输出样例 1
+
+1 3
+提示样例 1
+根据输入信息，经过分析可得以下表：
+
+到达时刻	消息负载	完成时刻（不包含）	分配服务器号
+1	15	16	1
+2	10	12	2
+5	10	15	3
+6	10	16	丢弃
+12	10	22	2
+30	15	45	3
+32	10	42	1
+根据上表分析，1和3号服务器处理的负载都为25，按照升序排列，输出的结果为:
+1 3
+*/
+
+
+/*
+题目中所有服务器都空闲的时，按照顺序排序这一条让人费解,难道还需要判断此时是否是所有服务器都空闲，然后再分配给服务器0. 因为优先队列可以按照1）首先空闲的机器，2）机器ID小 的方式选出最高优先级的服务器，并不知道所有机器是否都空闲。 那么在执行过程中，有两台服务器：服务器0在时刻9空闲，服务器1在时刻10空闲，此时来了一条时刻11的消息，该怎么选？
+
+*/
+
+
+// ---------------------------解法 开始-----暴力遍历 + 最大值维护 -（问题在于最小值使用后，需要重新维护最小值）----------------------------------------------------
+
+// #define MAX_ROWS 50000
+// #define COLS 2
+
+// typedef struct Messages {
+//     int arrval;
+//     int comsurm;
+// } Messages;
+
+
+// typedef struct ServiceInfo {
+//     int serviceId;
+
+//     int idleTime;
+//     unsigned long long cnt;
+// } ServiceInfo;
+
+// typedef struct AllService {
+//     ServiceInfo service[MAX_ROWS];
+//     int next;
+
+//     int minIdle;
+//     int minIdleIdx;
+//     int buss;
+// } AllService;
+
+// AllService g_allService;
+
+// int ComparePointer(const void *a, const void *b)
+// {
+//     Messages **arryA = (Messages**)a;
+//     Messages **arryB = (Messages**)b;
+
+//     return (*arryA)->arrval - (*arryB)->arrval;
+// }
+
+
+// // 待实现函数，请在此填入答题代码。
+// // 生成的信息列表存于outBuf中，maxOutBufLen是最大数组长度，返回值为实际长度。
+// static int GetMaxValue(int serverNum, int **messages, int messagesRows, int outBuf[], int maxOutBufLen)
+// {
+//     qsort(messages, (size_t)messagesRows, (size_t)sizeof(int *), ComparePointer);
+
+//     memset_s(&g_allService, (size_t)sizeof(g_allService), 0, (size_t)sizeof(g_allService));
+//     g_allService.next = 0;
+//     g_allService.buss = 0;
+//     g_allService.minIdle = INT_MAX;
+//     for (int i = 0; i < serverNum; i++) {
+//         g_allService.service[i].serviceId = i + 1;
+//     }
+    
+//     int max = -1;
+//     for (int msgId = 0; msgId < messagesRows; msgId++) {
+//         if (g_allService.buss == serverNum && messages[msgId][0] < g_allService.minIdle) {
+//             continue;
+//         }
+
+//         for (int serId = g_allService.next, cycle = 0; cycle < serverNum; serId++, cycle++) {
+//             serId = serId % serverNum;
+//             if (g_allService.service[serId].idleTime <= messages[msgId][0]) {
+//                 g_allService.service[serId].idleTime = messages[msgId][0] + messages[msgId][1];
+//                 g_allService.service[serId].cnt += (unsigned long long)messages[msgId][1];
+
+//                 g_allService.next = serId + 1;
+//                 max = fmax(max, g_allService.service[serId].cnt);
+//                 g_allService.buss = 0;
+//                 g_allService.minIdle = INT_MAX;
+//                 break;
+//             } else {
+//                 g_allService.buss++;
+//                 if (g_allService.minIdle > g_allService.service[serId].idleTime) {
+//                     g_allService.minIdle = g_allService.service[serId].idleTime;
+//                     g_allService.minIdleIdx = serId;
+//                 }
+//                 if (g_allService.buss == serverNum) {
+//                     g_allService.next = g_allService.minIdleIdx;
+//                     break;
+//                 }
+//             }
+//         }
+//     }
+
+
+//     memset_s(outBuf, (size_t)sizeof(int) * maxOutBufLen, 0, (size_t)sizeof(int) * maxOutBufLen);
+//     int resLen = 0;
+//     for (int serId = 0; serId < serverNum; serId++) {
+//         if (g_allService.service[serId].cnt == max) {
+//             outBuf[resLen++] = g_allService.service[serId].serviceId;
+//         }
+//     }
+
+//     return resLen;
+// }
+
+// int main(void)
+// {
+//     int serverNum;
+//     int messagesRows;
+//     if (scanf_s("%d%d", &serverNum, &messagesRows) != 2) { return -1; }
+
+//     static int buf[MAX_ROWS][COLS];
+//     int *messages[MAX_ROWS];
+//     for (int i = 0; i < messagesRows; i++) {
+//         for (int j = 0; j < COLS; j++) {
+//             if (scanf_s("%d", &buf[i][j]) != 1) { return -1; }
+//         }
+//         messages[i] = buf[i];
+//     }
+
+//     static int outBuf[MAX_ROWS];
+//     int outputSize = GetMaxValue(serverNum, messages, messagesRows, outBuf, MAX_ROWS);
+
+//     for (int i = 0; i < outputSize; i++) {
+//         printf("%s%d", ((i > 0) ? " " : ""), outBuf[i]);
+//     }
+
+//     return 0;
+// }
+
+// ---------------------------解法 结束---------------------------------------------------------------------
+
+
+
+
+
+
+
+
+// ---------------------------解法 开始-----优先级队列----但是这一题中的所有服务器都空闲的时，按照顺序排序这一条让人费解-------------------------------------------------
+
+#define MAX_ROWS 50000
+#define COLS 2
+
+typedef struct Messages {
+    int arrval;
+    int comsurm;
+} Messages;
+
+
+typedef struct ServiceInfo {
+    int serviceId;
+
+    int idleTime;
+    unsigned long long cnt;
+} ServiceInfo, UserData;
+
+typedef struct AllService {
+    ServiceInfo service[MAX_ROWS];
+} AllService;
+
+AllService g_allService;
+
+int ComparePointer(const void *a, const void *b)
+{
+    Messages **arryA = (Messages**)a;
+    Messages **arryB = (Messages**)b;
+
+    return (*arryA)->arrval - (*arryB)->arrval;
+}
+
+
+int32_t cmpFunc2(uintptr_t data1, uintptr_t data2)
+{
+    UserData *tmpData1 = (UserData *)data1;
+    UserData *tmpData2 = (UserData *)data2;
+
+    return (tmpData2->idleTime - tmpData1->idleTime != 0)?
+                tmpData2->idleTime - tmpData1->idleTime:
+                tmpData2->serviceId - tmpData1->serviceId;
+}
+void *dupFunc(void *src)
+{
+    UserData *tmpSrc = (UserData *)src;
+
+    UserData *data = (UserData *)malloc(sizeof(UserData));
+    (void)memset_s(data, sizeof(UserData), 0, sizeof(UserData));
+
+
+    data->idleTime = tmpSrc->idleTime;
+    data->serviceId = tmpSrc->serviceId;
+    data->cnt = tmpSrc->cnt;
+    return data;
+}
+
+
+uint32_t AddOneData(VosPriQue *priQueue, int serviceId, int idleTime, int cnt)
+{
+    UserData data = { 0 };
+    data.idleTime = idleTime;
+    data.serviceId = serviceId;
+    data.cnt = cnt;
+
+    return VOS_PriQuePush(priQueue,(uintptr_t)&data);
+}
+
+
+// 待实现函数，请在此填入答题代码。
+// 生成的信息列表存于outBuf中，maxOutBufLen是最大数组长度，返回值为实际长度。
+static int GetMaxValue(int serverNum, int **messages, int messagesRows, int outBuf[], int maxOutBufLen)
+{
+    qsort(messages, (size_t)messagesRows, (size_t)sizeof(int *), ComparePointer);
+
+
+    VosPriQue *priQueue;
+    VosDupFreeFuncPair dataFunc = {dupFunc, free};
+    priQueue = VOS_PriQueCreate(cmpFunc2, &dataFunc);
+
+    memset_s(&g_allService, (size_t)sizeof(g_allService), 0, (size_t)sizeof(g_allService));
+    for (int i = 0; i < serverNum; i++) {
+        g_allService.service[i].serviceId = i + 1;
+        AddOneData(priQueue, g_allService.service[i].serviceId, g_allService.service[i].idleTime, g_allService.service[i].cnt);
+    }
+
+    int max = -1;
+    for (int msgId = 0; msgId < messagesRows; msgId++) {
+        UserData data = *(UserData *)VOS_PriQueTop(priQueue);
+        if (data.idleTime <= messages[msgId][0]) {
+            g_allService.service[data.serviceId - 1].idleTime = messages[msgId][0] + messages[msgId][1];
+            g_allService.service[data.serviceId - 1].cnt += messages[msgId][1];
+
+            VOS_PriQuePop(priQueue);
+            AddOneData(priQueue, g_allService.service[data.serviceId - 1].serviceId, g_allService.service[data.serviceId - 1].idleTime, g_allService.service[data.serviceId - 1].cnt);
+            max = fmax(max, g_allService.service[data.serviceId - 1].cnt);
+        }
+    }
+
+
+    memset_s(outBuf, (size_t)sizeof(int) * maxOutBufLen, 0, (size_t)sizeof(int) * maxOutBufLen);
+    int resLen = 0;
+    for (int serId = 0; serId < serverNum; serId++) {
+        if (g_allService.service[serId].cnt == max) {
+            outBuf[resLen++] = g_allService.service[serId].serviceId;
+        }
+    }
+
+    return resLen;
+}
+
+
+int main(void)
+{
+    int serverNum;
+    int messagesRows;
+    if (scanf_s("%d%d", &serverNum, &messagesRows) != 2) { return -1; }
+
+    static int buf[MAX_ROWS][COLS];
+    int *messages[MAX_ROWS];
+    for (int i = 0; i < messagesRows; i++) {
+        for (int j = 0; j < COLS; j++) {
+            if (scanf_s("%d", &buf[i][j]) != 1) { return -1; }
+        }
+        messages[i] = buf[i];
+    }
+
+    static int outBuf[MAX_ROWS];
+    int outputSize = GetMaxValue(serverNum, messages, messagesRows, outBuf, MAX_ROWS);
+
+    for (int i = 0; i < outputSize; i++) {
+        printf("%s%d", ((i > 0) ? " " : ""), outBuf[i]);
+    }
+
+    return 0;
+}
+
+
+// ---------------------------解法 结束---------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+

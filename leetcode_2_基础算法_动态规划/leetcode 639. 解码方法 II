@@ -1,0 +1,135 @@
+
+/*
+ * Copyright (c) Huawei Technologies Co., Ltd. 2019-2020. All rights reserved.
+ */
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <stdbool.h>
+#include <uthash.h>
+// 如需使用华为安全函数，请加上 #include "securec.h"
+#include "securec.h"
+#include "systemDesgin.h"
+#include <math.h>
+#include <assert.h>
+
+
+/* leetcode 639. 解码方法 II  https://leetcode-cn.com/problems/decode-ways-ii/
+ * DP
+ */
+
+#define MOD 1000000007
+
+#define MAX_ARRAY_LEN 100001
+
+long dp[MAX_ARRAY_LEN] = {0};
+
+long GetDp(int index)
+{
+    if (index < 0) return 1;
+    return dp[index];
+}
+
+int DP(char *string, int length)
+{
+    memset(dp, 0,sizeof(long) * MAX_ARRAY_LEN);
+    dp[0] = 1;
+    if (string[0] == '*') {
+        dp[0] = 9;
+    }
+
+    for (int i = 0; i < length - 1; i++) {
+        if (string[i + 1] != '*') {
+            if (string[i + 1] != '0' ) {
+                // i+1 位可以独立成一个数字
+                dp[i + 1] += dp[i];   // 0x dp[i+1]   都属于i+1 位可以独立成一个数字   dp[i + 1] += dp[i];
+            }
+            
+            // 2[7~9] dp[i+1]   都也属于i+1 位可以独立成一个数字   dp[i + 1] += dp[i];
+
+            if (string[i] == '1') { 
+                // i + 1位能和 i 位组成一个两位数
+                dp[i + 1] += (GetDp(i - 1) % MOD);                 // 10  1[1~9] 都能满足 
+            }
+
+            if ((string[i] == '2') && (string[i + 1] <= '6')){
+                dp[i + 1] += (GetDp(i - 1) % MOD);                 // 20  2[1~6] 都能满足 
+            }
+            
+            // 00 则不满足所有条件
+
+            if (string[i] == '*') {
+                if (string[i + 1] <= '6') {
+                    dp[i + 1] += ((GetDp(i - 1) * 2) % MOD);  // 第i+1位可以和第i位(1或者2)组成两位数
+                } else {
+                    dp[i + 1] += (GetDp(i - 1) % MOD);   // 第i+1位可以和第i位(只能是1)组成两位数
+                }
+            }
+        } else {
+            // string[i + 1] == '*'
+            dp[i + 1] += ((dp[i] * 9) % MOD);   // 无论第i 位是什么，第i位都可以独立成一个数字，即 dp[i+1]+=dp[i]*9
+
+            if (string[i] == '1') {
+                dp[i + 1] += ((GetDp(i - 1) * 9) % MOD); // 可以和第i位，组成一个两位数  1*  11 12 13 14 15 16 17 18 19
+            }
+
+            if (string[i] == '2') {
+                dp[i + 1] += ((GetDp(i - 1) * 6) % MOD); // 可以和第i位，组成一个两位数 2* 21 22 23 24 25 26
+            }
+
+            if (string[i] == '*') {
+                dp[i + 1] += ((GetDp(i - 1) * 15) % MOD); // 第i位，既可能是1，也可能是2
+            }
+        }
+
+        dp[i + 1] = dp[i + 1] % MOD;
+    }
+
+    return dp[length - 1];
+}
+
+int numDecodings(char * s)
+{
+    char stringTmp[MAX_ARRAY_LEN] = {0};
+    strcpy(stringTmp, s);
+    int len = strlen(stringTmp);
+
+    // 特殊情况
+    if (s[0] == '0') {
+        return 0;
+    }
+
+    return DP(stringTmp, len);
+}
+
+
+int main(int argc, const char *argv[])
+{
+    char string_1[] = "*";
+    int res_1 = numDecodings(string_1);
+    assert(res_1 == 9);
+
+    char string_2[] = "1*";
+    int res_2 = numDecodings(string_2);
+    assert(res_2 == 18);
+
+    char string_3[] = "2*";
+    int res_3 = numDecodings(string_3);
+    assert(res_3 == 15);
+
+
+    char string_4[] = "2*0";
+    int res_4 = numDecodings(string_4);
+    assert(res_4 == 2);
+
+    char string_5[] = "*0*";
+    int res_5 = numDecodings(string_5);
+    assert(res_5 == 18);
+
+    char string_9[] = "*1*1*0";
+    int res_9 = numDecodings(string_9);
+    assert(res_9 == 404);
+
+
+    return 0;
+}

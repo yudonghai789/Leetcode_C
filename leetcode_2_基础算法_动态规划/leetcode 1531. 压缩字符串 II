@@ -1,0 +1,391 @@
+/******************************************************************************
+ * 版权所有 (c)
+ * 功能描述   : leetcode 1531. 压缩字符串 II. https://leetcode-cn.com/problems/string-compression-ii/
+ * 作    者   :
+ * 生成日期   :
+
+ * 动态规划 
+      --- 
+ ******************************************************************************/
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdbool.h>
+#include <uthash.h>
+#include <math.h>
+#include <assert.h>
+// 如需使用华为安全函数，请加上 #include "securec.h"
+// #include "securec.h"
+
+
+
+
+
+/*
+1531. 压缩字符串 II
+行程长度编码 是一种常用的字符串压缩方法，它将连续的相同字符（重复 2 次或更多次）替换为字符和表示字符计数的数字（行程长度）。例如，用此方法压缩字符串 "aabccc" ，将 "aa" 替换为 "a2" ，"ccc" 替换为` "c3" 。因此压缩后的字符串变为 "a2bc3" 。
+
+注意，本问题中，压缩时没有在单个字符后附加计数 '1' 。
+
+给你一个字符串 s 和一个整数 k 。你需要从字符串 s 中删除最多 k 个字符，以使 s 的行程长度编码长度最小。
+
+请你返回删除最多 k 个字符后，s 行程长度编码的最小长度 。
+
+ 
+
+示例 1：
+
+输入：s = "aaabcccd", k = 2
+输出：4
+解释：在不删除任何内容的情况下，压缩后的字符串是 "a3bc3d" ，长度为 6 。最优的方案是删除 'b' 和 'd'，这样一来，压缩后的字符串为 "a3c3" ，长度是 4 。
+示例 2：
+
+输入：s = "aabbaa", k = 2
+输出：2
+解释：如果删去两个 'b' 字符，那么压缩后的字符串是长度为 2 的 "a4" 。
+示例 3：
+
+输入：s = "aaaaaaaaaaa", k = 0
+输出：3
+解释：由于 k 等于 0 ，不能删去任何字符。压缩后的字符串是 "a11" ，长度为 3 。
+ 
+
+提示：
+
+1 <= s.length <= 100
+0 <= k <= s.length
+s 仅包含小写英文字母
+*/
+
+
+
+
+
+// ---------------------------解法 开始-----暴力遍历: -----------------------------------------------------
+
+// ---------------------------解法 结束---------------------------------------------------------------------
+
+
+
+
+
+
+
+// ---------------------------解法 开始-----BFS 递归模板: -----------------------------------------------------
+
+// ---------------------------解法 结束---------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+// ---------------------------解法 开始-----BFS 迭代模板: -----------------------------------------------------
+
+// ---------------------------解法 结束-----------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+// ---------------------------解法 开始-----DFS 递归模板: -----------------------------------------------------
+
+// ---------------------------解法 结束----------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+// ---------------------------解法 开始-----DFS 迭代模板: --------------------------------------------------
+
+// ---------------------------解法 结束----------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+// ---------------------------解法 开始-----动态规划 记忆化搜索: ----memTable一定要注意表达 可以表达唯一结果的递归路径,维度不够时，不同结果的的递归路径被误当做相同的路径，维度太多时，剪枝效果不大------------------
+// int g_memTable[100][100][27][101]; 
+// int Dfs(char *string, int strLen, int charIdx, int deleLimit, int lastChar, int lastCnt) {
+//     // printf("charIdx(%d), deleLimit(%d),lastChar(%c),lastCnt(%d) -->", charIdx, deleLimit, lastChar + 'a', lastCnt);
+
+//     if (deleLimit < 0) {
+//         // 不能再删除了
+//         // printf("charIdx(%d), deleLimit(%d),lastChar(%c),lastCnt(%d) = cant del \n", charIdx, deleLimit, lastChar + 'a', lastCnt);
+//         return INT_MAX;
+//     }
+
+//     if (charIdx + deleLimit >= strLen) {
+//         // 已经到到了末尾，没有字符剩余了,剩下的字符都可以删除
+//         // printf("charIdx(%d), deleLimit(%d),lastChar(%c),lastCnt(%d) = (%d) end \n", charIdx, deleLimit, lastChar + 'a', lastCnt, 0);
+//         return 0;
+//     }
+
+//     int *ans = &g_memTable[charIdx][deleLimit][lastChar][lastCnt];    // 这是一个减少运算量的技巧，如果每次都去数组中取值，会超时
+//     if (*ans != 0x3f3f3f3f) {
+//         // 已经计算过的，这个也可以放在前面，但是k值，idx可能会越界
+//         // printf("charIdx(%d), deleLimit(%d),lastChar(%c),lastCnt(%d) = repead \n",  charIdx, deleLimit, lastChar + 'a', lastCnt);
+//         return (*ans);
+//     }
+
+//     if (string[charIdx] - 'a' == lastChar) {
+//         // 与前一个字符相同，
+//         int keep = Dfs(string, strLen, charIdx + 1, deleLimit, lastChar, lastCnt + 1) + ((lastCnt == 1) || (lastCnt == 9) || (lastCnt == 99));  // 保留当前字符
+//         int del = Dfs(string, strLen, charIdx + 1, deleLimit - 1, lastChar, lastCnt);  //  删除当前字符
+//         *ans = fmin(keep, del);
+//     } else {
+//         // 与前一个字符不同
+//         int keep = Dfs(string, strLen, charIdx + 1, deleLimit, string[charIdx] - 'a', 1) + 1;  // 保留当前字符
+//         int del = Dfs(string, strLen, charIdx + 1, deleLimit - 1, lastChar, lastCnt);  //  删除当前字符
+//         *ans = fmin(keep, del);
+//     }
+
+//     // printf("charIdx(%d), deleLimit(%d),lastChar(%c),lastCnt(%d) = ans(%d) \n", charIdx, deleLimit, lastChar + 'a', lastCnt, *ans);
+//     return (*ans);
+// }
+
+// int getLengthOfOptimalCompression(char * s, int k)
+// {
+//     memset(g_memTable, 0x3f, sizeof(g_memTable));
+
+//     return Dfs(s, strlen(s), 0, k, 26, 0);   // 字符为空时，第一个字符与前一个字符不同，所以设置为27
+// }
+// ---------------------------解法 结束----------------------------------------------------------------------
+
+
+
+
+
+
+
+// ---------------------------解法 开始-----动态规划 按顺序递推------没有写出来-----------------------------------------------
+#define STRING_LEN 101
+#define MAX_K STRING_LEN
+#define CHAR_NUM 27
+#define MAX_LAST STRING_LEN + 1
+
+
+int g_dpTable[STRING_LEN][MAX_K][CHAR_NUM][MAX_LAST];  // 已经删除
+
+#define NOTCHOOSE 1000000000
+
+int Dp(char *string, int strLen, int deleLimit)
+{
+    // 所有的初始位超大值
+    memset(g_dpTable, 0x5a, sizeof(g_dpTable));
+    // 第0个字符的状态：
+    // 后一个字符与前一个字符不同，用到前一个字符时，前一个字符的结果都为0
+    for (int dele = 0; dele <= deleLimit; dele++) {
+        for (int lastChar = 0; lastChar < 26; lastChar++) {
+            for (int lastCnt = 0; lastCnt <= strLen; lastCnt++) {
+                g_dpTable[0][dele][lastChar][lastCnt] = NOTCHOOSE;    // lastCnt > 2不存在   
+
+                if (dele == 0) {
+                    if (lastChar == string[0] - 'a') {
+                        if (lastCnt == 1) {
+                            g_dpTable[0][dele][lastChar][lastCnt] = 1;  // 第0个字符不删除
+                        } else if (lastCnt == 0) {
+                            g_dpTable[0][dele][lastChar][lastCnt] = NOTCHOOSE;  // 第0个字符不删除
+                        }
+                    } else {
+                        if (lastCnt == 1) {
+                            g_dpTable[0][dele][lastChar][lastCnt] = NOTCHOOSE;  // 第0个字符不删除
+                        } else if (lastCnt == 0) {
+                            g_dpTable[0][dele][lastChar][lastCnt] = 1;  // 第0个字符不删除
+                        }
+                    }
+                }
+
+                if (dele >= 1 && lastCnt == 0) {
+                    g_dpTable[0][dele][lastChar][lastCnt] = 0;  // 第0个字符删除
+                }
+            }
+        }
+    }
+
+
+    // for (int charIdx = 0; charIdx <= strLen - 1; charIdx++) {
+    //     for (int dele = 0; dele <= deleLimit; dele++) {
+    //         for (int lastChar = 0; lastChar < 26; lastChar++) {
+    //             for (int lastCnt = 0; lastCnt <= charIdx; lastCnt++) {
+    //                 printf("dp[c(%d)][d(%d)][Ch(%d)][Cn(%d)] = %-10d  ", charIdx,dele,lastChar, lastCnt,  g_dpTable[charIdx][dele][lastChar][lastCnt]);
+    //             }
+    //             printf("\n");
+    //         }
+    //         printf("\n");
+    //     }
+    //     printf("\n");
+    // }
+    // printf("\n");
+    // printf("\n");
+    // printf("\n");
+
+
+
+
+
+
+    /*
+    初始状态 :假设字符串第一个字符为 'a'
+        保留第一个字符
+            g_dpTable[0][0]['a'][0] = NOTCHOOSE;
+            g_dpTable[0][0]['a'][1] = 1;
+            g_dpTable[0][0]['a'][2~strlen] = NOTCHOOSE;?
+            
+            g_dpTable[0][0]['b~z'][0] = 1;
+            g_dpTable[0][0]['b~z'][1~strlen] = NOTCHOOSE;
+        
+        删除第一个字符
+            g_dpTable[0][1]['a'][0] = 0;
+            g_dpTable[0][1]['a'][1~strlen] = NOTCHOOSE;
+            
+            g_dpTable[0][1]['b~z'][0] = 0;
+            g_dpTable[0][1]['b~z'][1~strlen] = NOTCHOOSE;
+
+
+
+    假设第二个字符为 'b'
+        
+
+
+
+    前一个字符的状态：
+    g_dpTable[charIdx][deleLimit][lastChar][lastCnt]
+
+        
+        删除
+            g_dpTable[charIdx][deleLimit][lastChar][lastCnt]  ->  
+        不删除
+            当前字符与前一个状态的字符相同时，
+            g_dpTable[charIdx][deleLimit][lastChar][lastCnt]  ->  g_dpTable[charIdx + 1][deleLimit][lastChar][lastCnt] + 
+
+
+    */
+
+    int res = INT_MAX;
+    for (int charIdx = 0; charIdx <= strLen - 1; charIdx++) {
+        for (int dele = 0; dele <= deleLimit; dele++) {
+            for (int lastChar = 0; lastChar < 26; lastChar++) {
+                for (int lastCnt = 0; lastCnt <= charIdx + 1; lastCnt++) {
+                    if (charIdx == strLen - 1)  {
+                        res = fmin(res, g_dpTable[charIdx][dele][lastChar][lastCnt]);
+                        printf("g_dpTable[charIdx(%d)][dele(%d)][lastChar(%d)][lastCnt(%d)] = %-10d      \n", charIdx,dele,lastChar, lastCnt,  g_dpTable[charIdx][dele][lastChar][lastCnt]); printf("\n");
+
+                        continue;
+                    }
+
+
+                    // 删除
+                    if (dele + 1 <= deleLimit) {
+                        g_dpTable[charIdx + 1][dele + 1][lastChar][lastCnt] = fmin(g_dpTable[charIdx + 1][dele + 1][lastChar][lastCnt], g_dpTable[charIdx][dele][lastChar][lastCnt]);
+                        printf("g_dpTable[charIdx(%d)][dele(%d)][lastChar(%d)][lastCnt(%d)] = %-10d  delete    \n", charIdx + 1,dele + 1,lastChar, lastCnt,  g_dpTable[charIdx + 1][dele + 1][lastChar][lastCnt]);
+                    }
+                    // 不删除
+                    if (lastChar == string[charIdx + 1] - 'a') {
+                        g_dpTable[charIdx + 1][dele][lastChar][0] = fmin(g_dpTable[charIdx + 1][dele][lastChar][0], NOTCHOOSE); // 第charIdx个字符不删除,lastCnt 不可能等于0
+                        g_dpTable[charIdx + 1][dele][lastChar][lastCnt + 1] = g_dpTable[charIdx][dele][lastChar][lastCnt] + ((lastCnt == 0) || (lastCnt == 1) || (lastCnt == 9) || (lastCnt == 99)); // 第charIdx个字符不删除
+                        printf("g_dpTable[charIdx(%d)][dele(%d)][lastChar(%d)][lastCnt(%d)] = %-10d   keep1   \n", charIdx + 1,dele,lastChar, lastCnt,  g_dpTable[charIdx + 1][dele][lastChar][lastCnt + 1]);
+                    } else {
+                        g_dpTable[charIdx + 1][dele][lastChar][lastCnt] = fmin(g_dpTable[charIdx + 1][dele][lastChar][lastCnt], NOTCHOOSE);  // 第charIdx个字符不删除
+                        printf("g_dpTable[charIdx(%d)][dele(%d)][lastChar(%d)][lastCnt(%d)] = %-10d   keep2   \n", charIdx + 1,dele,lastChar, lastCnt,  g_dpTable[charIdx + 1][dele][lastChar][lastCnt]);
+                    }
+                    
+                }
+            }
+        }
+
+
+    //     for (int dele = 0; dele <= deleLimit; dele++) {
+    //         for (int lastChar = 0; lastChar < 26; lastChar++) {
+    //             for (int lastCnt = 0; lastCnt <= strLen; lastCnt++) {
+    //                 printf("g_dpTable[charIdx(%d)][dele(%d)][lastChar(%d)][lastCnt(%d)] = %-10d      ", charIdx,dele,lastChar, lastCnt,  g_dpTable[charIdx][dele][lastChar][lastCnt]);
+    //             }
+    //             printf("\n");
+    //         }
+    //         printf("\n");
+    //     }
+    //     printf("\n");
+    }
+
+
+    return res;
+}
+
+
+int getLengthOfOptimalCompression(char * s, int k)
+{
+    if (k >= strlen(s)) {
+        return 0;
+    }
+
+    return Dp(s, strlen(s), k);   // 字符为空时，第一个字符与前一个字符不同，所以设置为27
+}
+
+// ---------------------------解法 结束--------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+// ---------------------------解法 开始-----贪心 ----------------------------------------------------------
+
+// ---------------------------解法 结束-----------------------------------------------------------------------
+
+
+
+
+
+
+int main(int argc, const char *argv[])
+{
+    // char string_0[] = "aa";
+    // int k_0 = 1;
+    // int res_0 = getLengthOfOptimalCompression(string_0, k_0);
+    // assert(res_0 == 4);
+    
+
+    char string_1[] = "aaabcccd";
+    int k_1 = 2;
+    int res_1 = getLengthOfOptimalCompression(string_1, k_1);
+    assert(res_1 == 4);
+
+    // char string_2[] = "aabbaa";
+    // int k_2 = 2;
+    // int res_2 = getLengthOfOptimalCompression(string_2, k_2);
+    // assert(res_2 == 2);
+
+    // char string_3[] = "aaaaaaaaaaa";
+    // int k_3 = 0;
+    // int res_3 = getLengthOfOptimalCompression(string_3, k_3);
+    //  assert(res_3 == 3);
+
+
+    return 0;
+}

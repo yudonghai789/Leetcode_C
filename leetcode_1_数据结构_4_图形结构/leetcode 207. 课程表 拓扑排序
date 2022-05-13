@@ -1,0 +1,211 @@
+/*
+ * Copyright (c) Huawei Technologies Co., Ltd. 2019-2020. All rights reserved.
+ */
+#include <stdint.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <stdbool.h>
+#include <uthash.h>
+// 如需使用华为安全函数，请加上 #include "securec.h"
+#include "securec.h"
+#include "systemDesgin.h"
+#include <math.h>
+#include <assert.h>
+
+
+
+/* leetcode 207. 课程表  https://leetcode-cn.com/problems/course-schedule/
+ * 有向图(邻接表)的DFS 
+ */
+
+// ---------------------------开始--------------------------------------------------------------------------
+typedef struct EdgeNode {
+    int toAdjVex;
+    struct EdgeNode* next;
+} EdgeNode;
+
+typedef struct VertexNode {
+    struct VertexData {
+        int corseIndex;
+    } info;
+    struct EdgeNode *firstEdge;
+} VertexNode;
+
+# define VERTEX_NUM 2000   // 图顶点的最大数量
+// 图的定义
+typedef struct {
+    VertexNode adjList[VERTEX_NUM];             // 顶点的列表.
+    int vertextNum;                             // 顶点的数量
+    int edgeNum;                                // 边的数量.
+} AdjListGraph;
+
+AdjListGraph pG = { 0 };
+
+
+void linkLast(EdgeNode *list, EdgeNode *node)
+{
+    EdgeNode *p = list;
+    while (p->next != NULL) {
+        p = p->next;
+    }
+    p->next = node;
+}
+
+
+void Create(int numCourses, int** prerequisites, int prerequisitesSize, int* prerequisitesColSize)
+{
+    // 添加图的顶点
+    for (int i = 0; i < numCourses; i++) {
+        pG.adjList[pG.vertextNum].info.corseIndex = i;
+        pG.vertextNum++;
+    }
+
+    // 添加图的边
+    for (int i = 0; i < prerequisitesSize; i++) {
+        int corse = prerequisites[i][0];
+        int corsePre = prerequisites[i][1];
+
+        // 添加边 corsePre --> corse
+        EdgeNode *node1 = (EdgeNode *)malloc(sizeof(EdgeNode));
+        memset(node1, 0, sizeof(EdgeNode));
+        node1->toAdjVex = corse;
+        if (pG.adjList[corsePre].firstEdge == NULL) {
+            pG.adjList[corsePre].firstEdge = node1;
+        } else {
+            linkLast(pG.adjList[corsePre].firstEdge, node1);
+        }
+        pG.edgeNum++;
+    }
+}
+
+bool topologicalSort(int numCourses, int** prerequisites, int prerequisitesSize, int* prerequisitesColSize, int *result, int* returnSize)
+{
+    int *queue = (int *)malloc(sizeof(int) * pG.vertextNum);   // 辅助队列
+    memset(queue, -1, sizeof(int) * pG.vertextNum);
+    int tail = 0; 
+    int head = 0;
+
+    int *relayCnt = (int *)malloc(sizeof(int) * pG.vertextNum);   // 入度统计队列
+    memset(relayCnt, 0, sizeof(int) * pG.vertextNum);
+    // 计算每个顶点的初始的入度
+    for (int i = 0; i < numCourses; i++) {
+        EdgeNode *node = pG.adjList[i].firstEdge;
+        while (node != NULL) {
+            relayCnt[node->toAdjVex]++;
+            node = node->next;
+        }
+    }
+
+    // 先将入度为0的顶点加入队列，队列先进先出，先删除入度为0的顶点，删除的同时，删除依赖的边，其他依赖该入度为0顶点的顶点，入度就减1
+    for (int i = 0; i < pG.vertextNum; i++) {
+        if (relayCnt[i] == 0) {
+            queue[tail++] = i;
+        }
+    }
+
+    // 队列中加入入度为0的顶点
+    printf("== TopSort: ");
+    int index = 0;
+    while (head != tail) {
+        int vertex = queue[head++];    // 出队列
+        queue[head - 1] = -1;
+        index++;  // 统计出队列的个数，其实 值等于 head = tail
+        result[(*returnSize)++] = pG.adjList[vertex].info.corseIndex;  // 出队列的时候加入拓扑排序数组
+        printf("%d ", pG.adjList[vertex].info.corseIndex);
+
+        EdgeNode *node = pG.adjList[vertex].firstEdge; 
+        while (node != NULL) {
+            relayCnt[node->toAdjVex]--;
+            if (relayCnt[node->toAdjVex] == 0) {
+                 queue[tail++] = node->toAdjVex;
+            }
+            node = node->next;
+        }
+    }
+    printf("\n");
+
+    if (index < pG.vertextNum) {
+        // 有环，最后还有顶点的入度不为0，没有进入过队列
+        printf("Graph has a cycle \n");
+        free(queue);
+        free(relayCnt);
+        return false;
+    } else if (index == pG.vertextNum) {
+        // 无环，所有顶点都可以排序
+        free(queue);
+        free(relayCnt);
+        return true;
+    } else {
+        free(queue);
+        free(relayCnt);
+        printf("program error \n");
+        return false;
+    }
+}
+
+bool canFinish(int numCourses, int** prerequisites, int prerequisitesSize, int* prerequisitesColSize)
+{
+    int *result = (int *)malloc(sizeof(int) * numCourses);
+    memset(result, 0, sizeof(int) * numCourses);
+    int returnSize = 0;
+
+    memset(&pG, 0, sizeof(pG));
+    Create(numCourses, prerequisites, prerequisitesSize, prerequisitesColSize);
+
+    bool isNoCycle = topologicalSort(numCourses, prerequisites, prerequisitesSize, prerequisitesColSize, result, &returnSize);
+    free(result);
+    return isNoCycle;
+}
+
+// ---------------------------结束--------------------------------------------------------
+
+
+
+int main() {
+    int numCourses_1 = 3;
+    int prerequisitese_1[3][2] = {
+        {1, 0},
+        {1, 2},
+        {0, 1}
+    };
+    int prerequisitesSize_1 = sizeof(prerequisitese_1)/ sizeof(prerequisitese_1[0]);
+    int prerequisitesColSize_1 = sizeof(prerequisitese_1[0])/ sizeof(prerequisitese_1[0][0]);
+    int *prerequisitesePoint_1[3] = { 0 };
+    for (int i = 0; i < prerequisitesSize_1; i++) {
+        prerequisitesePoint_1[i] = &prerequisitese_1[i][0];
+    }
+    bool result_1 = canFinish(numCourses_1, prerequisitesePoint_1, prerequisitesSize_1, &prerequisitesColSize_1);
+    assert(result_1 == false);
+
+    int numCourses_2 = 4;
+    int prerequisitese_2[3][2] = {
+        {3, 2},
+        {2, 1},
+        {1, 0}
+    };
+    int prerequisitesSize_2 = sizeof(prerequisitese_2)/ sizeof(prerequisitese_2[0]);
+    int prerequisitesColSize_2 = sizeof(prerequisitese_2[0])/ sizeof(prerequisitese_2[0][0]);
+    int *prerequisitesePoint_2[3] = { 0 };
+    for (int i = 0; i < prerequisitesSize_2; i++) {
+        prerequisitesePoint_2[i] = &prerequisitese_2[i][0];
+    }
+    bool result_2 = canFinish(numCourses_2, prerequisitesePoint_2, prerequisitesSize_2, &prerequisitesColSize_2);
+    assert(result_2 == true);
+
+    int numCourses_3 = 2;
+    int prerequisitese_3[1][2] = {
+        {0, 1}
+    };
+    int prerequisitesSize_3 = sizeof(prerequisitese_3)/ sizeof(prerequisitese_3[0]);
+    int prerequisitesColSize_3 = sizeof(prerequisitese_3[0])/ sizeof(prerequisitese_3[0][0]);
+    int *prerequisitesePoint_3[1] = { 0 };
+    for (int i = 0; i < prerequisitesSize_3; i++) {
+        prerequisitesePoint_3[i] = &prerequisitese_3[i][0];
+    }
+    bool result_3 = canFinish(numCourses_3, prerequisitesePoint_3, prerequisitesSize_3, &prerequisitesColSize_3);
+    assert(result_3 == true);
+
+
+    return 0;
+}

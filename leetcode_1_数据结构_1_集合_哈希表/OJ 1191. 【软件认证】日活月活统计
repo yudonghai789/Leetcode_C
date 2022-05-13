@@ -1,0 +1,308 @@
+/******************************************************************************
+ * 版权所有 (c)
+ * 功能描述   : OJ 1191. 【软件认证】日活月活统计. https://oj.rnd.huawei.com/problems/1191/details
+ * 作    者   :
+ * 生成日期   :
+
+ * 
+      --- 
+ ******************************************************************************/
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdbool.h>
+#include <uthash.h>
+#include <math.h>
+#include <limits.h>
+#include <assert.h>
+// 如需使用华为安全函数，请加上 #include "securec.h"
+#include "securec.h"
+// #include "vos_priorityqueue.h"
+
+
+
+
+
+/*
+题目描述
+现有一份接口访问日志，每行日志格式如下，请统计日活数和月活数。
+yyyy-mm-dd|client_ip|url|result
+
+各字段说明：
+yyyy-mm-dd：日志打印时间，一个日志文件中时间跨度保证都在同一个月内，但不保证每行是按日期有序的。
+client_ip：为合法的点分十进制ipv4地址（1.1.1.1和1.01.001.1应视为同一个地址）。
+url：访问的地址，格式如 /login.do，/query.html，仅包含字母、.、/和_。
+result：接口访问结果，只有2种值：success 或 fail 。
+
+日活数、月活数的统计规则：
+
+日活数统计：统计当天有多少个不同的 client_ip 访问的地址是 /login.do，且结果为 success。
+月活数统计：统计当月有多少个不同的 client_ip 访问的地址是 /login.do，且结果为 success。
+解答要求
+时间限制：1000ms, 内存限制：256MB
+输入
+首行一个正整数 n ，表示日志行数，范围为 [1,50000]。
+接下来 n 行字符串，每行字符串表示一条日志内容，每行字符串长度不超过150。
+
+输出
+32个整数，以单个空格分隔。第1个整数表示月活数，第 2-32 个整数分别表示当月1-31天的日活数。
+
+样例
+输入样例 1 复制
+
+5
+2020-02-01|192.168.218.218|/login.do|success
+2020-02-01|192.168.218.218|/login.do|success
+2020-02-01|192.168.210.210|/login.do|fail
+2020-02-02|192.168.210.210|/login.do|success
+2020-02-02|192.168.218.218|/login.do|success
+输出样例 1
+
+2 1 2 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+提示样例 1
+二月的第一天即2月1日，有两条日志访问/login.do的结果为success，但都来自同一个ip（192.168.218.218），因此当天的日活数统计为1。
+第二天有两条访问成功，来自两个不同的ip，因此日活数为 2。
+当月仅有2个ip访问成功，因此月活数为2。注意：月活数不是日活数的简单累加。
+
+
+
+输入样例 2 复制
+
+3
+2020-12-01|192.168.218.001|/login.do|success
+2020-12-01|192.168.218.1|/login.do|success
+2020-12-01|192.168.218.2|/to_login.do|success
+输出样例 2
+
+1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+提示样例 2
+192.168.218.001和192.168.218.1视为同一个ip，/to_login.do 与 /login.do 不匹配，因此统计下来日活数为1，月活数为1。
+*/
+
+
+
+
+// ---------------------------解法 开始---------------------------------------------------------
+
+#define LINE_MAX 50000
+#define BUF_LEN 151
+#define RESULT_CNT 32
+
+typedef struct OneLog {
+    char log[4][BUF_LEN];
+
+    char date[3][BUF_LEN]; // 就是年月日
+    int day; // 就是年月日中的日
+
+    char ip[4][BUF_LEN]; // ip  192.168.218.218  = 192168218218   方便进行ip hash值计算，结构体hash是复杂的
+    unsigned long long ipVal; // ip  192.168.218.218  = 192168218218   方便进行ip hash值计算，结构体hash是复杂的
+} OneLog;
+
+OneLog g_logs[LINE_MAX];
+
+
+
+/*
+ * 参考自行开发或按照说明使用；此函数用于：拆分字符串，如 delim = “|”，可以根据“|”进行字符串拆分。
+ * 输入：input表示待拆分的字符串，delim表示分隔符，bufSize表示result数组长度，result用于存放拆分后的字符串
+ * 返回：拆分后的字符串数组的大小。若拆分后的字符串个数大于bufSize，返回0。
+ * 例：函数调用前定义一个数组result[4][BUF_LEN]，入参input = "a|b|c|d", delim = "|", bufSize = 4,
+ * 函数调用后result[0] = "a", result[1] = "b", result[2] = "c", result[3] = "d"，返回4
+ */
+static int SplitString(const char *input, const char *delim, int bufSize, char result[][BUF_LEN])
+{
+    size_t len = strlen(input);
+    char *str = malloc(len + 1);
+    if (str == NULL) { return 0; }
+    strncpy_s(str, len + 1, input, len);
+    int cnt = 0;
+    char *buff = NULL;
+    char *p = strtok_s(str, delim, &buff);
+    while (p != NULL) {
+        if (cnt >= bufSize || strcpy_s(result[cnt], BUF_LEN, p) != EOK) {
+            free(str);
+            return 0;
+        }
+        p = strtok_s(NULL, delim, &buff);
+        cnt++;
+    }
+    free(str);
+    return cnt;
+}
+
+int LogSplite(char **logs, int logCnt)
+{
+    int SuccesslogCnt = 0;
+    char delim[] = "|";
+    for (int i = 0; i < logCnt; i++) {
+        int cnt = SplitString(logs[i], delim, 4, g_logs[SuccesslogCnt].log);
+        if ((strcmp(g_logs[SuccesslogCnt].log[3], "success") == 0) && (strcmp(g_logs[SuccesslogCnt].log[2], "/login.do") == 0)) {
+            SuccesslogCnt++;
+        }
+    }
+
+    return SuccesslogCnt;
+}
+
+
+void DateSplite(int SuccesslogCnt)
+{
+    char delim[] = "-";
+    for (int i = 0; i < SuccesslogCnt; i++) {
+        int cnt = SplitString(g_logs[i].log[0], delim, 3, g_logs[i].date);
+        g_logs[i].day = atoi(g_logs[i].date[2]);
+    }
+}
+
+
+void IpSplite(int SuccesslogCnt)
+{
+    char delim[] = ".";
+    for (int i = 0; i < SuccesslogCnt; i++) {
+        int cnt = SplitString(g_logs[i].log[1], delim, 4, g_logs[i].ip);
+        g_logs[i].ipVal = (unsigned long long)atoi(g_logs[i].ip[0]) * 1000000000 + (unsigned long long)atoi(g_logs[i].ip[1])  * 1000000 + (unsigned long long)atoi(g_logs[i].ip[2]) * 1000 + (unsigned long long)atoi(g_logs[i].ip[3]);
+    }
+}
+
+
+/*****************************************************************************
+ * 描  述: uthash 来统计
+*****************************************************************************/
+typedef struct UthashTableInt {
+    unsigned long long key;  // ipVal
+    int val[33]; // 每个ip在各个月份有访问，就置为1  day
+    UT_hash_handle hh;
+} UthashTableInt;
+
+// void TuhashFindAll(UthashTableInt** hashtableHead) {
+//     UthashTableInt *current_user, *tmp;
+
+//     HASH_ITER(hh, *hashtableHead, current_user, tmp) {
+//         printf("key = %llu  ->  value = %d ;", current_user->key, current_user->val[0]);
+//     }
+
+//     printf("\n");
+// }
+
+UthashTableInt* TuhashFindByKey(UthashTableInt** hashtableHead, unsigned long long ikey) {
+    UthashTableInt* tmp = NULL;
+    HASH_FIND_INT(*hashtableHead, &ikey, tmp);
+    return tmp;
+}
+
+// void TuhashAdd(UthashTableInt** hashtableHead, int ikey, int ival) {
+//     UthashTableInt* it = TuhashFindByKey(hashtableHead, ikey);
+//     if (it == NULL) {
+//         UthashTableInt* tmp = (UthashTableInt*)malloc(sizeof(UthashTableInt));
+//         tmp->key = ikey, tmp->val = ival;
+//         HASH_ADD_INT(*hashtableHead, key, tmp);
+//     } else {
+//         it->val = ival;
+//     }
+// }
+
+// void TuhashDelete(UthashTableInt** hashtableHead, UthashTableInt* hashtable) {
+//     HASH_DEL(*hashtableHead, hashtable);  /* 从键值表中删除这个键值，但是不刽释放内存 */
+//     free(hashtable);   // 释放这个键值对的内存，删除时的可选操作
+// }
+
+// void TuhashDeleteByKey(UthashTableInt** hashtableHead, int ikey) {
+//     UthashTableInt* it = TuhashFindByKey(hashtableHead, ikey);
+//     if (it != NULL) {
+//         HASH_DEL(*hashtableHead, it);  /* 从键值表中删除这个键值，但是不刽释放内存 */
+//         free(it);   // 释放这个键值对的内存，删除时的可选操作
+//     }
+// }
+
+void TuhashDeleteAll(UthashTableInt** hashtableHead) {
+    UthashTableInt *current_user, *tmp;
+
+    HASH_ITER(hh, *hashtableHead, current_user, tmp) {
+        HASH_DEL(*hashtableHead, current_user);  /* delete it (users advances to next) */
+        free(current_user);             /* free it */
+    }
+}
+
+// int SortByKey(UthashTableInt* a, UthashTableInt* b) {
+//     return (a->key - b->key);   // 字符串使用 strcmp(a->key, b->key)
+// }
+
+// void TuhashSortByKey(UthashTableInt** hashtableHead) {
+//     HASH_SORT(*hashtableHead, SortByKey);
+// }
+
+// int SortByValue(UthashTableInt* a, UthashTableInt* b) {
+//     return (a->val - b->val);   // 字符串使用 strcmp(a->val, b->val)
+// }
+
+// void TuhashSortByValue(UthashTableInt** hashtableHead) {
+//     HASH_SORT(*hashtableHead, SortByValue);
+// }
+
+
+void TuhashAddAndStat(UthashTableInt** hashtableHead, unsigned long long ikey, int ival) {
+    UthashTableInt* it = TuhashFindByKey(hashtableHead, ikey);
+    if (it == NULL) {
+        UthashTableInt* tmp = (UthashTableInt*)malloc(sizeof(UthashTableInt));
+        memset_s(tmp, (size_t)sizeof(UthashTableInt), 0, (size_t)sizeof(UthashTableInt));
+        tmp->key = ikey, tmp->val[ival] = 1;
+        HASH_ADD_INT(*hashtableHead, key, tmp);
+    } else {
+        it->val[ival] = 1;
+    }
+}
+
+
+// 待实现函数，在此函数中填入答题代码;
+static void Stat(char **logs, int logCnt, int result[RESULT_CNT])
+{
+    memset_s(g_logs, (size_t)sizeof(g_logs), 0, (size_t)sizeof(g_logs));
+    int SuccesslogCnt = LogSplite(logs, logCnt);
+
+    DateSplite(SuccesslogCnt);
+
+    IpSplite(SuccesslogCnt);
+
+    UthashTableInt* hashtableHead = NULL;
+
+    for (int i = 0; i < SuccesslogCnt; i++) {
+        TuhashAddAndStat(&hashtableHead, g_logs[i].ipVal, g_logs[i].day);
+    }
+
+    memset_s(result, (size_t)sizeof(int) * RESULT_CNT, 0, (size_t)sizeof(int) * RESULT_CNT);
+    result[0] = HASH_COUNT(hashtableHead);
+    UthashTableInt *current_user, *tmp;
+    HASH_ITER(hh, hashtableHead, current_user, tmp) {
+        // printf("key = %llu  ->  value = %d ;", current_user->key, current_user->val[0]);
+        for (int i = 1; i <= 31; i++) {
+            if (current_user->val[i] == 1) {
+                result[i]++;
+            }
+        }
+    }
+}
+
+int main(void)
+{
+    int n;
+    if (scanf_s("%d\n", &n) != 1) { return -1; }
+
+    static char buf[LINE_MAX][BUF_LEN];
+    static char *logs[LINE_MAX];
+    for (int i = 0; i < n; i++) {
+        if (gets_s(buf[i], BUF_LEN) == NULL) { return -1; }
+        logs[i] = buf[i];
+    }
+
+    static int result[RESULT_CNT];
+    Stat(logs, n, result);
+
+    for (int i = 0; i < RESULT_CNT; i++) {
+        (void)printf("%s%d", (i > 0) ? " " : "", result[i]);
+    }
+    return 0;
+}
+
+
+// ---------------------------解法 结束---------------------------------------------------------------------
+

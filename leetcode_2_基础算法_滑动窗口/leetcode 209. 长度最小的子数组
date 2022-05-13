@@ -1,0 +1,109 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+
+/**
+ * 对数组进行循环，计算每个元素开始，大于S需要的个数
+ * 
+ */
+int minSubArrayLen(int s, int* nums, int numsSize){
+    int result = numsSize + 1;
+    int tempResult = 0;
+    for (int i = 0; i < numsSize; i++) {
+        int sum = 0;
+        int j = i;
+        while ((sum < s) && (j < numsSize)) {
+            sum = sum + nums[j];
+            j++;
+        }  
+        if(sum >= s) {
+            tempResult = j - i;
+            result = (result > tempResult)? tempResult: result;
+        }
+    }
+    
+    result = (result > numsSize)? 0: result;
+    return result;
+}
+
+int main()
+{
+	int result = 0;
+
+    // int nums[6] = {2,3,1,2,4,3};
+    // int numsSize = sizeof(nums) / sizeof(int);
+    // int s = 7;
+
+    int nums[6] = {1,2,3,4,5};
+    int numsSize = sizeof(nums) / sizeof(int);
+    int s = 11;
+
+	result = minSubArrayLen(s, nums, numsSize);
+	printf("%d", result);
+
+    system("pause");
+    return 0;
+}
+
+
+
+/*
+ * Copyright (c) Huawei Technologies Co., Ltd. 2019-2020. All rights reserved.
+ */
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdbool.h>
+#include <uthash.h>
+// 如需使用华为安全函数，请加上 #include "securec.h"
+#include "dierti.h"
+#include <math.h>
+#include <assert.h>
+
+/* leetcode 209. 长度最小的子数组 https://leetcode-cn.com/problems/minimum-size-subarray-sum/
+ */
+// ---------------------------解法 二分---------------------------------------------------
+int minSubArrayLen(int target, int* nums, int numsSize)
+{
+    if ((nums == NULL) || (numsSize == 0)) { return -1; }
+
+    int rsultMinCount = numsSize + 1;
+    int totalSum = 0;
+    int left = 0;
+    int right = 0;
+    while (right < numsSize) {
+        totalSum = totalSum + nums[right];
+
+        while (totalSum >= target) {
+            rsultMinCount = (rsultMinCount < right - left + 1)? rsultMinCount: right - left + 1;
+            totalSum = totalSum - nums[left];
+            left++;
+        }
+
+        right++; 
+    }
+
+    return (rsultMinCount == numsSize + 1) ? 0: rsultMinCount;
+}
+
+
+int main() {
+    int nums_1[] = { 2,3,1,2,4,3 };
+    int numSize_1 = sizeof(nums_1) / sizeof(nums_1[0]);
+    int result_1 = minSubArrayLen(7, nums_1, numSize_1);
+    assert(result_1 == 2);
+    
+    int nums_2[] = { 1,4,4 };
+    int numSize_2 = sizeof(nums_2) / sizeof(nums_2[0]);
+    int result_2 = minSubArrayLen(4, nums_2, numSize_2);
+    assert(result_2 == 1);
+
+    int nums_3[] = { 1,1,1,1,1,1,1,1 };
+    int numSize_3 = sizeof(nums_3) / sizeof(nums_3[0]);
+    int result_3 = minSubArrayLen(11, nums_3, numSize_3);
+    assert(result_3 == 0);
+
+
+    return 0;
+}

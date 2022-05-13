@@ -1,0 +1,227 @@
+/*
+ * Copyright (c) Huawei Technologies Co., Ltd. 2019-2020. All rights reserved.
+ */
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <stdbool.h>
+#include <uthash.h>
+// 如需使用华为安全函数，请加上 #include "securec.h"
+#include "securec.h"
+#include "systemDesgin.h"
+#include <math.h>
+#include <assert.h>
+
+
+/**
+ * leetcode 416. 分割等和子集  https://leetcode-cn.com/problems/maximum-subarray/
+ * 0 / 1 背包的问题， 数组中数只能用一次
+ */
+
+
+// ---------------------------解法一 从上到下递归   没有备忘录开始--------------------------------------------------------------------
+/**
+ * 该解法错误，以为各个数据只能使用一次，这里会使用多次
+ */
+// bool dpTraceBack(int* nums, int numsSize, int target)
+// {
+//     printf("target %d", target);
+//     for (int i = 0; i < numsSize; i++) {
+//         printf("find  %d ", i);
+//         if (nums[i] == target) {
+//             printf("%d   end 1 /n", i);
+//             return true;
+//         }
+//     }
+
+//     for (int i = 0; i < numsSize; i++) {
+//         printf("surch  %d ", i);
+//         int sub = target - nums[i];
+//         if (sub < 0) {
+//             continue;
+//         }
+//         if (dpTraceBack(nums, numsSize, sub) == true) {
+//             printf("%d   end 2 /n", i);
+//             return true;
+//         }
+//     }
+
+//     printf("end 3 /n ");
+//     return false;
+// }
+
+
+// bool canPartition(int* nums, int numsSize)
+// {
+//     // 基本校验
+//     if (numsSize % 2 != 0) {
+//         return false;
+//     } 
+
+//     int sum = 0;
+//     for (int i = 0; i < numsSize; i++) {
+//         sum = sum + nums[i];
+//     }
+
+//     int target = sum / 2;
+//     if (target * 2 != sum) { 
+//         return false;
+//     }
+
+//     bool result = dpTraceBack(nums, numsSize, target);
+
+//     return result;
+// }
+// ---------------------------解法一 结束--------------------------------------------------------
+
+
+// ---------------------------解法一 开始--------------------------------------------------------------------
+// #define MAX_DP_NUM 20000   // 所有数据的和最大为 200*100
+// bool dpRes[MAX_DP_NUM];
+
+// bool dpTraceBack(int* nums, int numsSize, int target)
+// {
+//     for (int i = 0; i <= numsSize; i++) {
+//         if (nums[i] == target) {
+//             return true;
+//         }
+//     }
+
+//     for (int i = 0; i < numsSize; i++) {
+//         int sub = target - nums[i];
+//         if (sub < 0) {
+//             continue;
+//         }
+//         if (dpTraceBack(nums, numsSize, sub) == true) {
+//             return true;
+//         }
+//     }
+
+//     return false;
+// }
+
+
+// bool canPartition(int* nums, int numsSize)
+// {
+//     // 基本校验
+//     if (numsSize % 2 != 0) {
+//         return false;
+//     } 
+
+//     int sum = 0;
+//     for (int i = 0; i < numsSize; i++) {
+//         sum = sum + nums[i];
+//     }
+
+//     int target = sum / 2;
+//     if (target * 2 != sum) { 
+//         return false;
+//     }
+
+//     // 动态规划
+//     for (int i = 0; i <= target; i++) {
+//         dpRes[i] = false;
+//     }
+
+//     for (int i = 0; i <= numsSize; i++) {
+//         dpRes[nums[i]] = true;
+//     }
+
+//     bool result = dpTraceBack(nums, numsSize, target);
+
+//     return result;
+// }
+
+// ---------------------------解法一 结束--------------------------------------------------------
+
+
+// ---------------------------解法一 自底向上--------------------------------------------------------------------
+#define MAX_DP_NUM 20010   // 所有数据的和最大为 200*100
+#define MAX_ITEM_NUM 210   // 所有数据的和最大为 200*100
+
+bool dpRes[MAX_ITEM_NUM][MAX_DP_NUM];
+
+bool GetDpValue(int itemNum, int value)
+{
+    if ((itemNum < 0) || (value < 0)) {
+        return false;
+    }
+
+    return dpRes[itemNum][value];
+}
+
+bool canPartition(int* nums, int numsSize)
+{
+    // 基本校验
+    int sum = 0;
+    for (int i = 0; i < numsSize; i++) {
+        sum = sum + nums[i];
+    }
+
+    int target = sum / 2;
+    if (target * 2 != sum) { 
+        return false;
+    }
+
+    // 动态规划
+    for (int i = 0; i < numsSize + 1; i++) {
+        memset(&dpRes[i][0], 0, sizeof(bool) * (target + 1));
+    }
+
+    // 其他dpRes[0][j] 都是 false ,意思是不取用元素的时候，剩余值不为0 就不能凑整
+    dpRes[0][0] = true;  // 后面又重复赋值了
+
+
+    // dpRes[i][0] 都是 容量已经不剩余的时候， 就是凑整了
+    for (int i = 0; i < numsSize + 1; i++) {
+        dpRes[i][0] = true;
+    }
+
+    for (int i = 1; i < numsSize + 1; i++) {
+        for (int j = 1; j < target + 1; j++) {
+            dpRes[i][j] = ((GetDpValue(i - 1 , j - nums[i - 1]) == true) || (GetDpValue(i - 1, j) == true)) ? true : false;
+        }
+    }
+
+    return dpRes[numsSize][target];
+}
+// ---------------------------解法一 结束--------------------------------------------------------
+
+
+
+int main()
+{
+    // int nums_1[]= { 1,5,11,5 };
+    // int numsSize_1 = sizeof(nums_1) / sizeof(nums_1[0]);
+	// bool result_1 = canPartition(nums_1, numsSize_1);
+	// assert(result_1 == true);
+
+    // int nums_2[]= { 1,2,3,5 };
+    // int numsSize_2 = sizeof(nums_2) / sizeof(nums_2[0]);
+	// bool result_2 = canPartition(nums_2, numsSize_2);
+	// assert(result_2 == false);
+
+
+    // int nums_3[]= { 5 };
+    // int numsSize_3 = sizeof(nums_3) / sizeof(nums_3[0]);
+	// bool result_3 = canPartition(nums_3, numsSize_3);
+	// assert(result_3 == false);
+    
+    // int nums_4[]= { 5,4 };
+    // int numsSize_4 = sizeof(nums_4) / sizeof(nums_4[0]);
+	// bool result_4 = canPartition(nums_4, numsSize_4);
+	// assert(result_4 == false);
+
+    // int nums_5[]= { 2,2,3,5 };
+    // int numsSize_5 = sizeof(nums_5) / sizeof(nums_5[0]);
+	// bool result_5 = canPartition(nums_5, numsSize_5);
+	// assert(result_5 == false);
+
+    int nums_6[]= { 3,3,3,4,5 };
+    int numsSize_6 = sizeof(nums_6) / sizeof(nums_6[0]);
+	bool result_6 = canPartition(nums_6, numsSize_6);
+	assert(result_6 == true);
+
+    return 0;
+}
+

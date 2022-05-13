@@ -1,0 +1,277 @@
+/******************************************************************************
+ * 版权所有 (c)
+ * 功能描述   : leetcode 315. 计算右侧小于当前元素的个数  https://leetcode-cn.com/problems/count-of-smaller-numbers-after-self/
+ * 作    者   :
+ * 生成日期   :
+ ******************************************************************************/
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdbool.h>
+#include <uthash.h>
+#include <math.h>
+#include <assert.h>
+// 如需使用华为安全函数，请加上 #include "securec.h"
+// #include "securec.h"
+
+
+// ---------------------------开始----------暴力 超时---------------------------------------------------
+// int* countSmaller(int* nums, int numsSize, int* returnSize)
+// {
+//     int *res = (int *)malloc(sizeof(int) * numsSize);
+//     memset(res, 0, sizeof(int) * numsSize);
+//     *returnSize = numsSize;
+    
+//     for (int i = numsSize - 1; i >= 0; i--) {
+//         for (int j = i; j < numsSize; j++) {
+//             if (nums[i] > nums[j]) {
+//                 res[i]++;
+//             }
+//         }
+//     }
+
+//     return res;
+// }
+
+// ---------------------------结束--------------------------------------------------------------------
+
+
+// ---------------------------开始----------暴力 超时---------------------------------------------------
+// #define MAX_ARRAYLEN 20001
+
+// typedef struct CntSort {
+//     int bigCnt;
+// } CntSort;
+
+// CntSort cntSort[MAX_ARRAYLEN];
+
+// int GetCnt(int val)
+// {
+//     return cntSort[val + 10000].bigCnt;
+// }
+
+// void SetCnt(int val, int taget)
+// {
+//     cntSort[val + 10000].bigCnt = taget;
+// }
+
+// void AddCnt(int val)
+// {
+//     cntSort[val + 10000].bigCnt++;
+// }
+
+// int* countSmaller(int* nums, int numsSize, int* returnSize)
+// {
+//     memset(cntSort, 0, sizeof(cntSort));
+
+//     int max = INT_MIN;
+//     int min = INT_MAX;
+//     for (int i = 0; i < numsSize; i++) {
+//         max = fmax(max, nums[i]);
+//         min = fmin(min, nums[i]);
+//     }
+
+//     int *res = (int *)malloc(sizeof(int) * numsSize);
+//     memset(res, 0, sizeof(int) * numsSize);
+
+//     for (int i = numsSize - 1; i >= 0; i--) {
+//         for (int j = max; j > nums[i]; j--) {
+//             AddCnt(j);
+//         }
+//         res[i] = GetCnt(nums[i]);
+//     }
+
+//     *returnSize = numsSize;
+//     return res;
+// }
+// ---------------------------结束--------------------------------------------------------------------
+
+// ---------------------------开始----------动态规划--能不能找到 res[i]只跟res[i-1]相关的状态转移----------------------------------------------
+
+// ---------------------------结束--------------------------------------------------------------------
+
+
+
+// ---------------------------开始-------归并排序---索引数组-------超时-------------------------------------
+typedef struct Waper {
+    int index;
+    int val;
+} Waper;
+
+int CompareStruct(const void *a, const void *b)
+{
+    Waper *valA = (Waper *)a;
+    Waper *valB = (Waper *)b;
+
+    return valA->val - valB->val;
+}
+
+void MergeSortRecursive(Waper arr[], Waper reg[], int start, int end, int* res)
+{
+    if (start >= end) {
+        return;
+    }
+
+    int len = end - start;
+    int mid = (len >> 1) + start;
+    int start1 = start, end1 = mid;
+    int start2 = mid + 1, end2 = end;
+    MergeSortRecursive(arr, reg, start1, end1, res);
+    MergeSortRecursive(arr, reg, start2, end2 ,res);
+
+    int k = start;
+    while (start1 <= end1 && start2 <= end2) {
+        if (arr[start1].val <= arr[start2].val) {
+            reg[k++] = arr[start1++];
+        } else {
+            for (int i = start1; i <= mid; i++) {    // 这个循环超时，改变一下排序方案，将大的先排在后面
+                res[arr[i].index] += 1;
+            }
+            reg[k++] = arr[start2++];
+        }
+    }
+
+    while (start1 <= end1) {
+        reg[k++] = arr[start1++];     // 剩下左边的数组大，右边的已经全部排完序
+    }
+        
+    while (start2 <= end2) {
+        reg[k++] = arr[start2++]; // 剩下右边的数组大，
+    }
+
+    for (k = start; k <= end; k++) {
+        arr[k] = reg[k];
+    }
+}
+
+void MergeSort(Waper arr[], int len, int *res)
+{
+    Waper reg[len];
+    MergeSortRecursive(arr, reg, 0, len - 1, res);
+}
+
+int* countSmaller(int* nums, int numsSize, int* returnSize)
+{
+    if ((nums == NULL) || (numsSize == 0)) {
+        *returnSize = 0;
+        return NULL;
+    }
+
+    Waper waper[numsSize];
+    for (int i = 0; i < numsSize; i++) {
+        waper[i].index = i;
+        waper[i].val = nums[i];
+    }
+
+    int *res = (int *)malloc(sizeof(int) * numsSize);
+    memset(res, 0, sizeof(int) * numsSize);
+    MergeSort(waper, numsSize, res);
+
+    *returnSize = numsSize;
+    return res;
+}
+// ---------------------------结束--------------------------------------------------------------------
+
+// ---------------------------开始-------归并排序---索引数组--------------------------------------------
+typedef struct Waper {
+    int index;
+    int val;
+} Waper;
+
+int CompareStruct(const void *a, const void *b)
+{
+    Waper *valA = (Waper *)a;
+    Waper *valB = (Waper *)b;
+
+    return valA->val - valB->val;
+}
+
+void MergeSortRecursive(Waper arr[], Waper reg[], int start, int end, int* res)
+{
+    if (start >= end) {
+        return;
+    }
+
+    int len = end - start;
+    int mid = (len >> 1) + start;
+    int start1 = start, end1 = mid;
+    int start2 = mid + 1, end2 = end;
+    MergeSortRecursive(arr, reg, start1, end1, res);
+    MergeSortRecursive(arr, reg, start2, end2 ,res);
+
+    int k = end;
+    int sort1 = end1;
+    int sort2 = end2;
+    while (sort1 >= start1 && sort2 >= start2) {
+        if (arr[sort1].val > arr[sort2].val) {
+            res[arr[sort1].index] += sort2 - mid;
+            reg[k--] = arr[sort1--];
+        } else {
+            reg[k--] = arr[sort2--];
+        }
+    }
+
+    while (sort1 >= start1) {
+        reg[k--] = arr[sort1--];     // 剩下左边的数组小，右边的已经全部排完序
+    }
+        
+    while (sort2 >= start2) {
+        reg[k--] = arr[sort2--]; // 剩下右边的数组小，
+    }
+
+    for (k = start; k <= end; k++) {
+        arr[k] = reg[k];
+    }
+}
+
+void MergeSort(Waper arr[], int len, int *res)
+{
+    Waper reg[len];
+    MergeSortRecursive(arr, reg, 0, len - 1, res);
+}
+
+int* countSmaller(int* nums, int numsSize, int* returnSize)
+{
+    if ((nums == NULL) || (numsSize == 0)) {
+        *returnSize = 0;
+        return NULL;
+    }
+
+    Waper waper[numsSize];
+    for (int i = 0; i < numsSize; i++) {
+        waper[i].index = i;
+        waper[i].val = nums[i];
+    }
+
+    int *res = (int *)malloc(sizeof(int) * numsSize);
+    memset(res, 0, sizeof(int) * numsSize);
+    MergeSort(waper, numsSize, res);
+
+    *returnSize = numsSize;
+    return res;
+}
+// ---------------------------结束------------------------------------------------------
+
+
+
+int main()
+{
+    int nums_1[] = { 5,2,6,1 };
+    int numsSize_1 = sizeof(nums_1)/ sizeof(nums_1[0]);
+    int returnSize_1 = 4564656;
+    int *res_1 = countSmaller(nums_1, numsSize_1, &returnSize_1);
+
+
+    int nums_2[] = { -1, -1 };
+    int numsSize_2 = sizeof(nums_2)/ sizeof(nums_2[0]);
+    int returnSize_2 = 4564656;
+    int *res_2 = countSmaller(nums_2, numsSize_2, &returnSize_2);
+
+
+    int nums_3[] = { -1 };
+    int numsSize_3 = sizeof(nums_3)/ sizeof(nums_3[0]);
+    int returnSize_3 = 4564656;
+    int *res_3 = countSmaller(nums_3, numsSize_3, &returnSize_3);
+
+    return 0;
+}

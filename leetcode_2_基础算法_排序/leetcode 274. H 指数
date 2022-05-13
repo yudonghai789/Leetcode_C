@@ -1,0 +1,54 @@
+/******************************************************************************
+ * 版权所有 (c)
+ * 功能描述   : leetcode 274. H 指数  https://leetcode-cn.com/problems/h-index/
+ * 作    者   :
+ * 生成日期   :
+ ******************************************************************************/
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdbool.h>
+#include <uthash.h>
+#include <math.h>
+#include <assert.h>
+// 如需使用华为安全函数，请加上 #include "securec.h"
+// #include "securec.h"
+
+
+// ---------------------------开始-------------------------------------------------------------
+int IntComPare(const void *a, const void *b)
+{
+    return *(int *)a < *(int*)b;
+}
+
+int GetCita(int* citations, int citationsSize, int index)
+{
+    if (index >= citationsSize) {
+        return 0;
+    }
+
+    return citations[index];
+}
+
+int hIndex(int* citations, int citationsSize)
+{
+    qsort(citations, citationsSize, sizeof(int), IntComPare);
+    for (int h = (citations[0] < citationsSize) ? citations[0]: citationsSize; h > 0; h--) {
+        if ((citations[h - 1] >= h) && (GetCita(citations, citationsSize, h) <= h)) {
+            return h;
+        }
+    }
+
+    return 0;
+}
+// ---------------------------结束--------------------------------------------------------------------
+
+
+
+
+int main()
+{
+
+
+    return 0;
+}

@@ -1,0 +1,146 @@
+/******************************************************************************
+ * 版权所有 (c)
+ * 功能描述   : 剑指 Offer 51. 数组中的逆序对  https://leetcode-cn.com/problems/shu-zu-zhong-de-ni-xu-dui-lcof/
+ * 作    者   :
+ * 生成日期   :
+ ******************************************************************************/
+#include <stdint.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <stdbool.h>
+#include <uthash.h>
+#include <math.h>
+#include <assert.h>
+// 如需使用华为安全函数，请加上 #include "securec.h"
+#include <math.h>
+
+
+// ---------------------------开始----------暴力 超时----其中的重复运算在于-    【5 4 3】-5如果大于4，则必然大于3--------------
+
+// ---------------------------结束--------------------------------------------------------------------
+
+// ---------------------------开始----------归并排序---------------------------------------------------
+int MergeSortRecursive(int arr[], int reg[], int start, int end)
+{
+    if (start >= end) {
+        return 0;
+    }
+
+    int len = end - start;
+    int mid = (len >> 1) + start;
+    int start1 = start, end1 = mid;
+    int start2 = mid + 1, end2 = end;
+    int leftPairs = MergeSortRecursive(arr, reg, start1, end1);
+    int rightPairs = MergeSortRecursive(arr, reg, start2, end2);
+
+
+    // 首先统计下标对的数量
+    int crossPairs = 0;
+    int j = mid + 1;
+    for (int i = start; i <= mid; i++) {
+        // int j = mid + 1;                           // j如果每次都重头循环，就超时了
+        while (j <= end && (long long)arr[i] > 2 * (long long)arr[j]) { 
+            j++;                                      // j不用每次都重头循环，这是一个技巧
+        }
+        crossPairs += (j - mid - 1);
+    }
+    
+    int k = start;
+    while (start1 <= end1 && start2 <= end2) {
+        if (arr[start1] < arr[start2]) {
+            reg[k++] = arr[start1++];
+        } else {
+            reg[k++] = arr[start2++];
+        }
+    }
+
+    while (start1 <= end1) {
+        reg[k++] = arr[start1++];    // 剩下左边的数组大，右边的已经全部排完序
+    }
+        
+    while (start2 <= end2) {
+        // crossPairs = crossPairs + mid - start1 + 1;   // 剩下右边的数组大，
+        reg[k++] = arr[start2++];
+    }
+
+    for (k = start; k <= end; k++) {
+        arr[k] = reg[k];
+    }
+
+    return leftPairs + rightPairs + crossPairs;
+}
+
+int MergeSort(int arr[], int len)
+{
+    int reg[len];
+    return MergeSortRecursive(arr, reg, 0, len - 1);
+}
+
+int reversePairs(int* nums, int numsSize)
+{
+    if ((nums == NULL) || (numsSize == 0)) {
+        return 0;
+    }
+    return MergeSort(nums, numsSize);
+}
+// ---------------------------结束--------------------------------------------------------------------
+
+
+
+// ---------------------------开始---------------------思考 其他排序为什么不行，---冒泡  选择 -解答错误，因为交换了元素的相对位置----插入结果是对的，但是超时---但是这就是暴力算法------------------------
+// int InsertSort(int* nums, int numsSize)
+// {
+//     int res = 0;
+
+//     for (int i = numsSize - 2; i >= 0; i--) {
+//         int key = nums[i];
+//         int keyindex = i;
+
+//         int j = i + 1;
+//         while ((j < numsSize) && (nums[j] <= key)) {
+//             if (((long long)nums[j] * 2) < (long long)key) {
+//                 res++;
+//             }
+//             nums[j - 1] = nums[j];
+//             j++;
+//         }
+//         nums[j - 1] = key;
+//     }
+
+//     return res;
+// }
+
+
+// int reversePairs(int* nums, int numsSize)
+// {
+//     if ((nums == NULL) || (numsSize == 0)) {
+//         return 0;
+//     }
+//     return InsertSort(nums, numsSize);
+// }
+// ---------------------------结束--------------------------------------------------------------------
+
+
+
+int main()
+{
+    int nums_1[] = { 1,3,2,3,1 };
+    int numsSize_1 = sizeof(nums_1)/ sizeof(nums_1[0]);
+    int res_1 = reversePairs(nums_1, numsSize_1);
+    assert(res_1 == 5);
+
+
+    int nums_2[] = { -1, -1 };
+    int numsSize_2 = sizeof(nums_2)/ sizeof(nums_2[0]);
+    int res_2 = reversePairs(nums_2, numsSize_2);
+    assert(res_2 == 0);
+
+
+    int nums_3[] = { -1 };
+    int numsSize_3 = sizeof(nums_3)/ sizeof(nums_3[0]);
+    int res_3 = reversePairs(nums_3, numsSize_3);
+    assert(res_3 == 0);
+
+    return 0;
+}

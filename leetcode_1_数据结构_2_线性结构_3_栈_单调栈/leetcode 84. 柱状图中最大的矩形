@@ -1,0 +1,89 @@
+/*
+ * Copyright (c) Huawei Technologies Co., Ltd. 2019-2020. All rights reserved.
+ */
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdbool.h>
+#include <uthash.h>
+// 如需使用华为安全函数，请加上 #include "securec.h"
+#include "securec.h"
+#include "disanti.h"
+#include <math.h>
+#include <assert.h>
+
+
+/* leetcode 84. 柱状图中最大的矩形. https://leetcode-cn.com/problems/largest-rectangle-in-histogram/
+ */
+/*
+ * Copyright (c) Huawei Technologies Co., Ltd. 2020-2020. All rights reserved.
+ */
+# define STACKSIZE 100000  // 根据题目的限制大小开内存
+
+typedef struct {
+    int count;   // 栈中数据大小，也是栈顶指针
+    int array[STACKSIZE];
+} IntArrayStack;
+
+void StackPush(int value, IntArrayStack *intArrayStack)
+{
+    intArrayStack->array[intArrayStack->count] = value;
+    intArrayStack->count++;
+}
+
+int StackPeek(IntArrayStack *intArrayStack)
+{
+    if (intArrayStack->count <= 0) { return -1; }
+    return intArrayStack->array[intArrayStack->count - 1];
+}
+
+int StackPop(IntArrayStack *intArrayStack)
+{
+    if (intArrayStack->count <= 0) { return -1; }
+    int value = intArrayStack->array[intArrayStack->count - 1];
+    intArrayStack->array[intArrayStack->count - 1] = 0;
+    intArrayStack->count--;
+    return value;
+}
+
+int ValueOfIndx(int *nums, int numsSize, int index)
+{
+    if (index <= -1) { return INT_MIN; }
+    if (index >= numsSize) { return INT_MIN; }
+    return nums[index];
+}
+
+int largestRectangleArea(int* heights, int heightsSize)
+{
+    if ((heights== NULL) || (heightsSize == 0)) { return 0; }
+    if (heightsSize == 1) { return heights[0]; }
+
+    int result = 0;
+    IntArrayStack intArrayStack = { 0 };
+
+    for (int i = 0; i <= heightsSize; i++) { // i <= heightsSize 等于号是因为要跟最后的哨兵比较
+        while (ValueOfIndx(heights, heightsSize, i) < ValueOfIndx(heights, heightsSize, StackPeek(&intArrayStack))) {
+            int curHeight = ValueOfIndx(heights, heightsSize, StackPop(&intArrayStack));
+            int curWidth = i - StackPeek(&intArrayStack) - 1;
+            result = fmax(result, curHeight * curWidth);
+        }
+        StackPush(i, &intArrayStack);
+    }
+
+    return result;
+}
+
+int main(int argc, const char *argv[])
+{
+    int heights_1[] = {2,1,5,6,2,3};
+    int heightsSize_1 = sizeof(heights_1) / sizeof(heights_1[0]);
+    int res_1 = largestRectangleArea(heights_1, heightsSize_1);
+    assert(res_1 == 10);
+
+    int heights_2[] = {2,4};
+    int heightsSize_2 = sizeof(heights_2) / sizeof(heights_2[0]);
+    int res_2 = largestRectangleArea(heights_2, heightsSize_2);
+    assert(res_2 == 4);
+
+    return 0;
+}

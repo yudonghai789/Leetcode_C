@@ -1,0 +1,339 @@
+/******************************************************************************
+ * 版权所有 (c)
+ * 功能描述   : leetcode 199. 二叉树的右视图  https://leetcode-cn.com/problems/binary-tree-right-side-view/
+ * 作    者   :
+ * 生成日期   :
+ * 从前往后递归不能使用备忘录，因为前面的结果先计算，后面的结果后计算，但是前面的结果是依赖后面数据，所以不能使用备忘录
+ * 递推只能是后面根据前面的结果递推
+ ******************************************************************************/
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdbool.h>
+#include <uthash.h>
+#include <math.h>
+#include <assert.h>
+// 如需使用华为安全函数，请加上 #include "securec.h"
+// #include "securec.h"
+
+
+struct TreeNode {
+    int val;
+    struct TreeNode *left;
+    struct TreeNode *right;
+} TreeNode;
+
+
+// ---------------------------解法 开始-----BFS 递归模板: -----------------------------------------------------
+// #define MAX_QUEUE_LEN 110
+// #define MAX_RES_LEN MAX_QUEUE_LEN
+
+
+// typedef struct QueueTree {
+//     int head;
+//     int tail;
+//     struct TreeNode *queue[MAX_QUEUE_LEN];
+// } QueueTree;
+
+// void BfsRecursion(struct TreeNode *root, QueueTree *queue, int *res, int* returnSize)
+// {
+//     if (queue->head == queue->tail) {
+//         return;
+//     }
+
+//     int thisLoopStart = queue->head;
+//     int thisLoopEnd = queue->tail - 1;
+//     for (int i = thisLoopStart; i <= thisLoopEnd; i++) {
+//         struct TreeNode *node = queue->queue[i];
+//         if (i == thisLoopEnd) {
+//             res[(*returnSize)++] = node->val;
+//         }
+
+//         if (node->left) {
+//             queue->queue[queue->tail++] = node->left;
+//         }
+
+//         if (node->right) {
+//             queue->queue[queue->tail++] = node->right;
+//         }
+//     }
+//     queue->head = thisLoopEnd + 1;
+//     BfsRecursion(root, queue, res, returnSize);
+// }
+
+
+// int* rightSideView(struct TreeNode* root, int* returnSize)
+// {
+//     *returnSize = 0;
+//     int *res = (int *)malloc(sizeof(int) * MAX_RES_LEN);
+//     memset(res, 0, sizeof(int) * MAX_RES_LEN);
+
+//     if (root == NULL) return res;
+
+//     QueueTree queue = { 0 };
+//     queue.queue[queue.tail++] = root;
+
+//     BfsRecursion(root, &queue, res, returnSize);
+//     return res;
+// }
+// ---------------------------解法 结束-------------------------------------------------------------
+
+
+
+// ---------------------------解法 开始-----BFS 迭代模板: -----------------------------------------------------
+// #define MAX_QUEUE_LEN 110
+// #define MAX_RES_LEN MAX_QUEUE_LEN
+
+// typedef struct QueueTree {
+//     int head;
+//     int tail;
+//     struct TreeNode *queue[MAX_QUEUE_LEN];
+// } QueueTree;
+
+// void BfsIter(struct TreeNode *root, QueueTree *queue, int *res, int* returnSize)
+// {
+//     if (queue->head == queue->tail) {
+//         return;
+//     }
+
+//     while (queue->head < queue->tail) {
+//         int thisLoopStart = queue->head;
+//         int thisLoopEnd = queue->tail - 1;
+//         for (int i = thisLoopStart; i <= thisLoopEnd; i++) {
+//             struct TreeNode *node = queue->queue[i];
+//             if (i == thisLoopEnd) {
+//                 res[(*returnSize)++] = node->val;
+//             }
+
+//             if (node->left) {
+//                 queue->queue[queue->tail++] = node->left;
+//             }
+
+//             if (node->right) {
+//                 queue->queue[queue->tail++] = node->right;
+//             }
+//         }
+//         queue->head = thisLoopEnd + 1;
+//     }
+// }
+
+
+// int* rightSideView(struct TreeNode* root, int* returnSize)
+// {
+//     *returnSize = 0;
+//     int *res = (int *)malloc(sizeof(int) * MAX_RES_LEN);
+//     memset(res, 0, sizeof(int) * MAX_RES_LEN);
+
+//     if (root == NULL) return res;
+
+//     QueueTree queue = { 0 };
+//     queue.queue[queue.tail++] = root;
+
+//     BfsIter(root, &queue, res, returnSize);
+//     return res;
+// }
+// ---------------------------解法 结束-------------------------------------------------------------
+
+
+
+
+
+// ---------------------------解法 开始-----DFS 递归模板: -----------------------------------------------------
+// # define MAX_RES_LEN 110
+
+// void DfsRecursion(struct TreeNode *node, int level, int *res, int* returnSize)
+// {
+//     if ((*returnSize) == level) { // 从右往左加入的第一个
+//         res[(*returnSize)++] = node->val;
+//     }
+
+//     if (node->right) {
+//         DfsRecursion(node->right, level + 1, res, returnSize);
+//     }
+
+    
+//     if (node->left) {
+//         DfsRecursion(node->left, level + 1, res, returnSize);
+//     }
+// }
+
+// int* rightSideView(struct TreeNode* root, int* returnSize)
+// {
+//     *returnSize = 0;
+//     int *res = (int *)malloc(sizeof(int) * MAX_RES_LEN);
+//     memset(res, 0, sizeof(int) * MAX_RES_LEN);
+
+//     if (root == NULL) return res;
+
+//     DfsRecursion(root, 0, res, returnSize);
+//     return res;
+// }
+// ---------------------------解法 结束-------------------------------------------------------------
+
+
+// ---------------------------解法 开始-----DFS 迭代模板: -----------------------------------------------------
+typedef struct TreeNodeWapper {
+    int level;
+    struct TreeNode *node;
+} TreeNodeWapper;
+
+
+#define MAX_RES_LEN 110
+#define MAX_STACK_LEN MAX_RES_LEN
+
+typedef struct StackTree {
+    int top;
+    TreeNodeWapper stack[MAX_STACK_LEN];
+} StackTree;
+
+void StackPush(StackTree* stack, struct TreeNode *elem, int level)
+{
+    stack->stack[++stack->top].level = level;
+    stack->stack[stack->top].node = elem;
+}
+
+TreeNodeWapper StackPop(StackTree* stack)
+{
+    TreeNodeWapper topElem = { 0 };
+    if (stack->top == -1) {
+        printf("空栈");
+        return topElem;
+    }
+    printf("弹栈元素：%d\n",stack->stack[stack->top].node->val);
+    topElem = stack->stack[stack->top];
+    stack->top--;
+    return topElem;
+}
+
+
+void DfsIter(struct TreeNode *root, StackTree *stack, int *res, int* returnSize)
+{
+    StackPush(stack, root, 0);
+    while (stack->top != -1) {
+        TreeNodeWapper top = StackPop(stack);
+        if ((*returnSize) == top.level) { // 从右往左加入的第一个
+            res[(*returnSize)++] = top.node->val;
+        }
+        
+        if (top.node->left) {
+            StackPush(stack, top.node->left, top.level + 1);
+        }
+
+        if (top.node->right) {
+            StackPush(stack, top.node->right, top.level + 1);
+        }
+    }
+}
+
+int* rightSideView(struct TreeNode* root, int* returnSize)
+{
+    *returnSize = 0;
+    int *res = (int *)malloc(sizeof(int) * MAX_RES_LEN);
+    memset(res, 0, sizeof(int) * MAX_RES_LEN);
+
+    if (root == NULL) return res;
+
+    StackTree stack = { 0 };
+    stack.top = -1;
+
+    DfsIter(root, &stack, res, returnSize);
+    return res;
+}
+// ---------------------------解法 结束-------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+char** stringToStringArray(char* string, const char *delim, int *size) {
+    // 获取返回的字符串数组长度
+    if (string != NULL) { *size = 1; } else {return NULL;}
+    for(int i = 0; i < strlen(string); i++){       
+        if (string[i] == delim[0]) {       
+            (*size)++;
+        }
+    }
+
+    char **retArray = (char **)malloc(sizeof(char*) * (*size));
+
+    /* 获取第一个子字符串 */
+    int i = 0;
+    char* token;
+    token = strtok(string, delim);
+    retArray[i] = (char *)malloc(sizeof(char) * 10);
+    memset((void*)retArray[i], 0, sizeof(char) * 10);
+    memcpy(retArray[i], token, strlen(token));
+   
+    /* 继续获取其他的子字符串 */
+    while((token != NULL) && (i < (*size) - 1)) {
+        printf( "%s\n", token );
+        token = strtok(NULL, delim);
+        retArray[++i] = (char *)malloc(sizeof(char) * 10);
+        memset((void*)retArray[i], 0, sizeof(char) * 10);
+        memcpy(retArray[i], token, strlen(token));
+   }
+    printf( "%s\n", token );
+    return retArray;
+}
+
+// 层序遍历 + 非空判断 添加节点
+struct TreeNode* CaseToTree(char** charArray, int count) {
+    if (count == 0) { return NULL; }
+
+    struct TreeNode* treeRoot = (struct TreeNode*)malloc(sizeof(struct TreeNode) * count);
+    memset((void*)treeRoot, 0, sizeof(struct TreeNode) * count);
+
+    for (int i = 0; i < count; i++) {
+        if (strcmp(charArray[i], "null") == 0) {
+            treeRoot[i].val = 0x5a5a5a5a;
+        } else {
+            treeRoot[i].val = atoi(charArray[i]);
+        }
+    }
+
+    int order = 0, useer = 1; 
+    while (order <= useer) {
+        if (treeRoot[order].val != 0x5a5a5a5a) {
+            // 添加左节点 
+            if (useer < count) {
+                if (treeRoot[useer].val != 0x5a5a5a5a) {
+                    treeRoot[order].left = &treeRoot[useer];
+                }
+                ++useer;
+            }
+            // 添加右节点 
+            if (useer < count) {
+                if (treeRoot[useer].val != 0x5a5a5a5a) {
+                    treeRoot[order].right = &treeRoot[useer]; 
+                }
+                ++useer;
+            }
+        }
+        order++;
+    }
+
+    return treeRoot;
+}
+
+int main()
+{
+    char case_1_string[] = { "1,2,3,null,5,null,4" };
+    int count_1 = 0;
+    char** case_1 = stringToStringArray(case_1_string, ",", &count_1);
+    struct TreeNode* treeRoot_1 = (struct TreeNode*)CaseToTree(case_1, count_1);
+    int returnSize_1 = 45645612;
+    int *result_1 = rightSideView(treeRoot_1, &returnSize_1);
+    // freeTreeNode(treeRoot_1);  // 不连续申请的内存，递归释放
+    free(treeRoot_1); // 连续申请的内存
+
+
+
+    return 0;
+}

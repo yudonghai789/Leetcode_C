@@ -1,0 +1,92 @@
+/*
+ * Copyright (c) Huawei Technologies Co., Ltd. 2019-2020. All rights reserved.
+ */
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <stdbool.h>
+#include <uthash.h>
+// 如需使用华为安全函数，请加上 #include "securec.h"
+#include "systemDesgin.h"
+#include <math.h>
+#include <assert.h>
+
+
+
+/* 935. 骑士拨号器  https://leetcode-cn.com/problems/knight-dialer/submissions/
+ * 动态规划的入门
+ */
+
+// ---------------------------解法一 开始-----------
+
+// ---------------------------解法一 结束--------------------------------------------------------
+
+// ---------------------------解法一 结束--------------------------------------------------------
+typedef enum NUM {
+    NUM_0 = 0,
+    NUM_1 = 1,
+    NUM_2 = 2,
+    NUM_3 = 3,
+    NUM_4 = 4,
+    NUM_5 = 5,
+    NUM_6 = 6,
+    NUM_7 = 7,
+    NUM_8 = 8,
+    NUM_9 = 9,
+    NUM_BUTT
+} NUM;
+
+#define MAX_STEP 5001
+
+int knightDialer(int n)
+{
+    long long dpMem[MAX_STEP][NUM_BUTT] = { 0 };
+
+    // base case
+    for (int num = 0; num < NUM_BUTT; num++) {
+        dpMem[1][num] = 1;
+    }
+
+    int mod = 1000000007;
+    // 转移方程
+    for (int step = 2; step <= n; step++) {
+        dpMem[step][NUM_0] = (dpMem[step - 1][NUM_4] + dpMem[step - 1][NUM_6]) % mod;
+        dpMem[step][NUM_1] = (dpMem[step - 1][NUM_6] + dpMem[step - 1][NUM_8]) % mod;
+        dpMem[step][NUM_2] = (dpMem[step - 1][NUM_7] + dpMem[step - 1][NUM_9]) % mod;
+        dpMem[step][NUM_3] = (dpMem[step - 1][NUM_4] + dpMem[step - 1][NUM_8]) % mod;
+        dpMem[step][NUM_4] = (dpMem[step - 1][NUM_3] + dpMem[step - 1][NUM_9] + dpMem[step - 1][NUM_0]) % mod;
+        dpMem[step][NUM_5] = 0;
+        dpMem[step][NUM_6] = (dpMem[step - 1][NUM_1] + dpMem[step - 1][NUM_7] + dpMem[step - 1][NUM_0]) % mod;
+        dpMem[step][NUM_7] = (dpMem[step - 1][NUM_2] + dpMem[step - 1][NUM_6]) % mod;
+        dpMem[step][NUM_8] = (dpMem[step - 1][NUM_1] + dpMem[step - 1][NUM_3]) % mod;
+        dpMem[step][NUM_9] = (dpMem[step - 1][NUM_2] + dpMem[step - 1][NUM_4]) % mod;
+    }
+
+    int ans = 0;
+    for (int num = 0; num < NUM_BUTT; num++) {
+        ans = (ans + dpMem[n][num]) % mod;
+    }
+    return ans;
+}
+// ---------------------------解法二 开始-----------
+
+
+// ---------------------------解法二 结束--------------------------------------------------------
+
+
+int main() {
+
+    int n_1 = 4;
+    int result_1 = knightDialer(n_1);
+    assert(result_1 == 104);
+
+    int n_3 = 3131;
+    int result_3 = knightDialer(n_3);
+    assert(result_3 == 136006598);
+
+
+    return 0;
+}
+
+
+

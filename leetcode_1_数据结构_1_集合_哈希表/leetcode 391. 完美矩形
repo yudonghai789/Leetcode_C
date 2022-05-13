@@ -1,0 +1,385 @@
+/******************************************************************************
+ * 版权所有 (c)
+ * 功能描述   : leetcode 391. 完美矩形  https://leetcode.cn/problems/perfect-rectangle/
+ * 作    者   :
+ * 生成日期   :
+ ******************************************************************************/
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdbool.h>
+#include <uthash.h>
+#include <math.h>
+#include <assert.h>
+// 如需使用华为安全函数，请加上 #include "securec.h"
+// #include "securec.h"
+
+
+
+/*
+391. 完美矩形
+给你一个数组 rectangles ，其中 rectangles[i] = [xi, yi, ai, bi] 表示一个坐标轴平行的矩形。这个矩形的左下顶点是 (xi, yi) ，右上顶点是 (ai, bi) 。
+
+如果所有矩形一起精确覆盖了某个矩形区域，则返回 true ；否则，返回 false 。
+
+ 
+示例 1：
+
+
+输入：rectangles = [[1,1,3,3],[3,1,4,2],[3,2,4,4],[1,3,2,4],[2,3,3,4]]
+输出：true
+解释：5 个矩形一起可以精确地覆盖一个矩形区域。 
+示例 2：
+
+
+输入：rectangles = [[1,1,2,3],[1,3,2,4],[3,1,4,2],[3,2,4,4]]
+输出：false
+解释：两个矩形之间有间隔，无法覆盖成一个矩形。
+示例 3：
+
+
+输入：rectangles = [[1,1,3,3],[3,1,4,2],[1,3,2,4],[2,2,4,4]]
+输出：false
+解释：因为中间有相交区域，虽然形成了矩形，但不是精确覆盖。
+ 
+
+提示：
+
+1 <= rectangles.length <= 2 * 104
+rectangles[i].length == 4
+-105 <= xi, yi, ai, bi <= 105
+*/
+
+
+
+
+// ---------------------------解法 开始------------暴力解法，超时 超内存--------------------------------------------------
+// typedef unsigned short USHORT;
+
+// #define MAX_POINT_NUM 40000
+// USHORT g_horPoint[MAX_POINT_NUM];
+// USHORT g_velPoint[MAX_POINT_NUM];
+// int CompareInt(const void *a, const void *b)
+// {
+//     return (*(USHORT *)a) - (*(USHORT *)b);
+// }
+
+// // 单向映射索引
+// #define MAX_POINT_VAL 1000
+// USHORT g_horMap[MAX_POINT_VAL * 2 + 10];
+// USHORT g_velMap[MAX_POINT_VAL * 2 + 10];
+// void SetHorIdx(USHORT val, USHORT index)
+// {
+//     g_horMap[val + MAX_POINT_VAL] = index;
+// }
+// USHORT GetHorIdx(USHORT val)
+// {
+//     return g_horMap[val + MAX_POINT_VAL];
+// }
+
+// void SetVelIdx(USHORT val, USHORT index)
+// {
+//     g_velMap[val + MAX_POINT_VAL] = index;
+// }
+// USHORT GetVelIdx(USHORT val)
+// {
+//     return g_velMap[val + MAX_POINT_VAL];
+// }
+
+
+// USHORT g_cover[MAX_POINT_VAL * 2 + 10][MAX_POINT_VAL * 2 + 10];
+// void Cover(int *rectangle)
+// {
+//     for (USHORT i = GetHorIdx((USHORT)rectangle[0]); i < GetHorIdx((USHORT)rectangle[2]); i++) {
+//         for (USHORT j = GetVelIdx((USHORT)rectangle[1]); j < GetVelIdx((USHORT)rectangle[3]); j++) {
+//             g_cover[i][j]++;
+//         }
+//     }
+// }
+
+
+// bool isRectangleCover(int** rectangles, int rectanglesSize, int* rectanglesColSize)
+// {
+//     int poinHorCnt = 0;
+//     int poinVelCnt = 0;
+//     for (int i = 0; i < rectanglesSize; i++) {
+//         g_horPoint[poinHorCnt++] = (USHORT)rectangles[i][0];
+//         g_velPoint[poinVelCnt++] = (USHORT)rectangles[i][1];
+//         g_horPoint[poinHorCnt++] = (USHORT)rectangles[i][2];
+//         g_velPoint[poinVelCnt++] = (USHORT)rectangles[i][3];
+//     }
+//     qsort(g_horPoint, poinHorCnt, sizeof(USHORT), CompareInt);
+//     qsort(g_velPoint, poinVelCnt, sizeof(USHORT), CompareInt);
+
+//     memset(g_horMap, 0, sizeof(g_horMap));
+//     memset(g_velMap, 0, sizeof(g_velMap));
+
+//     int valHorCnt = 1;
+//     int curHorVal = 0xffffffff;
+//     for (int i = 0; i < poinHorCnt; i++) {
+//         if (curHorVal != g_horPoint[i]) {
+//             curHorVal = g_horPoint[i];
+//             SetHorIdx(curHorVal, valHorCnt);
+//             valHorCnt++;
+//         }
+//     }
+
+//     int valVelCnt = 1;
+//     int curVelVal = 0xffffffff;
+//     for (int i = 0; i < poinVelCnt; i++) {
+//         if (curVelVal != g_velPoint[i]) {
+//             curVelVal = g_velPoint[i];
+//             SetVelIdx(curVelVal, valVelCnt);
+//             valVelCnt++;
+//         }
+//     }
+
+//     memset(g_cover, 0, sizeof(g_cover));
+//     for (int i = 0; i < rectanglesSize; i++) {
+//         Cover(rectangles[i]);
+//     }
+
+//     for (int i = 1; i < valHorCnt - 1; i++) {
+//         for (int j = 1; j < valVelCnt - 1; j++) {
+//             if (g_cover[i][j] != 1) {
+//                 return false;
+//             };
+//         }
+//     }
+//     return true;
+// }
+// ---------------------------解法 结束-------------------------------------------------------
+
+
+
+// ---------------------------解法 开始-----------暴力  hash解决超内存问题----勉强过---------------------------------------------
+// #define MAX_POINT_NUM 40000
+// int g_horPoint[MAX_POINT_NUM];
+// int g_velPoint[MAX_POINT_NUM];
+// int CompareInt(const void *a, const void *b)
+// {
+//     return (*(int *)a) - (*(int *)b);
+// }
+// typedef struct UthashTableInt {
+//    int key;
+//    int val;
+//    UT_hash_handle hh;
+// } UthashTableInt;
+
+// UthashTableInt* TuhashFindByKey(UthashTableInt** hashtableHead, int ikey) {
+//    UthashTableInt* tmp;
+//    HASH_FIND_INT(*hashtableHead, &ikey, tmp);
+//    return tmp;
+// }
+
+// void TuhashAdd(UthashTableInt** hashtableHead, int ikey, int ival) {
+//    UthashTableInt* it = TuhashFindByKey(hashtableHead, ikey);
+//    if (it == NULL) {
+//        UthashTableInt* tmp = (UthashTableInt*)malloc(sizeof(UthashTableInt));
+//        tmp->key = ikey, tmp->val = ival;
+//        HASH_ADD_INT(*hashtableHead, key, tmp);
+//    } else {
+//        it->val = ival;
+//    }
+// }
+// int SortByKey(UthashTableInt* a, UthashTableInt* b) {
+//    return (a->key - b->key);   // 字符串使用 strcmp(a->key, b->key)
+// }
+
+// void TuhashSortByKey(UthashTableInt** hashtableHead) {
+//    HASH_SORT(*hashtableHead, SortByKey);
+// }
+// void TuhashFindAll(UthashTableInt** hashtableHead) {
+//    UthashTableInt *current_user, *tmp;
+
+//    HASH_ITER(hh, *hashtableHead, current_user, tmp) {
+//        printf("key = %d  ->  value = %d ;\n", current_user->key, current_user->val);
+//    }
+
+//    printf("\n");
+// }
+
+
+// int **g_cover;
+// void Cover(UthashTableInt* hashHeadHor, UthashTableInt* hashHeadVel, int *rectangle)
+// {
+//     int startHor = TuhashFindByKey(&hashHeadHor, rectangle[0])->val;
+//     int endHor = TuhashFindByKey(&hashHeadHor, rectangle[2])->val;
+//     int startVel = TuhashFindByKey(&hashHeadVel, rectangle[1])->val;
+//     int EndVel = TuhashFindByKey(&hashHeadVel, rectangle[3])->val;
+//     for (int i = startHor; i < endHor; i++) {
+//         for (int j = startVel; j < EndVel; j++) {
+//             g_cover[i][j]++;
+//         }
+//     }
+// }
+
+// void Free(int **g_cover, int valHorIdx) {
+//     for (int i = 0; i < valHorIdx; i++) {
+//         free(g_cover[i]);
+//     }
+//     free(g_cover);
+// }
+
+// bool isRectangleCover(int** rectangles, int rectanglesSize, int* rectanglesColSize)
+// {
+//     UthashTableInt* hashHeadHor = NULL;
+//     UthashTableInt* hashHeadVel = NULL;
+//     for (int i = 0; i < rectanglesSize; i++) {
+//         TuhashAdd(&hashHeadHor, rectangles[i][0], 0);
+//         TuhashAdd(&hashHeadHor, rectangles[i][2], 0);
+//         TuhashAdd(&hashHeadVel, rectangles[i][1], 0);
+//         TuhashAdd(&hashHeadVel, rectangles[i][3], 0);
+//     }
+//     TuhashSortByKey(&hashHeadHor);
+//     TuhashSortByKey(&hashHeadVel);
+
+//     int valHorIdx = 0;
+//     UthashTableInt *current_user, *tmp;
+//     HASH_ITER(hh, hashHeadHor, current_user, tmp) {
+//         // printf("key = %d  ->  value = %d ;", current_user->key, current_user->val);
+//         current_user->val = valHorIdx++;
+//     }
+//     int valVelIdx = 0;
+//     HASH_ITER(hh, hashHeadVel, current_user, tmp) {
+//         // printf("key = %d  ->  value = %d ;", current_user->key, current_user->val);
+//         current_user->val = valVelIdx++;
+//     }
+
+
+//     g_cover = (int**)malloc(sizeof(int *) * valHorIdx);
+//     for (int i = 0; i < valHorIdx; i++) {
+//         g_cover[i] = (int *)malloc(sizeof(int) * valVelIdx);
+//         memset(g_cover[i], 0, sizeof(int) * valVelIdx);
+//     }
+
+//     for (int i = 0; i < rectanglesSize; i++) {
+//         Cover(hashHeadHor, hashHeadVel, rectangles[i]);
+//     }
+
+//     for (int i = 0; i < valHorIdx - 1; i++) {
+//         for (int j = 0; j < valVelIdx - 1; j++) {
+//             if (g_cover[i][j] != 1) {
+//                 Free(g_cover, valHorIdx);
+//                 return false;
+//             };
+//         }
+//     }
+
+//     Free(g_cover, valHorIdx);
+//     return true;
+// }
+// ---------------------------解法 结束-------------------------------------------------------
+
+
+
+
+// ---------------------------解法 开始------------线扫描--------------------------------------------------
+/*
+https://leetcode.cn/problems/perfect-rectangle/solution/gong-shui-san-xie-chang-gui-sao-miao-xia-p4q4/
+*/
+
+
+
+
+
+// ---------------------------解法 结束-------------------------------------------------------
+
+
+#define MAX_LEN 201
+
+typedef struct Matrix {
+    int matrixSize;
+    int matrixColSize[MAX_LEN];
+    int matrix[MAX_LEN][MAX_LEN];
+    int* matrixPoin[MAX_LEN];
+} Matrix;
+
+void printfMatrix(int a[][MAX_LEN], int n, int m)
+{
+    for (int i  = 0; i < n; i++) {
+        for (int j  = 0; j < m; j++) {
+            printf("%-10d", a[i][j]);
+        }
+        printf("\n");
+    }
+    printf("\n");
+}
+
+int main()
+{
+    Matrix matrix_1 = {
+        5,
+        { 4, 4, 4, 4 },
+        {
+            { 100,100,300,300 },
+            { 300,100,400,200 },
+            { 300,200,400,400 },
+            { 100,300,200,400 },
+            { 200,300,300,400 },
+        }
+    };
+    for (int i = 0; i < matrix_1.matrixSize; i++) {
+        matrix_1.matrixPoin[i] = &matrix_1.matrix[i][0];
+    }
+    printfMatrix(matrix_1.matrix, matrix_1.matrixSize, matrix_1.matrixColSize[0]);
+    bool res_1 = isRectangleCover(matrix_1.matrixPoin, matrix_1.matrixSize, matrix_1.matrixColSize);
+    assert(res_1 == true);
+
+    Matrix matrix_2 = {
+        4,
+        { 4, 4, 4, 4 },
+        {
+            { 1,1,3,3 },
+            { 3,1,4,2 },
+            { 1,3,2,4 },
+            { 2,2,4,4 }
+        }
+    };
+    for (int i = 0; i < matrix_2.matrixSize; i++) {
+        matrix_2.matrixPoin[i] = &matrix_2.matrix[i][0];
+    }
+    printfMatrix(matrix_2.matrix, matrix_2.matrixSize, matrix_2.matrixColSize[0]);
+    bool res_2 = isRectangleCover(matrix_2.matrixPoin, matrix_2.matrixSize, matrix_2.matrixColSize);
+    assert(res_2 == false);
+
+
+    Matrix matrix_3 = {
+        4,
+        { 4, 4, 4, 4 },
+        {
+            { 1,1,2,3 },
+            { 1,3,2,4 },
+            { 3,1,4,2 },
+            { 3,2,4,4 },
+        }
+    };
+    for (int i = 0; i < matrix_3.matrixSize; i++) {
+        matrix_3.matrixPoin[i] = &matrix_3.matrix[i][0];
+    }
+    printfMatrix(matrix_3.matrix, matrix_3.matrixSize, matrix_3.matrixColSize[0]);
+    bool res_3 = isRectangleCover(matrix_3.matrixPoin, matrix_3.matrixSize, matrix_3.matrixColSize);
+    assert(res_3 == false);
+
+
+
+
+
+    Matrix matrix_4 = {
+        2,
+        { 4, 4 },
+        {
+            { 0,0,4,1 },
+            { 0,0,4,1 },
+        }
+    };
+    for (int i = 0; i < matrix_4.matrixSize; i++) {
+        matrix_4.matrixPoin[i] = &matrix_4.matrix[i][0];
+    }
+    printfMatrix(matrix_4.matrix, matrix_4.matrixSize, matrix_4.matrixColSize[0]);
+    bool res_4 = isRectangleCover(matrix_4.matrixPoin, matrix_4.matrixSize, matrix_4.matrixColSize);
+    assert(res_4 == false);
+
+
+    return 0;
+}

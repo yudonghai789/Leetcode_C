@@ -1,0 +1,209 @@
+/******************************************************************************
+ * 版权所有 (c)
+ * 功能描述   : leetcode 63. 不同路径 II  https://leetcode-cn.com/problems/unique-paths-ii/
+ * 作    者   :
+ * 生成日期   :
+ ******************************************************************************/
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdbool.h>
+#include <uthash.h>
+#include <math.h>
+#include <assert.h>
+// 如需使用华为安全函数，请加上 #include "securec.h"
+// #include "securec.h"
+
+
+/*
+63. 不同路径 II
+一个机器人位于一个 m x n 网格的左上角 （起始点在下图中标记为 “Start” ）。
+
+机器人每次只能向下或者向右移动一步。机器人试图达到网格的右下角（在下图中标记为 “Finish”）。
+
+现在考虑网格中有障碍物。那么从左上角到右下角将会有多少条不同的路径？
+
+网格中的障碍物和空位置分别用 1 和 0 来表示。
+
+ 
+
+示例 1：
+
+
+输入：obstacleGrid = [[0,0,0],[0,1,0],[0,0,0]]
+输出：2
+解释：3x3 网格的正中间有一个障碍物。
+从左上角到右下角一共有 2 条不同的路径：
+1. 向右 -> 向右 -> 向下 -> 向下
+2. 向下 -> 向下 -> 向右 -> 向右
+示例 2：
+
+
+输入：obstacleGrid = [[0,1],[0,0]]
+输出：1
+*/
+
+
+
+// ---------------------------解法 开始-----BFS 递归模板: -----------------------------------------------------
+
+// ---------------------------解法 结束-------------------------------------------------------------
+
+
+
+// ---------------------------解法 开始-----BFS 迭代模板: -----------------------------------------------------
+
+// ---------------------------解法 结束-------------------------------------------------------------
+
+
+
+
+
+// ---------------------------解法 开始-----DFS 递归模板: -----------------------------------------------------
+// #define MAX_ROW 101
+// #define MAX_COL 101
+// int g_memTable[MAX_ROW][MAX_COL];
+// int g_move[2][2] = {
+//     { 1, 0 },
+//     { 0, 1 }
+// };
+
+// void DfsRecursive(int** obstacleGrid, int m, int n, int startRow, int startCol, int *result)
+// {
+//     if ((startRow == m - 1) && (startCol == n - 1)) {
+//         (*result) = 1;
+//         return;
+//     }
+
+//     if (g_memTable[startRow][startCol] != 0xf0f0f0f0) {
+//         *result = g_memTable[startRow][startCol];
+//         return;
+//     }
+
+//     int res = 0;
+//     for (int i = 0; i < 2; i++) {
+//         int nextRow = startRow + g_move[i][0];
+//         int nextCol = startCol + g_move[i][1];
+//         if ((nextRow >= m) || (nextCol >= n)) {
+//             continue;
+//         }
+//         if (obstacleGrid[nextRow][nextCol] == 1) {
+//             continue;
+//         }
+//         int once = 0;
+//         DfsRecursive(obstacleGrid, m, n, nextRow, nextCol, &once);
+//         res = res + once;
+//     }
+//     *result = res;
+//     g_memTable[startRow][startCol] = res;
+// }
+
+// int uniquePathsWithObstacles(int** obstacleGrid, int obstacleGridSize, int* obstacleGridColSize)
+// {
+//     if ((obstacleGridSize == 1) && (obstacleGridColSize[0] == 1)) {
+//         return 1 - obstacleGrid[0][0];
+//     }
+
+//     if (obstacleGrid[0][0] == 1) {
+//         return 0;
+//     }
+
+//     memset(g_memTable, 0xf0, sizeof(g_memTable));
+
+//     int result = 0;
+//     DfsRecursive(obstacleGrid, obstacleGridSize, obstacleGridColSize[0], 0, 0, &result);
+//     return result;
+// }
+// ---------------------------解法 结束-------------------------------------------------------------
+
+
+// ---------------------------解法 开始-----DFS 迭代模板: -----迭代的写法十分复杂，维护队列，栈十分困难--未完成----------------------------------------------
+
+// ---------------------------解法 结束-------------------------------------------------------------
+
+
+
+// ---------------------------解法 开始-----动态规划 ------动态规划就是一步一步转化状态，状态就是递归过程中会重复出现的递归过程--------关键是，计算当前节点的时候要先把相邻的比它大的节点先计算出------------------
+#define MAX_ROW 101
+#define MAX_COL 101
+int g_dpTable[MAX_ROW][MAX_COL];
+int g_move[2][2] = {
+    { 1, 0 },
+    { 0, 1 }
+};
+
+void Dp(int** obstacleGrid,  int m, int n)
+{
+    // 初始化
+    g_dpTable[0][0] = 1;
+
+    // 状态转移
+    for (int row = 0; row < m; row++) {
+        for (int col = 0; col < n; col++) {
+            for (int i = 0; i < 2; i++) {
+                int nextRow = row + g_move[i][0];
+                int nextCol = col + g_move[i][1];
+                if ((nextRow >= m) || (nextCol >= n)) {
+                    continue;
+                }
+
+                if ((obstacleGrid[nextRow][nextCol] == 1) || (obstacleGrid[row][col] == 1)) {
+                    continue;
+                }
+
+                g_dpTable[nextRow][nextCol] += g_dpTable[row][col];
+            }
+        }
+    }
+}
+
+int uniquePathsWithObstacles(int** obstacleGrid, int obstacleGridSize, int* obstacleGridColSize)
+{
+    if ((obstacleGridSize == 1) && (obstacleGridColSize[0] == 1)) {
+        return 1 - obstacleGrid[0][0];
+    }
+
+    if (obstacleGrid[0][0] == 1) {
+        return 0;
+    }
+
+    memset(g_dpTable, 0, sizeof(g_dpTable));
+
+    Dp(obstacleGrid, obstacleGridSize, obstacleGridColSize[0]);
+    return g_dpTable[obstacleGridSize - 1][obstacleGridColSize[0] - 1];
+}
+// ---------------------------解法 结束-------------------------------------------------------------
+
+
+
+#define MAX_LEN 201
+
+typedef struct Matrix {
+    int matrixSize;
+    int matrixColSize[MAX_LEN];
+    int matrix[MAX_LEN][MAX_LEN];
+    int* matrixPoin[MAX_LEN];
+} Matrix;
+
+
+
+int main()
+{
+    Matrix matrix_1 = {
+        3,
+        { 3, 3, 3 },
+        {
+            { 0,0,0 },
+            { 0,1,0 },
+            { 0,0,0 },
+        }
+    };
+    for (int i = 0; i < matrix_1.matrixSize; i++) {
+        matrix_1.matrixPoin[i] = &matrix_1.matrix[i][0];
+    }
+    int res_1 = uniquePathsWithObstacles(matrix_1.matrixPoin, matrix_1.matrixSize, matrix_1.matrixColSize);
+    assert(res_1 == 2);
+
+
+    return 0;
+}

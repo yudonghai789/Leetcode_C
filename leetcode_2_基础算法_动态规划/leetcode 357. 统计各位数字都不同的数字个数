@@ -1,0 +1,45 @@
+/******************************************************************************
+ * 版权所有 (c)
+ * 功能描述   : leetcode 357. 统计各位数字都不同的数字个数  https://leetcode-cn.com/problems/count-numbers-with-unique-digits/
+ * 作    者   :
+ * 生成日期   :
+ ******************************************************************************/
+#include <stdint.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <stdbool.h>
+#include <uthash.h>
+#include <math.h>
+#include <assert.h>
+// 如需使用华为安全函数，请加上 #include "securec.h"
+#include <math.h>
+
+
+
+// ---------------------------开始----------动态规划---------------------------------------------------
+int countNumbersWithUniqueDigits(int n)
+{
+    int dp[9];
+    dp[0] = 1;
+    dp[1] = 10;
+    dp[2] = dp[1] + 9 * 9;
+
+    int pailie = 9 * 9;
+    for (int i = 3; i <= n; i++) {
+        pailie = pailie * (11 - i);
+        dp[i] = dp[i - 1] + pailie;
+    }
+
+    return dp[n];
+}
+// ---------------------------结束--------------------------------------------------------------------
+
+
+
+int main()
+{
+
+
+    return 0;
+}

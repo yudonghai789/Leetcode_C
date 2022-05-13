@@ -1,0 +1,157 @@
+/*
+ * Copyright (c) Huawei Technologies Co., Ltd. 2019-2020. All rights reserved.
+ */
+
+#include "supplier.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdbool.h>
+#include <uthash.h>
+// 如需使用华为安全函数，请加上 #include "securec.h"
+#include <math.h>
+#include <assert.h>
+
+#define MAX_PRICE_NUM 20
+#define MOD 1000000007
+
+typedef struct PriceAndCount {
+    int price;
+    int count;
+} PriceAndCount;
+
+typedef struct AllPrice {
+    int supplierCount;
+    int firtIndex;
+    PriceAndCount mapArray[MAX_PRICE_NUM];
+} AllPrice;
+
+AllPrice allPrice;
+
+int ComparePriMap(const void *a, const void *b) {
+    int result = ((PriceAndCount*)a)->price - ((PriceAndCount*)b)->price;
+    if (result == 0) {
+        return ((PriceAndCount*)a)->count - ((PriceAndCount*)b)->count;
+    } else {
+        return result;
+    }
+}
+
+void DoFirst()
+{
+    int index = -1;
+    for (int i = allPrice.firtIndex + 1; i < allPrice.firtIndex + allPrice.supplierCount; i++) {
+        if ((allPrice.mapArray[allPrice.firtIndex].price > allPrice.mapArray[i].price) || 
+            ((allPrice.mapArray[allPrice.firtIndex].price == allPrice.mapArray[i].price) && ((allPrice.mapArray[allPrice.firtIndex].count > allPrice.mapArray[i].count)))) {
+            index = i;
+        } else {
+            break;
+        }
+    }
+
+    if (index != -1) {
+        qsort(&allPrice.mapArray[allPrice.firtIndex], index - allPrice.firtIndex + 1, sizeof(PriceAndCount), ComparePriMap);
+    }
+}
+
+// void DeleteFirst()
+// {
+//     for (int i = 0; i < allPrice.supplierCount - 1; i++) {
+//         allPrice.mapArray[i].price = allPrice.mapArray[i + 1].price;
+//         allPrice.mapArray[i].count = allPrice.mapArray[i + 1].count;
+//     }
+
+//     allPrice.mapArray[allPrice.supplierCount - 1].price = 0;
+//     allPrice.mapArray[allPrice.supplierCount - 1].count = 0;
+//     allPrice.supplierCount--;
+// }
+
+void DeleteFirst()
+{
+    allPrice.firtIndex++;
+    allPrice.supplierCount--;
+}
+
+
+int GetMinAmount(int **suppliers, int suppliersSize, int total)
+{
+    memset(&allPrice, 0, sizeof(AllPrice));
+
+    for (int i = 0; i < suppliersSize; i++) {
+       allPrice.mapArray[allPrice.supplierCount].price = suppliers[i][0];
+       allPrice.mapArray[allPrice.supplierCount].count = suppliers[i][1];
+       allPrice.supplierCount++;
+    }
+
+    qsort(&allPrice.mapArray[allPrice.firtIndex], suppliersSize, sizeof(PriceAndCount), ComparePriMap);
+
+    int result = 0;
+    for (int i = 0; i < total; i++) {
+        if (allPrice.mapArray[allPrice.firtIndex].count > 1) {
+            result = (result + allPrice.mapArray[allPrice.firtIndex].price) % MOD;
+            allPrice.mapArray[allPrice.firtIndex].price++;
+            allPrice.mapArray[allPrice.firtIndex].count--;
+            DoFirst();
+        } else if (allPrice.mapArray[allPrice.firtIndex].count == 1) {
+            result = (result + allPrice.mapArray[allPrice.firtIndex].price) % MOD;
+            allPrice.mapArray[allPrice.firtIndex].price = 0;
+            allPrice.mapArray[allPrice.firtIndex].count--;
+            DeleteFirst();
+        } else {
+            printf("error");
+        }
+
+    }
+    return result;
+}
+
+
+
+// ---------------------------解法一 结束--------------------------------------------------------
+int main() {
+    // int suppliers_1[2][2] = { {9,5},{11,4} };
+    // int *suppliersPoiter_1[2] = { 0 };
+    // for (int i = 0; i < 2; i++) {
+    //     suppliersPoiter_1[i] = &suppliers_1[i][0];
+    // }
+    // int suppliersSize_1 = sizeof(suppliers_1) / sizeof (suppliers_1[0]);
+    // int total_1 = 4;
+    // int result_1 = GetMinAmount(suppliersPoiter_1, suppliersSize_1, total_1);
+    // assert(result_1 == 41);
+
+
+    // int suppliers_2[5][2] = { {100,200},{9,2},{10,3},{10,1},{10,3} };
+    // int *suppliersPoiter_2[5] = { 0 };
+    // for (int i = 0; i < 5; i++) {
+    //     suppliersPoiter_2[i] = &suppliers_2[i][0];
+    // }
+    // int suppliersSize_2 = sizeof(suppliers_2) / sizeof (suppliers_2[0]);
+    // int total_2 = 4;
+    // int result_2 = GetMinAmount(suppliersPoiter_2, suppliersSize_2, total_2);
+    // assert(result_2 == 39);
+
+
+    // int suppliers_3[5][2] = { {100,200},{9,1},{10,3},{10,1},{10,3} };
+    // int *suppliersPoiter_3[5] = { 0 };
+    // for (int i = 0; i < 5; i++) {
+    //     suppliersPoiter_3[i] = &suppliers_3[i][0];
+    // }
+    // int suppliersSize_3 = sizeof(suppliers_3) / sizeof (suppliers_3[0]);
+    // int total_3 = 4;
+    // int result_3 = GetMinAmount(suppliersPoiter_3, suppliersSize_3, total_3);
+    // assert(result_3 == 39);
+
+
+    int suppliers_4[4][2] = { {9,5}, {11,4}, {9,5}, {11,4} };
+    int *suppliersPoiter_4[4] = { 0 };
+    for (int i = 0; i < 4; i++) {
+        suppliersPoiter_4[i] = &suppliers_4[i][0];
+    }
+    int suppliersSize_4 = sizeof(suppliers_4) / sizeof (suppliers_4[0]);
+    int total_4 = 4;
+    int result_4 = GetMinAmount(suppliersPoiter_4, suppliersSize_4, total_4);
+    assert(result_4 == 38);
+
+
+    return 0;
+}

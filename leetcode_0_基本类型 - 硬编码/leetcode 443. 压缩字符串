@@ -1,0 +1,101 @@
+
+/*
+ * Copyright (c) Huawei Technologies Co., Ltd. 2019-2020. All rights reserved.
+ */
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <stdbool.h>
+#include <uthash.h>
+// 如需使用华为安全函数，请加上 #include 'securec.h'
+#include <systemDesgin.h>
+#include <math.h>
+#include <assert.h>
+
+
+
+
+/* leetcode 443. 压缩字符串. https://leetcode-cn.com/problems/string-compression/
+ */
+
+// ----------------------------写法一 --------------------------
+int ItoA(int num, char* str) 
+{  
+    // 填充字符,这是反序的;
+    int idx = 0;
+    char reverse[100] = { 0 };
+    do {
+        reverse[idx++] = num % 10 + '0';
+        num /= 10;
+    } while (num);
+
+    for (int i = 0; i < idx; i++) {
+        str[i] = reverse[(idx) - 1 - i];
+    }
+
+    return idx;
+}
+
+char res[2010] = { 0 };
+int compress(char* chars, int charsSize)
+{
+    memset(res, 0, sizeof(char) * 2010);
+    int resTop = 0;
+    int i = 0;
+    while (i < charsSize) {
+        // 先判断是不是连续的
+        char cur[2];
+        cur[0] = chars[i];
+        res[resTop] = chars[i];
+        resTop++;
+
+        int sameCnt = 1;
+        while ((sameCnt + i < charsSize) && (chars[i + sameCnt] == cur[0])) {
+            sameCnt++;
+        }
+        if (sameCnt >= 2) {
+            char num[100] = { 0 };
+            int idx = ItoA(sameCnt, num);
+            memcpy(&res[resTop], &num[0], sizeof(char) * idx);
+            resTop = resTop + idx;
+        }
+
+        i = i + sameCnt;
+    }
+
+    int resLen = strlen(res);
+    memset(chars, 0, sizeof(char) * charsSize);
+    for (int i = 0; i < resLen; i++) {
+        chars[i] = res[i];
+    }
+    return resLen;
+}
+
+// ----------------------------写法一 结束-----------------------------------------------------------
+
+
+int main(int argc, const char *argv[])
+{
+    char chars_1[] = { 'a','a','b','b','c','c','c' };
+    int charsSize_1 = sizeof(chars_1) / sizeof (chars_1[0]);
+    int res_1 = compress(chars_1, charsSize_1);
+    assert(res_1 == 6);
+
+    char chars_2[] = { 'a' };
+    int charsSize_2 = sizeof(chars_2) / sizeof (chars_2[0]);
+    int res_2 = compress(chars_2, charsSize_2);
+    assert(res_2 == 1);
+
+    char chars_3[] = { 'a','b','b','b','b','b','b','b','b','b','b','b','b' };
+    int charsSize_3 = sizeof(chars_3) / sizeof (chars_3[0]);
+    int res_3 = compress(chars_3, charsSize_3);
+    assert(res_3 == 4);
+
+
+    char chars_4[] = { 'a','a','a','a','a','a','b','b','b','b','b','b','b','b','b','b','b','b','b','b','b','b','b','b','b','b','b','c','c','c','c','c','c','c','c','c','c','c','c','c','c' };
+    int charsSize_4 = sizeof(chars_4) / sizeof (chars_4[0]);
+    int res_4 = compress(chars_4, charsSize_4);
+    assert(res_4 == 8);
+
+    return 0;
+}

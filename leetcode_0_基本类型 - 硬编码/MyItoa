@@ -1,0 +1,27 @@
+void MyItoa(int inter, char string[])
+{
+    char temp[11] = { 0 };
+    temp[0] = inter % 10 + '0';
+    int weiSu = 1;
+    while (inter / 10) {
+        inter = inter / 10;
+        temp[weiSu++] = inter % 10 + '0';
+    }
+
+    int i = 0;
+    while (weiSu > 0) {
+        string[i++] = temp[--weiSu];
+    }
+}
+
+long long MyAtoI(char string[])
+{
+    int len = strlen(string);
+
+    long long res = 0;
+    for (int i = 0; i < len; i++) {
+        res = res * 10 + (string[i] - '0');
+    }
+
+    return res;
+}

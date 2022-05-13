@@ -1,0 +1,84 @@
+/******************************************************************************
+ * 版权所有 (c)
+ * 功能描述   : leetcode 21. 合并两个有序链表   https://leetcode-cn.com/problems/merge-two-sorted-lists/
+ * 作    者   :
+ * 生成日期   :
+ ******************************************************************************/
+#include <corecrt.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdbool.h>
+#include <uthash.h>
+#include <math.h>
+#include <assert.h>
+// 如需使用华为安全函数，请加上 #include "securec.h"
+#include "graph.h"
+
+
+
+
+
+// ---------------------------开始--------------------------------------------------------------------
+struct ListNode {
+  int val;
+  struct ListNode *next;
+};
+
+struct ListNode* mergeTwoLists(struct ListNode* list1, struct ListNode* list2)
+{
+    // 特殊case
+    if (list1 == NULL) {
+        return list2;
+    }
+
+    if (list2 == NULL) {
+        return list1;
+    }
+
+    struct ListNode *listNode1 = list1;
+    struct ListNode *listNode2 = list2;
+    struct ListNode *res = NULL;
+        if (list1->val <= list2->val) {
+            res = list1;
+            listNode1 = listNode1->next;
+        } else {
+            res = list2;
+            listNode2 = listNode2->next;
+        }
+    struct ListNode *resNode = res;
+    
+
+    while ((listNode1 != NULL) && (listNode2 != NULL)) {
+        if (listNode1->val <= listNode2->val) {
+            resNode->next = listNode1;
+            resNode = resNode->next;
+            listNode1 = listNode1->next;
+        } else {
+            resNode->next = listNode2;
+            resNode = resNode->next;
+            listNode2 = listNode2->next;
+        }
+    }
+
+    if (listNode1 != NULL) {
+        resNode->next = listNode1;
+    }
+
+    if (listNode2 != NULL) {
+        resNode->next = listNode2;
+    }
+
+    return res;
+}
+
+// ---------------------------结束--------------------------------------------------------------------
+
+
+int main()
+{
+
+   
+
+    return 0;
+}

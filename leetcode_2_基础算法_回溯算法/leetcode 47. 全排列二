@@ -1,0 +1,253 @@
+/*
+ * Copyright (c) Huawei Technologies Co., Ltd. 2019-2020. All rights reserved.
+ */
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdbool.h>
+#include <uthash.h>
+// 如需使用华为安全函数，请加上 #include "securec.h"
+#include "dierti.h"
+#include <math.h>
+#include <assert.h>
+
+/*
+ * leetcode 47. 全排列 II https://leetcode-cn.com/problems/permutations-ii/
+ * 回溯算法 + 剪纸
+ */
+
+// ---------------------------解法一 开始--------------------------------------------------------
+#define MAX_NUM_SIZE 8
+
+typedef enum Status {
+    INIT = 0,
+    USED = INIT,
+    USING = 0x5a5a
+} Status;
+
+typedef struct BackTracePointer {
+    int length;
+    int tracePath[MAX_NUM_SIZE];
+    Status usedFlag[MAX_NUM_SIZE];
+} BackTracePointer;
+
+int CalMaxResultSize(int numsSize)
+{
+    int maxResultSize = numsSize;
+    for (int i = 1; i < numsSize; i++) {
+        maxResultSize = maxResultSize * (numsSize  - i);
+    }
+    return maxResultSize;
+}
+
+int CompareInt(const void *intA, const void *IntB)
+{
+    return (*(int *)intA - *(int *)IntB);
+}
+
+bool IsUsedOrDuplited(int* nums, int numsSize, BackTracePointer* backTracePointer, int j)
+{
+    if ((j < 0) || (j >= numsSize)) {
+        printf("error");
+        return true;
+    }
+
+    if (backTracePointer->usedFlag[j] == USING) {
+        return true;
+    }
+
+    if (j > 0) {
+        if ((nums[j] == nums[j - 1]) && (backTracePointer->usedFlag[j - 1] == USED)) {
+            // 要防止数组越界
+            return true;
+        }
+    }
+
+    return false;
+}
+
+void BackTrace(int* nums, int numsSize, int* returnSize, BackTracePointer* backTracePointer, int** result)
+{
+    // 满足最后条件，结果+1
+    if (backTracePointer->length == numsSize ) {
+        result[(*returnSize)] = (int *)malloc(sizeof(int) * numsSize);
+        memset((void*)&result[(*returnSize)][0], 3, sizeof(int) * numsSize);
+        memcpy((void*)&result[(*returnSize)][0], (void*)&backTracePointer->tracePath[0], sizeof(int) * numsSize);
+        (*returnSize)++;
+        return;
+    }
+    
+    for (int i = 0; i < numsSize; i++) {
+        if (IsUsedOrDuplited(nums, numsSize, backTracePointer, i) == false) {
+            backTracePointer->tracePath[backTracePointer->length] = nums[i];
+            backTracePointer->usedFlag[i] = USING;
+            backTracePointer->length++;
+            BackTrace(nums, numsSize, returnSize, backTracePointer, result);
+            backTracePointer->length--;
+            backTracePointer->tracePath[backTracePointer->length] = 0;
+            backTracePointer->usedFlag[i] = USED;
+        }
+    }
+}
+
+int** permuteUnique(int* nums, int numsSize, int* returnSize, int** returnColumnSizes)
+{
+    // 基本校验 
+
+    (*returnSize) = 0;
+    BackTracePointer backTracePointer = { 0 };
+    int maxResultSize = CalMaxResultSize(numsSize);
+    int **result = (int **)malloc(sizeof(int *) * maxResultSize);
+    memset(result, 2, sizeof(int *) * maxResultSize);
+
+    qsort(nums, numsSize, sizeof(int), CompareInt);
+
+    BackTrace(nums, numsSize, returnSize, &backTracePointer, result);
+    (*returnColumnSizes) = (int *)malloc(sizeof(int) * (*returnSize));
+    for (int i = 0; i < (*returnSize); i++) {
+        (*returnColumnSizes)[i] = numsSize;
+    }
+
+    return result;
+}
+// ---------------------------解法一 结束--------------------------------------------------------
+
+int main() {
+    int nums_1[] = { 1, 1, 2};
+    int numsSize_1 = sizeof(nums_1) / sizeof(nums_1[0]);
+    int returnSize_1 = 44554;
+    int* returnColumnSizes_1 = NULL;
+    int** result_1 = permuteUnique(nums_1, numsSize_1, &returnSize_1, &returnColumnSizes_1);
+    for (int i = 0; i < returnSize_1; i++) {
+        for (int j = 0; j < returnColumnSizes_1[i]; j++) {
+            printf("%d", result_1[i][j]);
+        }
+        printf("\n");
+    }
+    printf("\n");
+    for (size_t i = 0; i < returnSize_1; i++) { free(result_1[i]);}
+    free(result_1);
+    free(returnColumnSizes_1);
+    
+    
+    int nums_2[] = { 1, 1, 1, 2};
+    int numsSize_2 = sizeof(nums_2) / sizeof(nums_2[0]);
+    int returnSize_2 = 44554;
+    int* returnColumnSizes_2 = NULL;
+    int** result_2 = permuteUnique(nums_2, numsSize_2, &returnSize_2, &returnColumnSizes_2);
+    for (int i = 0; i < returnSize_2; i++) {
+        for (int j = 0; j < returnColumnSizes_2[i]; j++) {
+            printf("%d", result_2[i][j]);
+        }
+        printf("\n");
+    }
+    printf("\n");
+    for (size_t i = 0; i < returnSize_2; i++) { free(result_2[i]);}
+    free(result_2);
+    free(returnColumnSizes_2);
+
+    return 0;
+}
+
+
+
+
+
+
+
+
+// /*
+//  * Copyright (c) Huawei Technologies Co., Ltd. 2019-2020. All rights reserved.
+//  */
+// #include <stdio.h>
+// #include <stdlib.h>
+// #include <string.h>
+// #include <stdbool.h>
+// #include <uthash.h>
+// // 如需使用华为安全函数，请加上 #include "securec.h"
+// #include "systemDesgin.h"
+// #include <math.h>
+// #include <assert.h>
+// /* 46. 全排列
+//  * 回溯算法
+//  */
+
+
+// // ---------------------------解法一 开始---从上到下求解 --是使用递归---没有的重复计算的节点，不能用备忘录空间换时间-----------------------------------------------------
+// typedef struct BackTrackPointer {
+//     int length;
+//     int usedFlag[6];
+//     int traceValue[6];
+// } BackTrackPointer;
+
+// void backTrack(int* nums, int numsSize, int* returnSize, int** returnColumnSizes, int** result, BackTrackPointer *backTrackPointer) {
+//     // 触发结束条件
+//     if (backTrackPointer->length == numsSize) {
+//         result[(*returnSize)] = (int *)malloc(sizeof(int) * numsSize);
+//         memcpy((void*)&result[(*returnSize)][0], (void*)&backTrackPointer->traceValue[0], sizeof(int) * numsSize);
+//         (*returnColumnSizes)[(*returnSize)] = backTrackPointer->length;
+//         (*returnSize)++;
+//         return;
+//     }
+
+//     for (size_t i = 0; i < numsSize; i++) {
+//         // 排除不合法的选择
+//         if (backTrackPointer->usedFlag[i] == 1) {continue;}
+
+//         // 做选择
+//         backTrackPointer->traceValue[backTrackPointer->length] = nums[i];
+//         backTrackPointer->length++;
+//         backTrackPointer->usedFlag[i] = 1;
+
+//         // 进入下一层决策
+//         backTrack(nums, numsSize, returnSize, returnColumnSizes, result, backTrackPointer);
+
+//         // 取消选择
+//         backTrackPointer->length--;
+//         backTrackPointer->traceValue[backTrackPointer->length] = 0;
+//         backTrackPointer->usedFlag[i] = 0;
+//     }
+// }
+
+// int** permute(int* nums, int numsSize, int* returnSize, int** returnColumnSizes){
+//     int maxResultSize = numsSize;
+//     for (size_t i = 1; i < numsSize; i++) {
+//         maxResultSize = maxResultSize * (numsSize  - i);
+//     }
+
+//     // 其实学过全排列就知道的最多的结果是 n!. 我们这里随便申请一个n!，实际大小通过回溯算法得到。
+//     int **result = (int **)malloc(sizeof(int *) * maxResultSize);
+//     *returnColumnSizes = (int *)malloc(sizeof(int) * maxResultSize);
+//     for (size_t i = 0; i < maxResultSize; i++) {
+//         (*returnColumnSizes)[i] = 0; 
+//     }
+//     (*returnSize) = 0;
+//     BackTrackPointer backTrackPointer = { 0 };
+//     backTrack(nums, numsSize, returnSize, returnColumnSizes, result, &backTrackPointer);
+
+//     return result;
+// }
+
+// // ---------------------------解法一 结束--------------------------------------------------------
+
+// int main() {
+//     int nums_1[] = {1,2,3};
+//     int numsSize_1 = sizeof(nums_1) / sizeof(nums_1[0]);
+//     int returnSize_1;
+//     int *returnColumnSizes_1 = NULL;
+//     int **result_1 = permute(nums_1, numsSize_1, &returnSize_1, &returnColumnSizes_1);
+//     for (size_t i = 0; i < returnSize_1; i++) {
+//         for (size_t j = 0; j < returnColumnSizes_1[i]; j++) {
+//             printf("%d ", result_1[i][j]);
+//         }
+//         printf("\n");
+//     }
+//     for (size_t i = 0; i < returnSize_1; i++) { free(result_1[i]);}
+//     free(result_1);
+//     free(returnColumnSizes_1);
+
+ 
+
+//     return 0;
+// }
+

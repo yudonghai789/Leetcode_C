@@ -1,0 +1,183 @@
+/*
+ * Copyright (c) Huawei Technologies Co., Ltd. 2019-2020. All rights reserved.
+ */
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdbool.h>
+#include <uthash.h>
+// 如需使用华为安全函数，请加上 #include "securec.h"
+#include "dierti.h"
+#include <math.h>
+#include <assert.h>
+
+
+/**
+ * leetcode 609. 在系统中查找重复文件 https://leetcode-cn.com/problems/find-duplicate-file-in-system/
+ * 在文件内容较长时超时，因为我是通过字典树实现的hash, 真正的hash应该根据键值直接计算出地址。
+ */
+# define MAX_FILE_PATH 20010
+# define MAX_PATH_LEN 3010
+
+typedef struct PerFileNode {
+    char allPath[MAX_PATH_LEN];
+} PerFileNode;
+
+typedef struct FileNodeArray {
+    int count;
+    PerFileNode charNode[MAX_FILE_PATH];
+} FileNodeArray;
+
+typedef struct HashValue {
+    char firstPath[MAX_PATH_LEN];
+    int count;
+    int resultIndexOne;
+    int resultIndexTwo;
+} HashValue;
+
+typedef struct UthshPath {
+    char key[MAX_PATH_LEN];
+    HashValue value;
+    UT_hash_handle hh;
+} UthshPath;
+
+void SpliteKeyAndValue(char *allPath, UthshPath* hash)
+{
+    char *path = strtok(allPath, "(");
+    strcat(hash->value.firstPath, path);
+    path = strtok(NULL, "(");
+    
+    char *key = strtok(path, ")");
+    strcat(hash->key, key);
+    hash->value.count = 1;
+    hash->value.resultIndexOne = -1;
+    hash->value.resultIndexTwo = -1;
+}
+
+UthshPath* UthashFindByKey(UthshPath** uthshHead, char ikey[MAX_PATH_LEN])
+{
+    UthshPath* temp = NULL;
+    HASH_FIND_STR(*uthshHead, ikey, temp);
+    return temp;
+}
+
+void UthashAddByKeyAddValue(UthshPath** uthshHead, char ikey[MAX_PATH_LEN], HashValue* value)
+{
+    UthshPath* temp = UthashFindByKey(uthshHead, ikey);
+    if (temp == NULL) {
+        temp = (UthshPath *)malloc(sizeof(UthshPath));
+        strcpy(temp->key, ikey);
+        temp->value = *value;
+        temp->value.count = 1;
+        temp->value.resultIndexOne = -1;
+        temp->value.resultIndexTwo = -1;
+        HASH_ADD_STR(*uthshHead, key, temp);
+    } else {
+        printf("add error");
+    }
+}
+
+
+void UthashFreeAll(UthshPath** uthshHead)
+{
+    UthshPath *current_user, *tmp;
+    HASH_ITER(hh, *uthshHead, current_user, tmp) {
+        HASH_DEL(*uthshHead, current_user);  /* delete it (users advances to next) */
+        free(current_user);             /* free it */
+    }
+}
+
+
+char*** findDuplicate(char ** paths, int pathsSize, int* returnSize, int** returnColumnSizes)
+{
+    FileNodeArray *fileNodeArray = (FileNodeArray *)malloc(sizeof(FileNodeArray));
+    memset(fileNodeArray, 0, sizeof(FileNodeArray));
+    fileNodeArray->count = 0;
+
+    for (int i = 0; i < pathsSize; i++) {
+        // printf("%s \n", paths[i]);
+        char tempValue[MAX_PATH_LEN] = { 0 };
+        char *token = strtok(paths[i], " ");
+        strcat(tempValue, token);
+        // printf("%s \n", token);
+        while (token != NULL) {
+            token = strtok(NULL, " ");
+            // printf("%s \n", token);
+            if (token != NULL) {
+                if (fileNodeArray->count >= MAX_FILE_PATH) { printf("line 143 error"); return NULL; }
+                PerFileNode* perFileNode = &fileNodeArray->charNode[fileNodeArray->count];
+                fileNodeArray->count++;
+                memset((void *)perFileNode, 0, sizeof(PerFileNode));
+                strcat(perFileNode->allPath, tempValue);
+                strcat(perFileNode->allPath, "/");
+                strcat(perFileNode->allPath, token);
+                // printf("%s \n", perFileNode->allPath);
+            }
+        }
+    }
+
+
+    (*returnSize) = 0;
+    char ***result = (char ***)malloc(sizeof(char**) * fileNodeArray->count);
+    memset(result, 0, sizeof(char**) * fileNodeArray->count);
+    (*returnColumnSizes) = (int *)malloc(sizeof(int) * fileNodeArray->count);   // (*returnColumnSizes) 就是一维数组的指针
+    memset((*returnColumnSizes), 0, sizeof(int) * fileNodeArray->count);
+
+    UthshPath* uthshHead = NULL;
+    for (int pathIndex = 0; pathIndex < fileNodeArray->count; pathIndex++) {
+        PerFileNode* perFileNode = &fileNodeArray->charNode[pathIndex];
+        UthshPath tempHash = { 0 };
+        SpliteKeyAndValue(perFileNode->allPath, &tempHash);
+        UthshPath* find = UthashFindByKey(&uthshHead, tempHash.key);
+        if (find == NULL) {
+            UthashAddByKeyAddValue(&uthshHead, tempHash.key, &tempHash.value);
+        } else {
+            if (find->value.count == 1) {
+                if ((fileNodeArray->count <= (*returnSize)) || ((*returnSize) < 0)) { printf("line 170 error %d", (*returnSize)); UthashFreeAll(&uthshHead); free(fileNodeArray); return NULL; }
+
+                result[(*returnSize)] = (char**)malloc(sizeof(char*) * fileNodeArray->count);
+                memset(result[(*returnSize)], 0, sizeof(char*) * fileNodeArray->count);
+
+                if ((fileNodeArray->count <= (*returnSize)) || ((*returnSize) < 0)) { printf("line 175  error"); UthashFreeAll(&uthshHead); free(fileNodeArray); return NULL; }
+                if ((fileNodeArray->count <= ((*returnColumnSizes)[(*returnSize)])) || (((*returnColumnSizes)[(*returnSize)]) < 0)) { printf("error"); UthashFreeAll(&uthshHead); free(fileNodeArray); return NULL; }
+
+                result[(*returnSize)][((*returnColumnSizes)[(*returnSize)])] = (char *)malloc(sizeof(char) * MAX_PATH_LEN);
+                memset(result[(*returnSize)][((*returnColumnSizes)[(*returnSize)])], 0, sizeof(char) * MAX_PATH_LEN);
+                strcpy(result[(*returnSize)][((*returnColumnSizes)[(*returnSize)])], find->value.firstPath);
+                (*returnColumnSizes)[(*returnSize)]++;
+
+                if ((fileNodeArray->count <= (*returnSize)) || ((*returnSize) < 0)) { printf("line 183  error"); UthashFreeAll(&uthshHead); free(fileNodeArray); return NULL; }
+                if ((fileNodeArray->count <= ((*returnColumnSizes)[(*returnSize)])) || (((*returnColumnSizes)[(*returnSize)]) < 0)) { printf("error"); UthashFreeAll(&uthshHead); free(fileNodeArray); return NULL; }
+
+                result[(*returnSize)][((*returnColumnSizes)[(*returnSize)])] = (char *)malloc(sizeof(char) * MAX_PATH_LEN);
+                memset(result[(*returnSize)][((*returnColumnSizes)[(*returnSize)])], 0, sizeof(char) * MAX_PATH_LEN);
+                strcpy(result[(*returnSize)][((*returnColumnSizes)[(*returnSize)])], tempHash.value.firstPath);
+                (*returnColumnSizes)[(*returnSize)]++;
+    
+                find->value.count++;
+                find->value.resultIndexOne = (*returnSize);
+                find->value.resultIndexTwo = ((*returnColumnSizes)[(*returnSize)]);
+
+                (*returnSize)++;
+
+
+                if ((fileNodeArray->count < find->value.resultIndexOne) || (find->value.resultIndexOne < 0)) { printf("line 197 error"); UthashFreeAll(&uthshHead); free(fileNodeArray); return NULL; }
+                if ((fileNodeArray->count < find->value.resultIndexTwo) || (find->value.resultIndexTwo < 0)) { printf("line 198 error"); UthashFreeAll(&uthshHead); free(fileNodeArray); return NULL; }
+            } else if (find->value.count >= 2) {
+                if ((fileNodeArray->count <= find->value.resultIndexOne) || (find->value.resultIndexOne < 0)) { printf("line 200 error"); UthashFreeAll(&uthshHead); free(fileNodeArray); return NULL; }
+                if ((fileNodeArray->count <= find->value.resultIndexTwo) || (find->value.resultIndexTwo < 0)) { printf("line 201 error"); UthashFreeAll(&uthshHead); free(fileNodeArray); return NULL; }
+
+                find->value.count++;
+                result[find->value.resultIndexOne][find->value.resultIndexTwo] = (char *)malloc(sizeof(char) * MAX_PATH_LEN);
+                memset(result[find->value.resultIndexOne][find->value.resultIndexTwo], 0, sizeof(char) * MAX_PATH_LEN);
+                strcpy(result[find->value.resultIndexOne][find->value.resultIndexTwo], tempHash.value.firstPath);
+                (*returnColumnSizes)[find->value.resultIndexOne]++;
+                find->value.resultIndexTwo++;
+            }
+        }
+    }
+    UthashFreeAll(&uthshHead); 
+    free(fileNodeArray);
+
+    return result;
+}

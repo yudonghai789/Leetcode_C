@@ -1,0 +1,283 @@
+/******************************************************************************
+ * 版权所有 (c)
+ * 功能描述   : leetcode 375. 猜数字大小 II. https://leetcode-cn.com/problems/guess-number-higher-or-lower-ii/
+ * 作    者   :
+ * 生成日期   :
+
+ * 动态规划 
+      --- 
+ ******************************************************************************/
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdbool.h>
+#include <uthash.h>
+#include <math.h>
+#include <assert.h>
+// 如需使用华为安全函数，请加上 #include "securec.h"
+// #include "securec.h"
+
+
+
+
+
+/*
+
+*/
+
+
+
+
+
+// ---------------------------解法 开始-----暴力遍历: -----------------------------------------------------
+
+// ---------------------------解法 结束---------------------------------------------------------------------
+
+
+
+
+
+
+
+// ---------------------------解法 开始-----BFS 递归模板: -----------------------------------------------------
+
+// ---------------------------解法 结束---------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+// ---------------------------解法 开始-----BFS 迭代模板: -----------------------------------------------------
+
+// ---------------------------解法 结束-----------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+// ---------------------------解法 开始-----DFS 递归模板: -----------------------------------------------------
+
+// ---------------------------解法 结束----------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+// ---------------------------解法 开始-----DFS 迭代模板: --------------------------------------------------
+
+// ---------------------------解法 结束----------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+// ---------------------------解法 开始-----动态规划 记忆化搜索: ----memTable一定要注意表达 可以表达唯一结果的递归路径,维度不够时，不同结果的的递归路径被误当做相同的路径，维度太多时，剪枝效果不大------------------
+// #define MAX_NUM 201
+// int g_memTable[MAX_NUM][MAX_NUM];   // g_memTable[start][end] 表示 从 start~end 猜测结果最少需要的数目
+
+// int DpRecursive(int start, int end)   // 猜到当前这一步，需要消耗 money
+// {
+//     if (g_memTable[start][end] != 0xf0f0f0f0) {
+//         return g_memTable[start][end];
+//     }
+
+//     int thisRes = INT_MAX;
+//     for (int guess = start; guess <= end; guess++) { // 猜为 guess,猜不对
+//         // 还需要往小的猜
+//         int guessSmall = 0;
+//         if (guess > start + 1) {
+//             guessSmall = DpRecursive(start, guess - 1);
+//         }
+
+//         // 还需要往大的猜
+//         int guessBig = 0;
+//         if (guess < end - 1) {
+//             guessBig = DpRecursive(guess + 1, end);
+//         }
+        
+//         int thisGuess = guess + fmax(guessSmall, guessBig); // 本轮猜测
+//         thisRes = fmin(thisRes, thisGuess); 
+//     }
+
+//     g_memTable[start][end] = thisRes;
+//     return thisRes;
+// }
+
+// int getMoneyAmount(int n)
+// {
+//     if (n == 1) {
+//         return 0;
+//     }
+
+//     memset(g_memTable, 0xf0, sizeof(g_memTable));
+
+//     return DpRecursive(1, n);
+// }
+// ---------------------------解法 结束----------------------------------------------------------------------
+
+
+
+
+
+
+
+// ---------------------------解法 开始-----动态规划 按顺序递推---------------------------------------------------
+#define MAX_NUM 201
+int g_dpTable[MAX_NUM][MAX_NUM];   // g_dpTable[start][end] 表示 从 start~end 猜测结果最少需要的数目
+
+int DpIter(int n)
+{
+    for (int i = 0; i <= n; i++) {
+        g_dpTable[i][i] = 0;
+    }
+
+    /*
+       
+
+    */
+
+    for (int len = 1; len <= n - 1; len++) {
+        for (int start = 1; start + len <= n; start++) {
+            int thisRes = INT_MAX;
+            for (int guess = start; guess <= start + len; guess++) {
+                // 还需要往小的猜
+                int guessSmall = 0;
+                if (guess > start + 1) {
+                    guessSmall = g_dpTable[start][guess - 1];
+                }
+
+                // 还需要往大的猜
+                int guessBig = 0;
+                if (guess < start + len) {
+                    guessBig = g_dpTable[guess + 1][start+ len];
+                }
+                
+                int thisGuess = guess + fmax(guessSmall, guessBig); // 本轮猜测
+                thisRes = fmin(thisRes, thisGuess);
+            }
+            g_dpTable[start][start + len] = thisRes;
+        }
+    }
+
+    return g_dpTable[1][n];
+}
+
+int getMoneyAmount(int n)
+{
+    memset(g_dpTable, 0, sizeof(g_dpTable));
+
+    return DpIter(n);
+}
+
+// ---------------------------解法 结束--------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+// ---------------------------解法 开始-----动态规划 按顺序递推-----------------这个推导有问题，问题在哪呢------------------------------------
+// #define MAX_NUM 201
+// int g_dpTable[MAX_NUM];   // g_memTable[n] 表示 从 1~n 猜测结果最少需要的数目
+
+// int DpIter(int n)
+// {
+
+//     g_dpTable[1] = 0;
+//     g_dpTable[2] = 1;
+
+//     /*
+//         g_dpTable[1] = 0
+//         g_dpTable[2] = 1
+//         g_dpTable[3] = fmin(一. 猜2不是，不用猜3，再猜1~1   2 + g_dpTable[1]    二、猜3不是,再从1~2猜  3 + g_dpTable[2])   // 这个问题再哪
+
+//         g_dpTable[4] = fmin(一. 猜3不是，不用猜3，再猜1~2   3 + g_dpTable[2]    二、猜4不是,再从1~2猜  3 + g_dpTable[2])
+
+//         g_dpTable[i] = (g_dpTable[i - 2] + i - 1, g_dpTable[i - 1] + i);
+
+//     */
+
+//     for (int i = 3; i <= n; i++) {
+//         g_dpTable[i] = fmin(g_dpTable[i - 2] + i - 1, g_dpTable[i - 1] + i);
+//     }
+    
+//     return g_dpTable[n];
+// }
+
+// int getMoneyAmount(int n)
+// {
+//     memset(g_dpTable, 0, sizeof(g_dpTable));
+
+//     return DpIter(n);
+// }
+
+// ---------------------------解法 结束--------------------------------------------------------------------
+
+
+
+
+
+
+
+
+// ---------------------------解法 开始-----贪心 ----------------------------------------------------------
+
+// ---------------------------解法 结束-----------------------------------------------------------------------
+
+
+
+
+
+
+int main(int argc, const char *argv[])
+{
+
+    int res_1 = getMoneyAmount(1);
+    assert(res_1 == 0);
+
+    int res_2 = getMoneyAmount(2);
+    assert(res_2 == 1);
+
+
+    int res_3 = getMoneyAmount(3);
+    assert(res_3 == 2);
+
+    int res_4 = getMoneyAmount(4);
+    assert(res_4 == 4);
+
+
+    int res_10 = getMoneyAmount(10);
+    assert(res_10 == 16);
+
+    return 0;
+}

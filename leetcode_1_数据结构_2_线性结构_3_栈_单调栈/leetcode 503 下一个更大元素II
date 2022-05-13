@@ -1,0 +1,333 @@
+/******************************************************************************
+ * 版权所有 (c)
+ * 功能描述   : leetcode 503. 下一个更大元素 II. https://leetcode-cn.com/problems/next-greater-element-ii/
+ * 作    者   :
+ * 生成日期   :
+
+ * 
+      --- 
+ ******************************************************************************/
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdbool.h>
+#include <uthash.h>
+#include <math.h>
+#include <assert.h>
+// 如需使用华为安全函数，请加上 #include "securec.h"
+// #include "securec.h"
+#include "vos_priorityqueue.h"
+
+
+
+
+
+/*
+503. 下一个更大元素 II
+给定一个循环数组 nums （ nums[nums.length - 1] 的下一个元素是 nums[0] ），返回 nums 中每个元素的 下一个更大元素 。
+
+数字 x 的 下一个更大的元素 是按数组遍历顺序，这个数字之后的第一个比它更大的数，这意味着你应该循环地搜索它的下一个更大的数。如果不存在，则输出 -1 。
+
+ 
+
+示例 1:
+
+输入: nums = [1,2,1]
+输出: [2,-1,2]
+解释: 第一个 1 的下一个更大的数是 2；
+数字 2 找不到下一个更大的数； 
+第二个 1 的下一个最大的数需要循环搜索，结果也是 2。
+示例 2:
+
+输入: nums = [1,2,3,4,3]
+输出: [2,3,4,-1,4]
+ 
+
+提示:
+
+1 <= nums.length <= 104
+-109 <= nums[i] <= 109
+*/
+
+
+
+
+
+// ---------------------------解法 开始-----暴力遍历: -----------------------------------------------------
+
+// ---------------------------解法 结束---------------------------------------------------------------------
+
+
+
+
+
+
+
+// ---------------------------解法 开始-----BFS 递归模板: -----------------------------------------------------
+
+// ---------------------------解法 结束---------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+// ---------------------------解法 开始-----BFS 迭代模板: -----------------------------------------------------
+
+// ---------------------------解法 结束-----------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+// ---------------------------解法 开始-----DFS 递归模板: -----------------------------------------------------
+
+// ---------------------------解法 结束----------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+// ---------------------------解法 开始-----DFS 迭代模板: --------------------------------------------------
+
+// ---------------------------解法 结束----------------------------------------------------------------------
+
+
+
+
+
+
+
+
+// ---------------------------解法 开始-----回溯 迭代模板: --------------------------------------------------
+
+// ---------------------------解法 结束----------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+// ---------------------------解法 开始-----动态规划 记忆化搜索: ---------------------
+
+
+// ---------------------------解法 结束----------------------------------------------------------------------
+
+
+
+
+
+
+
+// ---------------------------解法 开始-----动态规划 按顺序递推-----------------------------------------------------
+
+// ---------------------------解法 结束--------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+// ---------------------------解法 开始-----贪心 --------------------------------------------------------
+
+// ---------------------------解法 结束------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// ---------------------------解法 开始-----------单调栈------------------------------------------------
+#define MAX_STACK_LEN (10001)
+
+typedef struct Elem {
+    int val;
+    int position;
+} Elem;
+
+typedef struct Stack {
+    int top;
+    Elem elems[MAX_STACK_LEN];
+    int size;
+    int capacity;
+} Stack;
+
+Stack *StackInit(int capacity)
+{
+    Stack *stack = (Stack *)malloc(sizeof(Stack));
+    memset(stack, 0, sizeof(Stack));
+    stack->capacity = (capacity == 0) ? MAX_STACK_LEN: capacity;
+    stack->size = 0;
+    stack->top = -1;
+    return stack;
+}
+
+void StackDestory(Stack* stack)
+{
+    free(stack);
+}
+
+bool StackIsEmpty(Stack* stack)
+{
+    return stack->size == 0;
+}
+
+
+bool StackIsFull(Stack* stack)
+{
+    return stack->size == stack->capacity;
+}
+
+int StackSize(Stack* stack)
+{
+    return stack->size;
+}
+
+int Compare(Elem A, Elem B)
+{
+    return (long long)A.val - (long long)B.val;   // 如果B是负数，可能超过int范围
+}
+
+void StackPush(Stack* stack, Elem newElem)
+{
+    if (stack->size >= stack->capacity) {
+        printf("stack full error \n");
+        return;
+    }
+
+    stack->elems[++stack->top] = newElem;
+    stack->size++;
+}
+
+Elem StackPeek(Stack* stack)
+{
+    if (stack->size == 0) {
+        printf("stack empty error \n");
+        Elem ZeroElem = { 0 };
+        return ZeroElem;
+    }
+
+    return stack->elems[stack->top];
+}
+
+
+void StackPop(Stack* stack)
+{
+    if (stack->size == 0) {
+        printf("stack empty error \n");
+        return;
+    }
+
+    Elem ZeroElem = { 0 };
+    stack->elems[stack->top--] = ZeroElem;
+    stack->size--;
+}
+
+
+bool OrderStackPushCheckIsEmpty(Stack* stack, Elem newElem)
+{
+    // 将所有比当前元素小的元素出栈
+    while ((!StackIsEmpty(stack)) && (Compare(newElem, StackPeek(stack)) >= 0)) {
+        StackPop(stack);
+    }
+
+    return StackIsEmpty(stack) ? true: false;
+}
+
+
+
+
+int* nextGreaterElements(int* nums, int numsSize, int* returnSize)
+{
+    // if ((nums2 == NULL) && (nums2Size == 0)) {return -1; }
+    int *result = (int *)malloc(sizeof(int) * numsSize); 
+    memset(result, 0, sizeof(int) * numsSize);
+    *returnSize = numsSize;
+
+    Stack *stack = StackInit(0);
+    for (int i = 2 * numsSize - 1; i >= 0; i--) {
+        int index = i % numsSize;
+        Elem newElem = { nums[index], i };
+        // 如果栈已经空了
+        bool isEmpty = OrderStackPushCheckIsEmpty(stack, newElem);
+        if (i < numsSize) {
+            result[index] = (isEmpty) ? -1 : StackPeek(stack).val;
+        }
+        StackPush(stack, newElem);
+    }
+
+    StackDestory(stack);
+    return result;
+}
+// ---------------------------解法 结束-----------------------------------------------------------------------
+
+
+
+
+
+// ---------------------------解法 开始-----------单调队列------------------------------------------------
+
+// ---------------------------解法 结束-----------------------------------------------------------------------
+
+
+
+
+// ---------------------------解法 开始-----------优先队列------------------------------------------------
+
+// ---------------------------解法 结束-----------------------------------------------------------------------
+
+
+int main() {
+    int nums_1[] = {1,2,1};
+    int numSize_1 = sizeof(nums_1) / sizeof(nums_1[0]);
+    int returnSize_1 = -1;
+    int* result_1 = nextGreaterElements(nums_1, numSize_1, &returnSize_1);
+    for (int i = 0; i < returnSize_1; i++) { printf("%d    ", result_1[i]); } printf("\n");
+
+    int nums_2[] = {1,2,3,4,3};
+    int numSize_2 = sizeof(nums_2) / sizeof(nums_2[0]);
+    int returnSize_2 = -1;
+    int* result_2 = nextGreaterElements(nums_2, numSize_2, &returnSize_2);
+    for (int i = 0; i < returnSize_2; i++) { printf("%d    ", result_2[i]); } printf("\n");
+
+
+    return 0;
+}
+

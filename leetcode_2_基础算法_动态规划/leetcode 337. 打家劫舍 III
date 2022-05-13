@@ -1,0 +1,213 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <math.h>
+#include <stdbool.h>
+#include <assert.h>
+
+
+
+/* 337. 打家劫舍 III
+ * 这就是一个01背包问题加上相邻不能取的限制,以及不限制数量
+ * 
+ */
+
+// ---------------------------解法一 开始---从上到下求解 --是使用递归---不使用dp数组--超时---------------------------------------------------
+
+// struct TreeNode {
+//     int val;
+//     struct TreeNode *left;
+//     struct TreeNode *right;
+// };
+
+// // 
+// int dp(struct TreeNode* root) {
+//     if (root == NULL) {
+//         return 0;
+//     }
+
+//     int res1 = root->val;
+//     if (root->left != NULL) {
+//         res1 += dp(root->left->left) + dp(root->left->right);
+//     }
+//     if (root->right != NULL) {
+//         res1 += dp(root->right->left) + dp(root->right->right);
+//     }
+
+//     int res2 = 0;
+//     res2 += dp(root->left) + dp(root->right);
+
+//     return fmax(res1, res2);
+// }
+
+// int rob(struct TreeNode* root) {
+//     if (root == NULL) {
+//         return 0;
+//     }
+
+//     int result = dp(root);
+//     return result;
+// }
+// ---------------------------解法一 结束--------------------------------------------------------
+
+
+
+// ---------------------------解法二 开始---从上到下求解 --是使用递归---结构体本身使用dp数组--但是leetcode-不能修改节点结构-------------------------------------------------
+// struct TreeNode {
+//     int thisValue;
+//     int val;
+//     struct TreeNode *left;
+//     struct TreeNode *right;
+// };
+
+
+// int dp(struct TreeNode* root) {
+//     if (root == NULL) {
+//         return 0;
+//     }
+
+//     if (root->thisValue != 0) {
+//         return root->thisValue;
+//     }
+
+//     int res1 = root->val;
+//     if (root->left != NULL) {
+//         res1 += dp(root->left->left) + dp(root->left->right);
+//     }
+//     if (root->right != NULL) {
+//         res1 += dp(root->right->left) + dp(root->right->right);
+//     }
+
+//     int res2 = 0;
+//     res2 += dp(root->left) + dp(root->right);
+
+//     root->thisValue = fmax(res1, res2);
+//     return root->thisValue;
+// }
+
+// int rob(struct TreeNode* root) {
+//     if (root == NULL) {
+//         return 0;
+//     }
+
+//     int result = dp(root);
+//     return result;
+// }
+// ---------------------------解法二 结束--------------------------------------------------------
+
+// ---------------------------解法三 开始---从上到下求解 --是使用递归--使用dp数组--dp数组与节点 使用包裹层，将节点与该节点的计算值对应-------------------------------------------------
+struct TreeNode {
+    int val;
+    struct TreeNode *left;
+    struct TreeNode *right;
+};
+
+struct TreeNodeWapper {
+    int thisValue;
+    int val;
+    struct TreeNodeWapper *left;
+    struct TreeNodeWapper *right;
+};
+
+struct TreeNodeWapper* WapperTree(struct TreeNode* root) {
+    if (root == NULL) { return NULL; }
+    struct TreeNodeWapper* treeNodeWapper = (struct TreeNodeWapper*)malloc(sizeof(struct TreeNodeWapper));
+    treeNodeWapper->thisValue = 0;
+    treeNodeWapper->val = root->val;
+    treeNodeWapper->left = WapperTree(root->left);
+    treeNodeWapper->right = WapperTree(root->right);
+    return treeNodeWapper;
+}
+
+int dp(struct TreeNodeWapper* rootWapper) {
+    if (rootWapper == NULL) {
+        return 0;
+    }
+
+    if (rootWapper->thisValue != 0) {
+        return rootWapper->thisValue;
+    }
+
+    int res1 = rootWapper->val;
+    if (rootWapper->left != NULL) {
+        res1 += dp(rootWapper->left->left) + dp(rootWapper->left->right);
+    }
+    if (rootWapper->right != NULL) {
+        res1 += dp(rootWapper->right->left) + dp(rootWapper->right->right);
+    }
+
+    int res2 = 0;
+    res2 += dp(rootWapper->left) + dp(rootWapper->right);
+
+    rootWapper->thisValue = fmax(res1, res2);
+    return rootWapper->thisValue;
+}
+
+int rob(struct TreeNode* root) {
+    if (root == NULL) {
+        return 0;
+    }
+
+    // 遍历一下二叉树，将其包裹一层
+    struct TreeNodeWapper* rootWapper = WapperTree(root);
+
+    int result = dp(rootWapper);
+    return result;
+}
+// ---------------------------解法三 结束--------------------------------------------------------
+
+
+struct TreeNode* caseToTree(char** stringarray, int len) {
+    //创建结构体数组
+    struct TreeNode *pRoot = (struct TreeNode *)malloc(sizeof(struct TreeNode) * len);
+    memset((void *)pRoot, 0, sizeof(struct TreeNode) * len);
+
+    //结构体数组赋初值
+    for (int i = 0; i < len; i++) {
+        pRoot[i].val = atoi(stringarray[i]);
+        pRoot[i].left = NULL;
+        pRoot[i].right = NULL;
+    }
+
+    //父亲节点与左右孩子关联
+    for (int i = 0; i <= len/2 - 1; i++){
+        //有左孩子
+        if (2*i + 1 < len) {
+            if (strcmp(stringarray[2*i + 1], "null") == 0) {
+                pRoot[i].left == NULL;
+            } else {
+                pRoot[i].left = &pRoot[2*i + 1];
+            }
+        }
+
+        //有右孩子
+        if (2*i + 2 < len) {
+            if (strcmp(stringarray[2*i + 2], "null") == 0) {
+                pRoot[i].right = NULL;
+            } else {
+                pRoot[i].right = &pRoot[2*i + 2];
+            }
+        }
+    }
+
+    return pRoot;
+}
+
+
+int main() {
+    char *case_1[] = {"3","2","3","null","3","null","1"};
+    int len_1 = sizeof(case_1) / sizeof(case_1[0]);
+    struct TreeNode* root_1 = caseToTree(case_1, len_1);
+    int result_1 = rob(root_1);
+    assert(result_1 == 7);
+
+    char *case_2[] = {"3","4","5","1","3","null","1"};
+    int len_2 = sizeof(case_2) / sizeof(case_2[0]);
+    struct TreeNode* root_2 = caseToTree(case_2, len_2);
+    int result_2 = rob(root_2);
+    assert(result_2 == 9);
+
+
+
+    return 0;
+}

@@ -1,0 +1,188 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdbool.h>
+#include <string.h>
+#include <math.h>
+#include <assert.h>
+
+
+/* 51. N 皇后
+ * 回溯算法  
+ * 多叉树
+ */
+
+// ---------------------------解法一 开始---从上到下求解 --是使用递归---没有的重复计算的节点，不能用备忘录空间换时间-----------------------------------------------------
+typedef struct BackTracePointer {
+    int length;
+    char** backTracePointerValue;
+} BackTracePointer;
+
+void BackTrace(int n, int* returnSize, int** returnColumnSizes, char*** result, BackTracePointer* backTracePointer) {
+    // 结束条件
+    if (backTracePointer->length == n) {
+        (*returnColumnSizes)[(*returnSize)] = n;
+        result[(*returnSize)] = (char **)malloc(sizeof(char*) * n);  // 每一种结果都有n行
+        for (size_t i = 0; i < backTracePointer->length; i++) {
+            result[(*returnSize)][i] = (char *)malloc(sizeof(char) * (n + 1));   //每一列结果都有n个数
+            memset(result[*returnSize][i], '.', n);
+            for (size_t h = 0; h < n; h++) {
+                result[(*returnSize)][i][h] = backTracePointer->backTracePointerValue[i][h];
+            }
+        }   
+        (*returnSize)++;
+        return;
+    }
+
+
+    for (size_t k = 0; k < n; k++) {
+        // 回溯之前先判断 选取值的合法值
+        int contrainFalg = 0;
+        for (size_t i = 0; i < backTracePointer->length; i++) {
+            if (backTracePointer->backTracePointerValue[i][k] == 'Q') { contrainFalg = 1; break; } // 同一条纵线
+            for (size_t j = 1; j <= backTracePointer->length; j++) {
+                if (k-j >= 0) { // 放置数组越界
+                    if (backTracePointer->backTracePointerValue[backTracePointer->length - j][k-j] == 'Q') { contrainFalg = 1; break; }  // 同一条斜线
+                }
+                if (k+j < n) {  // 放置数组越界
+                    if (backTracePointer->backTracePointerValue[backTracePointer->length - j][k+j] == 'Q') { contrainFalg = 1; break; }  // 同一条斜线
+                }
+            }
+        }
+        if (contrainFalg == 1) {continue; }
+
+        // 选择合法后，进行下一层递归
+        backTracePointer->backTracePointerValue[backTracePointer->length][k] = 'Q';
+        backTracePointer->length++;
+        BackTrace(n, returnSize, returnColumnSizes, result, backTracePointer);
+
+        // 递归执行完：也就是在1）触发停止条件执行到底时，或者2）循环执行完毕
+        backTracePointer->length--;
+        backTracePointer->backTracePointerValue[backTracePointer->length][k] = '.'; 
+    }
+}
+
+char*** solveNQueens(int n, int* returnSize, int** returnColumnSizes) {
+    int maxResultSize = n * n * n;
+    char*** result = (char ***)malloc(sizeof(char**) * maxResultSize); // 结果最多个数申请, 真实的结果个数由遍历计算得到
+    (*returnColumnSizes) = (int *)malloc(sizeof(int) * maxResultSize); // 结果最多个数申请, 真实的结果个数由遍历计算得到
+    *returnSize = 0;
+    for (size_t i = 0; i < maxResultSize; i++) {
+        (*returnColumnSizes)[i] = 0; 
+    }
+    char backTracePointerValue[n][n];
+    memset((void*)backTracePointerValue, '.', sizeof(char) * n * n);
+    char* backTracePointerValuePointer[n];
+    for (size_t i = 0; i < n; i++) {
+        backTracePointerValuePointer[i] = &backTracePointerValue[i][0];
+    }
+    BackTracePointer backTracePointer = {0, backTracePointerValuePointer};
+    BackTrace(n, returnSize, returnColumnSizes, result, &backTracePointer);
+
+    return result;
+}
+
+// ---------------------------解法一 结束--------------------------------------------------------
+
+
+
+// ---------------------------参考答案 开始--------------------------------------------------------
+// int solutionsSize;
+
+// char** generateBoard(int* queens, int n) {
+//     char** board = (char**)malloc(sizeof(char*) * n);
+//     for (int i = 0; i < n; i++) {
+//         board[i] = (char*)malloc(sizeof(char) * (n + 1));
+//         for (int j = 0; j < n; j++) board[i][j] = '.';
+//         board[i][queens[i]] = 'Q', board[i][n] = 0;
+//     }
+//     return board;
+// }
+
+// void backtrack(int n, int* returnSize, char*** result, int* queens, int row, int* columns, int* diagonals1, int* diagonals2) {
+//     if (row == n) {
+//         char** board = generateBoard(queens, n);
+//         result[solutionsSize++] = board;
+//     } else {
+//         for (int i = 0; i < n; i++) {
+//             if (columns[i]) {
+//                 continue;
+//             }
+//             int diagonal1 = row - i + n - 1;
+//             if (diagonals1[diagonal1]) {
+//                 continue;
+//             }
+//             int diagonal2 = row + i;
+//             if (diagonals2[diagonal2]) {
+//                 continue;
+//             }
+//             queens[row] = i;
+//             columns[i] = true;
+//             diagonals1[diagonal1] = true;
+//             diagonals2[diagonal2] = true;
+//             backtrack(n, returnSize, result, queens, row + 1, columns, diagonals1, diagonals2);
+//             queens[row] = -1;
+//             columns[i] = false;
+//             diagonals1[diagonal1] = false;
+//             diagonals2[diagonal2] = false;
+//         }
+//     }
+// }
+
+// char*** solveNQueens(int n, int* returnSize, int** returnColumnSizes) {
+//     char*** result = malloc(sizeof(char**) * n * n * n);
+//     solutionsSize = 0;
+//     int queens[n];
+//     int columns[n];
+//     int diagonals1[n + n];
+//     int diagonals2[n + n];
+//     memset(queens, -1, sizeof(queens));
+//     memset(columns, 0, sizeof(columns));
+//     memset(diagonals1, 0, sizeof(diagonals1));
+//     memset(diagonals2, 0, sizeof(diagonals2));
+//     backtrack(n, returnSize, result, queens, 0, columns, diagonals1, diagonals2);
+//     *returnSize = solutionsSize;
+//     *returnColumnSizes = malloc(sizeof(int*) * solutionsSize);
+//     for (int i = 0; i < solutionsSize; i++) {
+//         (*returnColumnSizes)[i] = n;
+//     }
+//     return result;
+// }
+
+// ---------------------------参考答案 结束--------------------------------------------------------
+
+
+
+
+
+
+
+int main() {
+    int n_1 = 0;
+    int returnSize_1 = 0;
+    int *returnColumnSizes_1 = NULL;
+    char ***result_1 = solveNQueens(n_1, &returnSize_1, &returnColumnSizes_1);
+    for (size_t i = 0; i < returnSize_1; i++) {
+        for (size_t j = 0; j < n_1; j++) {
+            for (size_t k = 0; k < n_1; k++) {
+                printf("%c ", result_1[i][j][k]);
+            }
+            printf("\n");
+        }
+        printf("\n");
+    }
+    for (size_t i = 0; i < returnSize_1; i++) { 
+        for (size_t j = 0; j < n_1; j++) {
+            free(result_1[i][j]);
+        }
+        free(result_1[i]);
+    }
+    free(result_1);
+    free(returnColumnSizes_1);
+
+ 
+
+    return 0;
+}
+
+
+

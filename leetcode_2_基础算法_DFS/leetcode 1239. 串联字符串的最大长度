@@ -1,0 +1,61 @@
+#ifndef BIT_CLR
+#define BIT_CLR(data, pos) ((data) &= ~(UINT32)(0x1U << (pos)))
+#endif
+
+#ifndef BIT_TST
+#define BIT_TST(data, pos) (((data) >> (pos)) & 0x1U)
+#endif
+
+#ifndef BIT_SET
+#define BIT_SET(data, pos) ((data) |= (0x1U << (pos)))
+#endif
+
+int BIT_COUNT(int charBit)
+{
+    int count = 0;
+    for (int i = 0; i < 26; i++) {
+        if (BIT_TST(charBit, i) == 1) {
+            count++;
+        }
+    }
+
+    return count;
+}
+
+int GenCharBit(char *arrayItem, int arrItemLen, int oriCharBit)
+{
+    int returnBit = oriCharBit;
+    for (int i = 0; i < arrItemLen; i++) {
+        int bitOffset = (arrayItem[i] - 'a');
+        if (BIT_TST(returnBit, bitOffset) == 1) {
+            return 0x5a5a5a5a;
+        } else {
+            BIT_SET(returnBit, bitOffset);
+        }
+    }
+
+    return returnBit;
+}
+
+int DFS(char ** arr, int arrSize, int pathBit, int nodeBitCnt, int start)
+{
+    int loop = 0;
+    for (int i = start + 1; i < arrSize; i++) {
+        int returnBit = GenCharBit(arr[i], strlen(arr[i]), pathBit);
+        if (returnBit == 0x5a5a5a5a) {
+            continue;
+        }
+        
+        int chNodeBitCnt = BIT_COUNT(GenCharBit(arr[i], strlen(arr[i]), 0));
+        int temp = DFS(arr, arrSize, returnBit, chNodeBitCnt, i);
+        loop = fmax(loop, temp);
+    }
+
+    return loop + nodeBitCnt;
+}
+
+int maxLength(char ** arr, int arrSize)
+{
+    int initBit = 0;
+    return DFS(arr, arrSize, initBit, 0, -1);
+}

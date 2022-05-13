@@ -1,0 +1,123 @@
+/*
+ * Copyright (c) Huawei Technologies Co., Ltd. 2019-2020. All rights reserved.
+ */
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <stdbool.h>
+#include <uthash.h>
+// 如需使用华为安全函数，请加上 #include "securec.h"
+#include "systemDesgin.h"
+#include <math.h>
+#include <assert.h>
+
+/*
+ * leetcode 90. 子集 II   https://leetcode-cn.com/problems/subsets-ii/
+ * 回溯算法 + 剪枝
+ * 
+ */
+
+// ---------------------------解法一 开始--------------------------------------------------------
+#define MAX_RESULT_SIZE 10000
+#define MAX_RESULT_ITEM_LEN 11
+
+typedef enum Status {
+    INIT = 0,
+    REMOVE = INIT,
+    USING = 0x5a5a
+} Status;
+
+typedef struct BackTracePointer {
+    int item[MAX_RESULT_ITEM_LEN];
+    int len;
+
+    Status usedFlag[MAX_RESULT_ITEM_LEN];
+} BackTracePointer;
+
+int CompareInt(const void * intA, const void * intB)
+{
+    return (*(int *)intA - *(int *)intB);
+}
+
+void BackTrace(int* nums, int numsSize, int index, BackTracePointer *backTracePointer, int* returnSize, int **returnColumnSizes, int **result)
+{
+    if (true) {
+        result[(*returnSize)] = (int *)malloc(sizeof(int) * backTracePointer->len);
+        memcpy(result[(*returnSize)], backTracePointer->item, sizeof(int) * backTracePointer->len);
+        (*returnColumnSizes)[(*returnSize)] = backTracePointer->len;
+
+        (*returnSize)++;
+        if ((*returnSize < 0) || (*returnSize >= MAX_RESULT_SIZE)) {
+            printf("error 46");
+        }
+    }
+
+    for (int i = index; i < numsSize; i++) {
+        if ((i > 0) && (nums[i] == nums[i - 1]) && (backTracePointer->usedFlag[i - 1] == REMOVE)) {
+            continue;
+        }
+
+        backTracePointer->item[backTracePointer->len] = nums[i];
+        backTracePointer->usedFlag[i] = USING;
+        backTracePointer->len++;
+        if ((backTracePointer->len < 0) || (backTracePointer->len >= MAX_RESULT_ITEM_LEN)) {
+            printf("error 53");
+        }
+
+        BackTrace(nums, numsSize, i + 1, backTracePointer, returnSize, returnColumnSizes, result);
+        backTracePointer->len--;
+        backTracePointer->item[backTracePointer->len] = 0;
+        backTracePointer->usedFlag[i] = REMOVE;
+
+        if ((backTracePointer->len < 0) || (backTracePointer->len >= MAX_RESULT_ITEM_LEN)) {
+            printf("error 53");
+        }
+    }
+}
+
+int** subsetsWithDup(int* nums, int numsSize, int* returnSize, int** returnColumnSizes)
+{
+    // 基本校验
+    
+    BackTracePointer backTracePointer = { 0 };
+    (*returnSize) = 0;
+    int **result = (int **)malloc(sizeof(int*) * MAX_RESULT_SIZE);
+    memset(result, 0, sizeof(int*) * MAX_RESULT_SIZE);
+
+    (*returnColumnSizes) = (int *)malloc(sizeof(int) * MAX_RESULT_SIZE);
+    memset((*returnColumnSizes), 0, sizeof(int) * MAX_RESULT_SIZE);
+
+    qsort(nums, numsSize, sizeof(int), CompareInt);
+
+    BackTrace(nums, numsSize, 0, &backTracePointer, returnSize, returnColumnSizes, result);
+
+    return result;
+}
+
+
+
+
+// ---------------------------解法一 结束--------------------------------------------------------
+int main() {
+    int nums_1[] = { 1,2,2 };
+    int numsSize_1 = sizeof(nums_1) / sizeof(nums_1[0]);
+    int returnSize_1 = 44554;
+    int* returnColumnSizes_1 = NULL;
+    int** result_1 = subsetsWithDup(nums_1, numsSize_1, &returnSize_1, &returnColumnSizes_1);
+    for (int i = 0; i < returnSize_1; i++) {
+        for (int j = 0; j < returnColumnSizes_1[i]; j++) {
+            printf("%d", result_1[i][j]);
+        }
+        printf("\n");
+    }
+    printf("\n");
+    for (int i = 0; i < returnSize_1; i++) { 
+        free(result_1[i]);
+    }
+    free(result_1);
+    free(returnColumnSizes_1);
+
+
+
+    return 0;
+}

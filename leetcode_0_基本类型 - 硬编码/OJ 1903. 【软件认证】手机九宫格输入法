@@ -1,0 +1,184 @@
+/******************************************************************************
+ * 版权所有 (c)
+ * 功能描述   : OJ 1903. 【软件认证】手机九宫格输入法. https://oj.rnd.huawei.com/problems/1903/details
+ * 作    者   :
+ * 生成日期   :
+
+ * 
+      --- 
+ ******************************************************************************/
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdbool.h>
+#include <uthash.h>
+#include <math.h>
+#include <limits.h>
+#include <assert.h>
+// 如需使用华为安全函数，请加上 #include "securec.h"
+#include "securec.h"
+// #include "vos_priorityqueue.h"
+
+
+
+
+
+/*
+题目描述
+手机上的九宫格输入法使用 0-9 十个数字键，除了可以在“数字状态”下输入数字外，还可以在“英文状态”下通过连续多次摁某一数字键来输入对应的英文字符。每个数字键可输入的字符对应关系如图：
+
+
+说明：
+
+输入法初始默认为“数字状态”，并可在“数字状态”与“英文状态”间切换。
+输入法在“数字状态”下，数字键对应为单个数字，摁几次显示几个该数字。
+输入法在“英文状态”下，如果数字键为 0，则对应为单字符（空格），摁几次显示几个该字符。
+输入法在“英文状态”下，如果数字键为非 0，则对应为多个字符，可通过连续多次快速摁该键循环选择对应字符：
+以英文状态下的数字键 2 为例，摁1次为 a ，2次为 b ，3次为 c ，4次又循环回 a 。
+若连续多次摁键循环选择时被其它键或停顿中断，则输出所选择的字符。
+现给定一个仅含字符集合为 [0-9#/] 的字符串，表示用户的摁键操作，请输出实际显示出来的字符串。
+
+0-9 为数字键。
+#   表示在“数字状态”与“英文状态”之间切换。
+/   停顿符，表示用户有意停顿。
+解答要求
+时间限制：1000ms, 内存限制：128MB
+输入
+一个字符串，表示用户的摁键操作，长度范围 [1,200]
+
+输出
+实际显示出来的字符串
+
+样例
+输入样例 1 复制
+
+123
+输出样例 1
+
+123
+提示样例 1
+输入法默认为“数字状态”，每个数字键都对应单个字符，摁键即为实际显示出来的字符串，因此输出 123 。
+
+
+
+输入样例 2 复制
+
+#22/23044444411
+输出样例 2
+
+bad i.
+提示样例 2
+# 表示输入法切换为“英文状态”；
+数字键 2 摁2次后被停顿符 / 中断，显示 b ；
+其后，数字键 2、3、0 各摁1次后被其它键中断，显示 a、d、空格 ；
+然后，数字键 4 摁6次后中断，显示 i ；
+最后，数字键 1 摁2次后结束，显示 . 。
+
+因此，实际显示出来的字符串为 bad i.
+
+*/
+
+
+
+
+// ---------------------------解法 开始--字符串编码-----------------------------------------------------
+
+#define STR_MAX_LEN 201
+
+typedef struct Button {
+    char button;
+    char numMode;
+    
+    int engCnt;
+    char engMode[5];
+} Button;
+
+Button g_button[12] = {
+    { '0', '0', 1, ' ' },
+    { '1', '1', 2, ',', '.' },
+    { '2', '2', 3, 'a', 'b', 'c' },
+    { '3', '3', 3, 'd', 'e', 'f' },
+    { '4', '4', 3, 'g', 'h', 'i' },
+    { '5', '5', 3, 'j', 'k', 'l' },
+    { '6', '6', 3, 'm', 'n', 'o' },
+    { '7', '7', 4, 'p', 'q', 'r', 's' },
+    { '8', '8', 3, 't', 'u', 'v' },
+    { '9', '9', 4, 'w', 'x', 'y', 'z' },
+    { '#' },
+    { '/' },
+};
+
+int Index(char charter)
+{
+    if (charter == '#') {
+        return 10;
+    } else if (charter == '/') {
+        return 11;
+    } else {
+        return charter - '0';
+    }
+}
+
+
+
+// 待实现函数，在此函数中填入答题代码
+void GetDisplayString(char *inputStr, char *output, int outputSize)
+{
+    size_t maxOut = (size_t)sizeof(char) * outputSize;
+    memset_s(output, maxOut, 0, maxOut);
+    int resLen = 0;
+    size_t len = strlen(inputStr);
+    int mode = 0;
+    size_t i = 0;
+    while (i < len) {
+        char chater = inputStr[i];
+        int index = Index(chater);
+        if (index >= 1 && index <= 9) {
+            if (mode == 0) {
+                resLen += sprintf_s(output + resLen, maxOut - resLen, "%c", g_button[index].numMode);
+            } else {
+                int engCnt = g_button[index].engCnt;
+                int cnt = 0;
+                while (i + 1 < len && Index(inputStr[i + 1]) == index) {
+                    cnt = (cnt + 1) % engCnt;
+                    i++;
+                }
+                resLen += sprintf_s(output + resLen, maxOut - resLen, "%c", g_button[index].engMode[cnt]);
+            }
+            i++;
+        } else if (index == 0) {
+            if (mode == 0) {
+                resLen += sprintf_s(output + resLen, maxOut - resLen, "%c", g_button[index].numMode);
+            } else {
+                resLen += sprintf_s(output + resLen, maxOut - resLen, "%c", g_button[index].engMode[0]);
+            }
+            i++;
+        } else if (index == 10) {
+            mode = 1 - mode;
+            i++;
+        } else if (index == 11) {
+            i++;
+        } else {
+            printf("error input \n");
+            return;
+        }
+    }
+}
+
+
+
+int main(void)
+{
+    char inputStr[STR_MAX_LEN];
+    if (scanf_s("%s", &inputStr, STR_MAX_LEN) != 1) {
+        return -1;
+    };
+
+    char output[STR_MAX_LEN] = { 0 };
+    GetDisplayString(inputStr, output, STR_MAX_LEN);
+    printf("%s", output);
+
+    return 0;
+}
+// ---------------------------解法 结束---------------------------------------------------------------------
+

@@ -1,0 +1,80 @@
+/*
+ * Copyright (c) Huawei Technologies Co., Ltd. 2019-2020. All rights reserved.
+ */
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdbool.h>
+#include <uthash.h>
+// 如需使用华为安全函数，请加上 #include "securec.h"
+#include "diyiti.h"
+#include <math.h>
+#include <assert.h>
+
+/* leetcode 424. 替换后的最长重复字符：https://leetcode-cn.com/problems/longest-repeating-character-replacement/
+ */
+
+// ---------------------------解法 ---------------------------------------------------
+typedef struct {
+    // char charter;
+    int count;
+} CharCount;
+
+typedef struct {
+    // int maxCharIndex;
+    int maxCharCount;
+    CharCount perCharCount[26];
+} CharMap;
+
+int IndexOfChar(char charter)
+{
+    return (charter - 'A');
+}
+
+int characterReplacement(char * s, int k)
+{
+    if (s == NULL) { return 0; }
+
+    int strlength = strlen(s);
+
+    if (strlength == 1) { return 1; }
+
+    CharMap charCount = { 0 };
+    int resultMaxCount = 0;
+    int leftWindow = 0;
+    int rightWindow = 0;
+    while (rightWindow < strlength) {
+        int indexRight = IndexOfChar(s[rightWindow]);
+        charCount.perCharCount[indexRight].count++;
+        charCount.maxCharCount = fmax(charCount.maxCharCount, charCount.perCharCount[indexRight].count);
+        while (charCount.maxCharCount + k < rightWindow - leftWindow + 1) {
+            int indexLeft = IndexOfChar(s[leftWindow]);
+            charCount.perCharCount[indexLeft].count--;
+            leftWindow++;
+        }
+        
+        resultMaxCount = fmax(resultMaxCount, rightWindow - leftWindow + 1);
+        rightWindow++;
+    }
+
+    return resultMaxCount;
+}
+// ---------------------------解法 结束--------------------------------------------------------
+int main() {
+    char string_1[] = "ABAB";
+    int k_1 = 2;
+    int result_1 = characterReplacement(string_1, k_1);
+    assert(result_1 == 4);
+
+    char string_2[] = "ABAB";
+    int k_2 = 2;
+    int result_2 = characterReplacement(string_2, k_2);
+    assert(result_2 == 4);
+
+    char string_3[] = "BAAA";
+    int k_3 = 0;
+    int result_3 = characterReplacement(string_3, k_3);
+    assert(result_3 == 3);
+
+    return 0;
+}

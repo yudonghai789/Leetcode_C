@@ -1,0 +1,113 @@
+
+/*
+ * Copyright (c) Huawei Technologies Co., Ltd. 2019-2020. All rights reserved.
+ */
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <stdbool.h>
+#include <uthash.h>
+// 如需使用华为安全函数，请加上 #include "securec.h"
+#include "securec.h"
+#include "systemDesgin.h"
+#include <math.h>
+#include <assert.h>
+
+
+/* leetcode 3. 无重复字符的最长子串. https://leetcode-cn.com/problems/longest-substring-without-repeating-characters/
+ * 滑动窗口
+ */
+
+// ----------------------------写法一 每次右边窗口加入一个值时，都将窗口内的所有字符挨个比较，看是否存在相同字符--------------------------
+int lengthOfLongestSubstring(char * s)
+{
+    if (s == NULL) { return -1; }
+    int len = strlen(s);
+    if (len == 0) { return 0; }
+    if (len == 1) { return 1; }
+
+    int maxRes = 1;
+    int winLeft = 0;
+    int winRight = 1;
+    while (winRight < len) {
+        for (int i = winLeft; i < winRight; i++) {
+            // 将每一个字符与右指针的值比较，如果相同，就将左指针的值移动到当前位置 + 1，这样才能保证没有重复字符
+            if (s[i] == s[winRight]) {
+                winLeft = i + 1;
+            }
+        }
+        
+        maxRes = fmax(maxRes, winRight - winLeft + 1);
+        winRight++;
+    }
+ 
+    return maxRes;
+}
+
+// ----------------------------写法一 结束-----------------------------------------------------------
+
+
+// ----------------------------写法二 每次右边窗口加入一个值时，空间换时间，看是否有字符已经存在--------------------------------
+int TranAscII(char charter)
+{
+    return (charter - ' ');
+}
+
+typedef struct StrBit {
+    int count;
+    int index;
+} StrBit;
+
+int lengthOfLongestSubstring(char * s){
+    // base case
+    if (s == NULL) { 
+        return 0;
+     }
+
+    int len = strlen(s);    
+    int maxRes = 0;
+    int winLeft = 0;
+    int winRight = 0;
+    StrBit subStrBit[1000] = { 0 };
+   
+    while (winRight < len) {
+        // 窗口右边加入
+        if (subStrBit[TranAscII(s[winRight])].count == 0) {
+            subStrBit[TranAscII(s[winRight])].count = 1;
+            subStrBit[TranAscII(s[winRight])].index = winRight;
+            maxRes = fmax(maxRes, winRight - winLeft + 1);
+            winRight++;
+        } else {
+            // 窗口左边退出
+            int clear = subStrBit[TranAscII(s[winRight])].index;\
+            for (int i = winLeft; i <= clear; i++) {
+                subStrBit[TranAscII(s[i])].count = 0;
+                subStrBit[TranAscII(s[i])].index = 0;
+            }
+            winLeft = clear + 1;
+            subStrBit[TranAscII(s[winRight])].count = 1;
+            subStrBit[TranAscII(s[winRight])].index = winRight;
+            winRight++;
+        }  
+    }
+    
+    return maxRes;
+}
+// ----------------------------写法二 结束------------------
+
+int main(int argc, const char *argv[])
+{
+    char string_1[] = "abcabcbb";
+    int res_1 = lengthOfLongestSubstring(string_1);
+    assert(res_1 == 3);
+
+    char string_2[] = "bbbbb";
+    int res_2 = lengthOfLongestSubstring(string_2);
+    assert(res_2 == 1);
+
+    char string_3[] = "";
+    int res_3 = lengthOfLongestSubstring(string_3);
+    assert(res_3 == 0);
+
+    return 0;
+}

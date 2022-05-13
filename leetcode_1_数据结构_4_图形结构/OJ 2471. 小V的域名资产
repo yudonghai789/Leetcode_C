@@ -1,0 +1,384 @@
+/******************************************************************************
+ * 版权所有 (c)
+ * 功能描述   : OJ 2471. 小V的域名资产 https://oj.rnd.huawei.com/problems/2471/details
+ * 作    者   :
+ * 生成日期   :
+
+ * 
+      --- 
+ ******************************************************************************/
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdbool.h>
+#include <uthash.h>
+#include <math.h>
+#include <limits.h>
+#include <assert.h>
+// 如需使用华为安全函数，请加上 #include "securec.h"
+#include "securec.h"
+#include "vos_priorityqueue.h"
+#include "vos_list.h"
+
+
+
+
+
+/*
+题目描述
+一个企业的资产网络由互联网中的多个域名构成，他们之间有单向的链接关系，若存在链接关系(A, B) ，则表示我们可以通过域名A访问到域名B。
+
+我们现在想访问一个已知企业的资产网络的中的所有域名资料，部分域名可以通过花费一定的资金来获取访问权限。已知所有可以购买权限的域名，以及所需的具体价格。同时我们还知道各个域名节点之间的链接关系。
+
+假设总共有 n个域名节点（n不超过 3000），每个域名分别用 1 到 3000 的整数来标识。
+
+请根据这份资料，判断我们是否有可能通过购买访问全部的域名，如果可以，求出我们所需要支付的最少资金。否则，输出不能被访问的编号最小的域名。
+
+解答要求
+时间限制：1000ms, 内存限制：256MB
+输入
+第一行只有一个整数 n。
+
+第二行是整数 p。表示可被购买的域名，1 ≤ p ≤ n。
+
+接下来的 p 行，每行有两个整数，第一个数是一个可被购买的域名的编号，第二个数表示所需的金额。这个数额不超过 20000。
+
+紧跟着一行只有一个整数 r，1 ≤ r ≤ 8000。然后 r 行，每行两个正整数，表示数对 (A, B)，可以通过域名A访问到域名B。
+
+输出
+如果可以访问到所有域名，第一行输出 YES，并在第二行输出所需要支付的金额最小值。否则输出 NO，并在第二行输出不能访问的域名中，编号最小的域名编号。
+
+样例
+输入样例 1 复制
+
+5
+4
+5 8800
+2 6112
+1 1668
+4 4076
+10
+5 1
+2 3
+1 5
+1 2
+1 3
+4 1
+2 5
+4 3
+3 1
+2 4
+输出样例 1
+
+YES
+1668
+提示样例 1
+*/
+
+
+
+
+// ---------------------------解法 -------DFS-------------------------------------------------
+#define MAX_VER_NUM 3000
+#define MAX_P MAX_VER_NUM
+#define MAX_R 8000
+#define MAX_PRICE 20000
+
+
+# define VERTEX_NUM MAX_VER_NUM   // 图顶点的最大数量
+typedef struct {
+    int price;
+    int visited;
+    int edgeNum;                                // 边的数量.
+    int edge[VERTEX_NUM];
+} Vertex;
+typedef struct {
+    int vertextNum;                             // 顶点的数量
+    Vertex vex[VERTEX_NUM];                     // 顶点的列表.
+} MGraph;
+MGraph g_mG;
+int g_price[VERTEX_NUM];
+int g_minIdxEach[VERTEX_NUM];
+
+void GenGraph(int vertexNum, int r, int relation[][2])
+{
+    g_mG.vertextNum = vertexNum;
+    for (int i = 0; i < g_mG.vertextNum; i++) {
+        g_mG.vex[i].price = g_price[i];
+        g_mG.vex[i].visited = -1;
+        g_mG.vex[i].edgeNum = 0;
+    }
+
+    for (int i = 0; i < r; i++) {
+        int one = relation[i][0] - 1;
+        int two = relation[i][1] - 1;
+        g_mG.vex[one].edge[g_mG.vex[one].edgeNum++] = two;
+    }
+}
+
+
+/*
+ * DFS 最短路径。
+ *
+ * 参数说明：
+ *        g_mG -- 图
+ *     disDp --  各个顶点之间距离的dp数组，一个一个顶点添加时更新
+ *     linkVex -- 记录过程中中转节点，要得到完成路径时，迭代即可
+ */
+void Dfs(int verIdx, int visitLoop){
+    for (int i = 0; i < g_mG.vex[verIdx].edgeNum; i++) {
+        int linkVer = g_mG.vex[verIdx].edge[i];
+        if (g_mG.vex[linkVer].visited == -1) {
+            g_mG.vex[linkVer].visited = visitLoop;
+            g_minIdxEach[visitLoop] = fmin(g_minIdxEach[visitLoop], i);
+            Dfs(linkVer, visitLoop);
+        }
+    }
+}
+
+// 待实现函数，在此函数中填入答题代码;
+bool GetBestRoute(int n, int p, int priceInfo[][2], int r, int relation[][2], int *results)
+{
+    for (int i = 0; i < n; i++) {
+        g_price[i] = MAX_PRICE;
+    }
+
+    for (int i = 0; i < p; i++) {
+        g_price[priceInfo[i][0] - 1] = priceInfo[i][1];
+    }
+
+    memset_s(&g_mG, (size_t)sizeof(g_mG), 0, (size_t)sizeof(g_mG));
+    GenGraph(n, r, relation);
+
+    memset_s(g_minIdxEach, sizeof(g_minIdxEach), 0x3f, sizeof(g_minIdxEach));
+    int visitLoop = 0;
+    for (int i = 0; i < n; i++) {
+        if (g_mG.vex[i].visited == -1) {
+            g_mG.vex[i].visited = visitLoop;
+            g_minIdxEach[visitLoop] = fmin(g_minIdxEach[visitLoop], i);
+            Dfs(i, visitLoop);
+            visitLoop++;
+        }
+    }
+
+    int minPrice[visitLoop];
+    for (int i = 0; i < visitLoop; i++) {
+        minPrice[i] = MAX_PRICE;
+    }
+
+    for (int i = 0; i < n; i++) {
+        int vislop = g_mG.vex[i].visited;
+        if (vislop == -1) {
+            *results = i + 1;
+            return false;
+        } else {
+            minPrice[vislop] = fmin(minPrice[vislop], g_mG.vex[i].price);
+        }
+    }
+
+    int sum = 0;
+    for (int i = 0; i < visitLoop; i++) {
+        if (minPrice[i] == MAX_PRICE) {
+            *results = g_minIdxEach[i] + 1;
+            return false;
+        } else {
+            sum += minPrice[i];
+        }
+    }
+    *results = sum;
+    return true;
+}
+
+/* 代码仅供参考，注意避免圈复杂度过大 */
+int main(void)
+{
+    int n;
+    if (scanf_s("%d", &n) != 1) { return -1; }
+
+    int p;
+    if (scanf_s("%d", &p) != 1) { return -1; }
+
+    int priceInfo[p][2];
+    for (int i = 0; i < p; i++) {
+        if (scanf_s("%d %d", 
+                    &priceInfo[i][0], 
+                    &priceInfo[i][1]) != 2) {
+            return -1;
+        }
+    }
+
+    int r;
+    if (scanf_s("%d", &r) != 1) { return -1; }
+    int relation[r][2];
+    for (int i = 0; i < r; i++) {
+        if (scanf_s("%d %d", 
+                    &relation[i][0], 
+                    &relation[i][1]) != 2) {
+            return -1;
+        }
+    }
+
+    int results = 0;
+    bool res = GetBestRoute(n, p, priceInfo, r, relation, &results);
+    if (res == true) {
+        printf("YES\n");
+    } else {
+        printf("NO\n");
+    }
+    printf("%d\n", results);
+    return 0;
+}
+// ---------------------------解法 结束---------------------------------------------------------------------
+
+/*
+5
+4
+5 8800
+2 6112
+1 1668
+4 4076
+10
+5 1
+2 3
+1 5
+1 2
+1 3
+4 1
+2 5
+4 3
+3 1
+2 4
+
+YES
+1668
+
+
+
+5
+4
+5 8800
+2 6112
+1 1668
+4 4076
+8
+5 1
+2 3
+1 2
+1 3
+4 1
+4 3
+3 1
+2 4
+
+YES
+10468
+
+5
+3
+2 6112
+1 1668
+4 4076
+8
+5 1
+2 3
+1 2
+1 3
+4 1
+4 3
+3 1
+2 4
+
+NO
+5
+
+
+5
+1
+4 4076
+8
+5 1
+2 3
+1 2
+1 3
+4 1
+4 3
+3 1
+2 4
+NO
+5
+
+5
+1
+4 4076
+7
+5 1
+2 3
+1 2
+1 3
+4 1
+4 3
+3 1
+NO
+1
+
+
+
+5
+4
+5 10000
+2 6112
+1 25
+4 4076
+10
+5 1
+2 3
+1 5
+1 2
+1 3
+4 1
+2 5
+4 3
+3 1
+2 4
+NO
+4
+
+
+
+10
+8
+8 7735
+1 8920
+2 4381
+7 4632
+9 3983
+3 1814
+5 1489
+6 6246
+20
+8 10
+1 7
+1 6
+7 10
+3 6
+10 4
+2 8
+7 4
+10 6
+3 9
+7 1
+4 10
+6 4
+5 6
+8 7
+2 5
+4 3
+9 7
+4 5
+3 8
+YES
+4381
+*/
+
+
+

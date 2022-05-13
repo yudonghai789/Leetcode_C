@@ -1,0 +1,89 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdbool.h>
+#include <string.h>
+#include <math.h>
+#include <assert.h>
+
+
+
+/* 206. 反转链表
+ * 双指针法
+ */
+
+
+// ---------------------------解法一 开始---递归-----------------------------------------------
+
+struct ListNode {
+    int val;
+    struct ListNode *next;
+};
+
+
+struct ListNode* recursion(struct ListNode* head) {
+    if (head->next == NULL) {
+        return head;
+    }
+
+    struct ListNode* lastNode = recursion(head->next);
+
+    head->next->next = head;
+    head->next = NULL;
+
+    return lastNode;
+}
+
+
+struct ListNode* reverseList(struct ListNode* head) {
+    if (head == NULL) {
+        return NULL;
+    }
+
+    return recursion(head);
+}
+    
+// ---------------------------解法一结束--------------------------------------------------
+
+struct ListNode* arrayToList(int *caseArray, int length, int i) {
+    if (i >= length) {
+        return NULL;
+    }
+
+    struct ListNode* next = arrayToList(caseArray, length, i + 1);
+
+    struct ListNode* node = (struct ListNode *)malloc(sizeof(struct ListNode));
+    node->val = caseArray[i];
+    node->next = next;
+
+    return node;
+}
+
+
+int main() {
+    int case_1[] = {1,2,3,4,5};
+    int length_1 = sizeof(case_1) / sizeof(case_1[0]);
+    struct ListNode* head_1 = arrayToList(case_1, length_1, 0);
+    struct ListNode* reverHead_1 = reverseList(head_1);
+
+
+
+    int case_2[] = {1,2};
+    int length_2 = sizeof(case_2) / sizeof(case_2[0]);
+    struct ListNode* head_2 = arrayToList(case_2, length_2, 0);
+    struct ListNode* reverHead_2 = reverseList(head_2);
+
+
+
+    struct ListNode* reverHead_3 = reverseList(NULL);
+
+    return 0;
+}
+
+
+
+
+
+
+
+
+

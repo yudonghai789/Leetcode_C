@@ -1,0 +1,212 @@
+#define MAX_ARR_LEN 26
+typedef struct StackChar {
+    int top;
+    char arr[MAX_ARR_LEN];
+} StackChar;
+
+void StackPush(StackChar *stack, char elem)
+{
+    stack->arr[++stack->top] = elem;
+}
+
+void StackPop(StackChar *stack)
+{
+    stack->arr[stack->top--] = 0;
+}
+
+int GetMinDele(char * s, int strlength)
+{
+    int res = 0;
+    StackChar stack = { 0 };
+    stack.top = -1;
+    for (int i = 0; i < strlength; i++) {
+        if (s[i] == '(') {
+            StackPush(&stack, '(');
+        } else if (s[i] == ')') {
+            if (stack.top == -1) {
+                res++;
+            } else {
+                StackPop(&stack);
+            }
+        }
+    }
+
+    while (stack.top != -1) {
+        StackPop(&stack);
+        res++;
+    }
+
+    return res;
+}
+
+#define MAX_RES_LEN 200
+
+
+int BitGen(int strlength)
+{
+    int maxBit = 1;  // 字符串只有一位，则是 0 1表示， 两位  0(0b00） 1 (0b01） 2(0b10） 3 (0b11） 表示
+    for (int i = 0; i < strlength; i++) {
+        maxBit = maxBit * 2;
+    } 
+    return maxBit;
+}
+
+typedef struct BitPositionArray {
+    int bitCnt;
+    int array[32];
+} BitPositionArray;
+
+BitPositionArray BitCnt(int interger)
+{
+    BitPositionArray bitPo = { 0 };
+
+    if (interger % 2 != 0) {
+        bitPo.array[0] = 1;
+        bitPo.bitCnt++;
+    }
+   
+    int index = 1;
+    while ((interger / 2 != 0) ) {
+        interger = interger / 2;
+        if (interger % 2 != 0) {
+            bitPo.array[index] = 1;
+            bitPo.bitCnt++;
+        }
+        index++;
+    }
+    return bitPo;
+}
+
+
+int CalVal(int strlength, BitPositionArray* bitPo, int *resCodeArray)
+{
+    int resCode = 0;
+    for (int i = 0; i < strlength; i++) {
+         if (bitPo->array[i] == 1) {
+             resCode = resCode + resCodeArray[i];
+         }
+    }
+    
+    return resCode;
+}
+typedef enum Status {
+    INIT = 0,
+    REMOVE = INIT,
+    USING = 0x5a5a
+} Status;
+
+typedef struct BackTracePointer {
+    BitPositionArray choose;
+
+    Status itemStastus[MAX_ARR_LEN];
+
+    struct isAnsStack {
+        int top;
+    } isAnsStack;
+} BackTracePointer ;
+
+// 结果不能重复的问题，剪枝去重   对于相同的  （ ））））  怎么去重复   剪枝还是结果去重
+// (a ()
+
+void DfsBackTrace(char *string, int strlength, int minDele, int index, BackTracePointer *pointer, char **res, int *returnSize)
+{
+    if (index == strlength) {
+        if (pointer->isAnsStack.top == -1) {
+            res[(*returnSize)] = (char *)malloc(sizeof(char) * (strlength + 1));
+            memset(&res[(*returnSize)][0], 0, sizeof(char) * (strlength + 1));    // 这一行没有，leetcode 就会报错
+            int resCopyIndex = 0;
+            for (int  i = 0; i < strlength; i++) {
+            if (pointer->choose.array[i] == 1) {
+                    res[(*returnSize)][resCopyIndex++] = string[i];
+                }
+            }
+            (*returnSize)++;
+        }
+
+        return;
+    }
+
+
+
+    for (int  i = index; i <= strlength; i++) {
+        if (i - pointer->choose.bitCnt >  minDele) {
+            break;
+        }
+
+        if (i == strlength) {
+            DfsBackTrace(string, strlength, minDele, i, pointer, res, returnSize);
+            return;
+        }
+
+        if ((i > 0) && (string[i] == string[i - 1]) && (pointer->itemStastus[i - 1] == REMOVE)) {
+            continue;
+        }
+
+        // 判断每一种情况下能否选择当前作为下一个字符
+        if (string[i] == ')') {
+            if (pointer->isAnsStack.top == -1) {
+                continue; 
+            } else {
+                // 可以保留也可以删除
+
+                // 保留
+                pointer->choose.bitCnt++;
+                pointer->choose.array[i] = 1;
+                --pointer->isAnsStack.top;   // 保留 ‘）’就是要删除 '('
+                pointer->itemStastus[i] = USING;
+                DfsBackTrace(string, strlength, minDele, i + 1, pointer, res, returnSize);
+                ++pointer->isAnsStack.top;
+                pointer->choose.bitCnt--;
+                pointer->choose.array[i] = 0;
+                pointer->itemStastus[i] = REMOVE;
+            }
+        } else if (string[i] == '(') {
+            // 保留
+            pointer->choose.bitCnt++;
+            pointer->choose.array[i] = 1;
+            ++pointer->isAnsStack.top;
+            pointer->itemStastus[i] = USING;
+            DfsBackTrace(string, strlength, minDele, i + 1, pointer, res, returnSize);
+            --pointer->isAnsStack.top;
+            pointer->choose.bitCnt--;
+            pointer->choose.array[i] = 0;
+            pointer->itemStastus[i] = REMOVE;
+        } else {
+            // 可以保留也可以删除  字母没必要删除
+
+            // 保留
+            pointer->choose.bitCnt++;
+            pointer->choose.array[i] = 1;
+            pointer->itemStastus[i] = USING;
+            DfsBackTrace(string, strlength, minDele, i + 1, pointer, res, returnSize);
+            pointer->choose.bitCnt--;
+            pointer->choose.array[i] = 0;
+            pointer->itemStastus[i] = REMOVE;
+        }
+    }
+}
+
+char** removeInvalidParentheses(char * s, int* returnSize)
+{
+    int strlength = strlen(s);
+    int minDele = GetMinDele(s, strlength);
+
+    *returnSize = 0;
+    char **res = (char **)malloc(sizeof(char *) * MAX_RES_LEN);
+    memset(res, 0, sizeof(char *) * MAX_RES_LEN);
+
+    // special case 需要全部删除时，返回一个空字符串，也是一个解
+    // if (minDele == strlength) {
+    //     res[0] = (char *)malloc(sizeof(char) * 1);
+    //     memset(res[0], 0, sizeof(char) * 1);
+    //     *returnSize = 1;
+    //     return res;
+    // }
+
+
+    BackTracePointer pointer = { 0 };
+    pointer.isAnsStack.top = -1;
+
+    DfsBackTrace(s, strlength, minDele, 0, &pointer, res, returnSize);
+    return res;
+}

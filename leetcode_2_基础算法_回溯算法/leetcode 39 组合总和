@@ -1,0 +1,119 @@
+/*
+ * Copyright (c) Huawei Technologies Co., Ltd. 2019-2020. All rights reserved.
+ */
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdbool.h>
+#include <uthash.h>
+// 如需使用华为安全函数，请加上 #include "securec.h"
+#include "systemDesgin.h"
+#include <math.h>
+#include <assert.h>
+
+/*
+ * leetcode 39. 组合总和 https://leetcode-cn.com/problems/combination-sum/
+ * 回溯算法 + 剪枝
+ * 返回结果要保证没有重复，可以用排序保证，只要保证每一个结果数组也是有序的，就能在添加过程中减枝
+ */
+
+// ---------------------------解法一 开始--------------------------------------------------------
+#define MAX_RESULT_SIZE 150
+#define MAX_RESULT_ITEM_LEN 500
+
+typedef struct BackTracePointer {
+    int sum;
+    int item[MAX_RESULT_ITEM_LEN];
+    int len;
+} BackTracePointer;
+
+int CompareInt(const void *IntA, const void *IntB)
+{
+    return (*(int*)IntA - *(int*)IntB);
+}
+
+void BackTrace(int* candidates, int candidatesSize, int target, int index, BackTracePointer *backTracePointer, int* returnSize, int** returnColumnSizes, int **result)
+{
+    if (backTracePointer->sum == target) {
+        (*returnColumnSizes)[(*returnSize)] = backTracePointer->len;
+        result[(*returnSize)] = (int *)malloc(sizeof(int) * backTracePointer->len);
+        memcpy(&result[(*returnSize)][0], &backTracePointer->item[0], sizeof(int) * backTracePointer->len);
+        (*returnSize)++;
+        return;
+    }
+
+    for (int i = index; i < candidatesSize; i++) {
+        if (backTracePointer->sum + candidates[i] > target) {
+            continue;
+        } 
+
+        backTracePointer->sum += candidates[i];
+        backTracePointer->item[backTracePointer->len] = candidates[i];
+        backTracePointer->len++;
+        BackTrace(candidates, candidatesSize, target, i, backTracePointer, returnSize, returnColumnSizes, result);
+        backTracePointer->sum -= candidates[i];
+        backTracePointer->len--;
+        backTracePointer->item[backTracePointer->len] = 0;
+    }
+}
+
+int** combinationSum(int* candidates, int candidatesSize, int target, int* returnSize, int** returnColumnSizes)
+{
+    // 基本校验
+    
+    BackTracePointer backTracePointer = { 0 };
+    (*returnSize) = 0;
+    int **result = (int **)malloc(sizeof(int*) * MAX_RESULT_SIZE);
+    memset(result, 0, sizeof(int*) * MAX_RESULT_SIZE);
+
+    (*returnColumnSizes) = (int *)malloc(sizeof(int) * MAX_RESULT_SIZE);
+    memset((*returnColumnSizes), 0, sizeof(int) * MAX_RESULT_SIZE);
+
+    qsort(candidates, candidatesSize, sizeof(int), CompareInt);
+
+    BackTrace(candidates, candidatesSize, target, 0, &backTracePointer, returnSize, returnColumnSizes, result);
+    return result;
+}
+
+
+
+
+// ---------------------------解法一 结束--------------------------------------------------------
+int main() {
+    int candidates_1[] = { 2, 3, 6, 7 };
+    int candidatesSize_1 = sizeof(candidates_1) / sizeof(candidates_1[0]);
+    int returnSize_1 = 44554;
+    int* returnColumnSizes_1 = NULL;
+    int target_1 = 7;
+    int** result_1 = combinationSum(candidates_1, candidatesSize_1, target_1, &returnSize_1, &returnColumnSizes_1);
+    for (int i = 0; i < returnSize_1; i++) {
+        for (int j = 0; j < returnColumnSizes_1[i]; j++) {
+            printf("%d", result_1[i][j]);
+        }
+        printf("\n");
+    }
+    printf("\n");
+    for (size_t i = 0; i < returnSize_1; i++) { free(result_1[i]);}
+    free(result_1);
+    free(returnColumnSizes_1);
+    
+
+    int candidates_2[] = { 2,3,5 };
+    int candidatesSize_2 = sizeof(candidates_2) / sizeof(candidates_2[0]);
+    int returnSize_2 = 44554;
+    int* returnColumnSizes_2 = NULL;
+    int target_2 = 8;
+    int** result_2 = combinationSum(candidates_2, candidatesSize_2, target_2, &returnSize_2, &returnColumnSizes_2);
+    for (int i = 0; i < returnSize_2; i++) {
+        for (int j = 0; j < returnColumnSizes_2[i]; j++) {
+            printf("%d", result_2[i][j]);
+        }
+        printf("\n");
+    }
+    printf("\n");
+    for (size_t i = 0; i < returnSize_2; i++) { free(result_2[i]);}
+    free(result_2);
+    free(returnColumnSizes_2);
+
+    return 0;
+}

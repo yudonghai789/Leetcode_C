@@ -1,0 +1,1230 @@
+/******************************************************************************
+ * 版权所有 (c)
+ * 功能描述   : leetcode 239. 滑动窗口最大值. https://leetcode-cn.com/problems/sliding-window-maximum/
+ * 作    者   :
+ * 生成日期   :
+
+ * 
+      --- 
+ ******************************************************************************/
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdbool.h>
+#include <uthash.h>
+#include <math.h>
+#include <assert.h>
+// 如需使用华为安全函数，请加上 #include "securec.h"
+// #include "securec.h"
+#include "vos_priorityqueue.h"
+
+
+
+
+
+/*
+239. 滑动窗口最大值
+给你一个整数数组 nums，有一个大小为 k 的滑动窗口从数组的最左侧移动到数组的最右侧。你只可以看到在滑动窗口内的 k 个数字。滑动窗口每次只向右移动一位。
+
+返回 滑动窗口中的最大值 。
+
+ 
+
+示例 1：
+
+输入：nums = [1,3,-1,-3,5,3,6,7], k = 3
+输出：[3,3,5,5,6,7]
+解释：
+滑动窗口的位置                最大值
+---------------               -----
+[1  3  -1] -3  5  3  6  7       3
+ 1 [3  -1  -3] 5  3  6  7       3
+ 1  3 [-1  -3  5] 3  6  7       5
+ 1  3  -1 [-3  5  3] 6  7       5
+ 1  3  -1  -3 [5  3  6] 7       6
+ 1  3  -1  -3  5 [3  6  7]      7
+示例 2：
+
+输入：nums = [1], k = 1
+输出：[1]
+ 
+
+提示：
+
+1 <= nums.length <= 105
+-104 <= nums[i] <= 104
+1 <= k <= nums.length
+*/
+
+
+
+
+
+// ---------------------------解法 开始-----暴力遍历: -----------------------------------------------------
+
+// ---------------------------解法 结束---------------------------------------------------------------------
+
+
+
+
+
+
+
+// ---------------------------解法 开始-----BFS 递归模板: -----------------------------------------------------
+
+// ---------------------------解法 结束---------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+// ---------------------------解法 开始-----BFS 迭代模板: -----------------------------------------------------
+
+// ---------------------------解法 结束-----------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+// ---------------------------解法 开始-----DFS 递归模板: -----------------------------------------------------
+
+// ---------------------------解法 结束----------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+// ---------------------------解法 开始-----DFS 迭代模板: --------------------------------------------------
+
+// ---------------------------解法 结束----------------------------------------------------------------------
+
+
+
+
+
+
+
+
+// ---------------------------解法 开始-----回溯 迭代模板: --------------------------------------------------
+
+// ---------------------------解法 结束----------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+// ---------------------------解法 开始-----动态规划 记忆化搜索: ----memTable一定要注意表达 可以表达唯一结果的递归路径,维度不够时，不同结果的的递归路径被误当做相同的路径，维度太多时，剪枝效果不大------------------
+
+
+// ---------------------------解法 结束----------------------------------------------------------------------
+
+
+
+
+
+
+
+// ---------------------------解法 开始-----动态规划 按顺序递推-----------------------------------------------------
+
+// ---------------------------解法 结束--------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+// ---------------------------解法 开始-----贪心 --------------------------------------------------------
+
+// ---------------------------解法 结束------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+// ---------------------------解法 开始--------优先队列 --官方答案，用二叉堆实现优先队列---------------------------------------------------
+// void swap(int** a, int** b) {
+//     int* tmp = *a;
+//     *a = *b, *b = tmp;
+// }
+
+// int cmp(int* a, int* b) {
+//     return a[0] == b[0] ? a[1] - b[1] : a[0] - b[0];
+// }
+
+// struct Heap {
+//     int** heap;
+//     int size;
+//     int capacity;
+// };
+
+// void init(struct Heap* obj, int capacity) {
+//     obj->size = 0;
+//     obj->heap = NULL;
+//     obj->capacity = capacity;
+//     obj->heap = malloc(sizeof(int*) * (obj->capacity + 1));
+//     for (int i = 1; i <= obj->capacity; i++) {
+//         obj->heap[i] = malloc(sizeof(int) * 2);
+//     }
+// }
+
+// void setFree(struct Heap* obj) {
+//     for (int i = 1; i <= obj->capacity; i++) {
+//         free(obj->heap[i]);
+//     }
+//     free(obj->heap);
+//     free(obj);
+// }
+
+// void push(struct Heap* obj, int num0, int num1) {
+//     int sub1 = ++(obj->size), sub2 = sub1 >> 1;
+//     (obj->heap[sub1])[0] = num0, (obj->heap[sub1])[1] = num1;
+//     while (sub2 > 0 && cmp(obj->heap[sub2], obj->heap[sub1]) < 0) {
+//         swap(&(obj->heap[sub1]), &(obj->heap[sub2]));
+//         sub1 = sub2, sub2 = sub1 >> 1;
+//     }
+// }
+
+// void pop(struct Heap* obj) {
+//     int sub = 1;
+//     swap(&(obj->heap[sub]), &(obj->heap[(obj->size)--]));
+//     while (sub <= obj->size) {
+//         int sub1 = sub << 1, sub2 = sub << 1 | 1;
+//         int maxSub = sub;
+//         if (sub1 <= obj->size && cmp(obj->heap[maxSub], obj->heap[sub1]) < 0) {
+//             maxSub = sub1;
+//         }
+//         if (sub2 <= obj->size && cmp(obj->heap[maxSub], obj->heap[sub2]) < 0) {
+//             maxSub = sub2;
+//         }
+//         if (sub == maxSub) {
+//             break;
+//         }
+//         swap(&(obj->heap[sub]), &(obj->heap[maxSub]));
+//         sub = maxSub;
+//     }
+// }
+
+// int* top(struct Heap* obj) {
+//     return obj->heap[1];
+// }
+
+// int* maxSlidingWindow(int* nums, int numsSize, int k, int* returnSize) {
+//     struct Heap* q = malloc(sizeof(struct Heap));
+//     init(q, numsSize);
+//     for (int i = 0; i < k; i++) {
+//         push(q, nums[i], i);
+//     }
+//     int* ans = malloc(sizeof(int) * (numsSize - k + 1));
+//     *returnSize = 0;
+//     ans[(*returnSize)++] = top(q)[0];
+
+//     for (int i = k; i < numsSize; ++i) {
+//         push(q, nums[i], i);
+//         while (top(q)[1] <= i - k) {
+//             pop(q);
+//         }
+//         ans[(*returnSize)++] = top(q)[0];
+//     }
+//     setFree(q);
+//     return ans;
+// }
+// ---------------------------解法 结束-----------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+// ---------------------------解法 开始--------优先队列--用二叉堆实现优先队列---------------------------------------------------
+// #define MINPQSize (10)
+// #define MAXPQSize (100001)    // 做题的时候就不用动态申请，直接写死最大值就好了
+
+// #define MinDATA (-32767)
+
+// typedef struct EelememtType {
+//     int intVal;
+//     int intPosition;
+// } EelememtType;
+
+// typedef struct HeapStruct {
+//     // int capacity;
+//     int size;
+//     EelememtType elems[MAXPQSize];   // 做题的时候就不用动态申请，直接写死最大值就好了
+// } HeapStruct, PriorityQueue;
+
+// void Swap(PriorityQueue* H, int IndexA, int indexB)
+// {
+//     EelememtType tmp = H->elems[IndexA];
+//     H->elems[IndexA] = H->elems[indexB];
+//     H->elems[indexB] = tmp;
+// }
+
+// int Compare(PriorityQueue* H, int IndexA, int indexB)
+// {
+//     return H->elems[IndexA].intVal < H->elems[indexB].intVal;
+// }
+
+// // 注意： 这里我们的计算是基于根节点在数组中的下标为1
+// // 计算下标为index的节点的父节点下标
+// int get_parent_index(int index)
+// {
+//     return (index) / 2;
+// }
+
+// // 计算下标为index的节点的左孩子下标
+// int get_left_child_index(int root)
+// {
+//     return 2 * root;
+// }
+
+// // 计算下标为index的节点的右孩子下标
+// int get_right_child_index(int root)
+// {
+//     return 2 * root + 1;
+// }
+
+// bool IsEmpty(PriorityQueue* H)
+// {
+//     return H->size == 0;
+// }
+
+// int QueueSize(PriorityQueue* H)
+// {
+//     return H->size;
+// }
+
+// void PrintfQue(PriorityQueue* H)
+// {
+//     // 依次出队
+//     printf("riority_queue: ");
+//     for (int i = 1; i <= H->size; i++) {
+//         printf("{ %d} --> ", H->elems[i].intVal);
+//     }
+//     printf("\n");
+// }
+
+// void Swim(PriorityQueue* H, int IndexK)
+// {
+//     // indexK >1 判断是否已经到了顶，
+//     while ((IndexK > 1) && Compare(H, get_parent_index(IndexK), IndexK)) {
+//         Swap(H, get_parent_index(IndexK), IndexK);
+//         IndexK = get_parent_index(IndexK);
+//     }
+// }
+
+// void Sink(PriorityQueue* H, int IndexK)
+// {
+//     // 如果已经沉到了堆低，就沉不下去了
+//     while (get_left_child_index(IndexK) <= H->size) {
+
+//         // 先比左右节点,假设左子节点大
+//         int order = get_left_child_index(IndexK);
+//         if (get_right_child_index(IndexK) <= H->size && Compare(H, order, get_right_child_index(IndexK))) { // 如果右子节点存在且右子节点比左子节点大
+//             order = get_right_child_index(IndexK);
+//         }
+
+//         if (Compare(H, order, IndexK)) { // 左右子节点都没有当前节点大
+//             break;
+//         }
+
+//         Swap(H, IndexK, order);
+//         IndexK = order;
+//     }
+// }
+
+
+// void EnQueue(PriorityQueue* H, EelememtType elem)
+// {
+//     if (H->size >= MAXPQSize) {
+//         printf("full \n");
+//         return;
+//     }
+
+//     H->elems[++H->size] = elem;
+//     Swim(H, H->size);
+// }
+
+
+// EelememtType DeQueue(PriorityQueue* H)
+// {
+//     if (IsEmpty(H)) {
+//         printf("empty \n");
+//         return H->elems[0];
+//     }
+
+//     EelememtType max = H->elems[1];
+//     Swap(H, 1, H->size);
+
+//     H->elems[H->size].intVal = 0;
+//     H->size--;
+
+
+//     Sink(H, 1);
+//     return max;
+// }
+
+// EelememtType QueueTop(PriorityQueue* H)
+// {
+//     if (IsEmpty(H)) {
+//         printf("empty \n");
+//         return H->elems[0];
+//     }
+
+//     EelememtType max = H->elems[1];
+//     return max;
+// }
+
+
+// int* maxSlidingWindow(int* nums, int numsSize, int k, int* returnSize)
+// {
+//     int *res = (int *)malloc(sizeof(int) * numsSize);
+//     memset(res, 0, sizeof(int) * numsSize);
+//     *returnSize = 0;
+
+//     PriorityQueue *PQ = (PriorityQueue *)malloc(sizeof(PriorityQueue));
+//     memset(PQ, 0, sizeof(PriorityQueue));
+//     for (int right = 0; right < numsSize; right++) {
+//         if (right <= k - 1) {
+//             EelememtType elem = { nums[right], right };
+//             EnQueue(PQ, elem);
+
+//             if (right == k - 1) {
+//                 res[(*returnSize)++] = QueueTop(PQ).intVal;
+//             }
+//         } else {
+//             EelememtType elem = { nums[right], right };
+//             EnQueue(PQ, elem);
+//             while (QueueTop(PQ).intPosition <= right - k) {
+//                 DeQueue(PQ);
+//             }
+
+//             res[(*returnSize)++] = QueueTop(PQ).intVal;
+//         } 
+//     }
+//     free(PQ);
+//     return res;
+// }
+// ---------------------------解法 结束-----------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+// ---------------------------解法 开始----------单调队列----顺序表实现，超时-----------------------------------------------
+// // #define MINPQSize (10)
+// #define MAXPQSize (100001)    // 做题的时候就不用动态申请，直接写死最大值就好了
+// // #define MinDATA (-32767)
+
+// typedef struct EelememtType {
+//     int intVal;
+//     int intPosition;
+// } EelememtType;
+
+// typedef struct HeapStruct {
+//     int capacity;
+//     int size;
+//     EelememtType elems[MAXPQSize];   // 做题的时候就不用动态申请，直接写死最大值就好了
+//     EelememtType temp[MAXPQSize];   // 做题的时候就不用动态申请，直接写死最大值就好了
+// } HeapStruct, OrderQueue;
+
+// void Swap(OrderQueue* OQ, int IndexA, int indexB)
+// {
+//     EelememtType tmp = OQ->elems[IndexA];
+//     OQ->elems[IndexA] = OQ->elems[indexB];
+//     OQ->elems[indexB] = tmp;
+// }
+
+// int CompareElem(EelememtType elemA, EelememtType elemB)
+// {
+//     return elemA.intVal > elemB.intVal;
+// }
+
+// OrderQueue* QueueInit(int queueSize)
+// {
+//     OrderQueue *PQ = (OrderQueue *)malloc(sizeof(OrderQueue));
+//     memset(PQ, 0, sizeof(OrderQueue));
+//     PQ->capacity = queueSize;
+//     PQ->size = 0;
+//     return PQ;
+// }
+
+
+// bool IsEmpty(OrderQueue* OQ)
+// {
+//     return OQ->size == 0;
+// }
+
+// bool IsFull(OrderQueue* OQ)
+// {
+//     return OQ->size == OQ->capacity;
+// }
+
+// int QueueSize(OrderQueue* OQ)
+// {
+//     return OQ->size;
+// }
+
+// void PrintfQue(OrderQueue* OQ)
+// {
+//     // 依次出队
+//     printf("riority_queue: ");
+//     for (int i = 0; i < OQ->size; i++) {
+//         printf("{ %d, %d } --> ", OQ->elems[i].intVal, OQ->elems[i].intPosition);
+//     }
+//     printf("\n");
+// }
+
+// void EnQueue(OrderQueue* OQ, EelememtType elem)
+// {
+//     if (IsFull(OQ)) {
+//         printf("full \n");
+//         return;
+//     }
+
+//     for (; OQ->size - 1 >= 0; OQ->size--) {
+//         if (CompareElem(elem, OQ->elems[OQ->size - 1])) {
+//             OQ->elems[OQ->size - 1].intVal = 0;
+//         } else {
+//             break;
+//         }
+//     }
+
+//     OQ->elems[OQ->size++] = elem;
+// }
+
+
+// EelememtType DeQueue(OrderQueue* OQ)
+// {
+//     if (IsEmpty(OQ)) {
+//         printf("empty \n");
+//         EelememtType elem = { 0xfffff, 0xfffff };
+//         return elem;
+//     }
+
+//     EelememtType max = OQ->elems[0];
+//     // for (int i = 0; i <= OQ->size - 2; i++) {
+//     //     OQ->elems[i] = OQ->elems[i + 1];
+//     // }
+
+//     memcpy(&OQ->temp[0], &OQ->elems[1], sizeof(EelememtType) * (OQ->size - 1));
+//     memcpy(&OQ->elems[0], &OQ->temp[0], sizeof(EelememtType) * (OQ->size - 1));
+
+//     // EelememtType ZeroElem = { 0, 0 };
+//     // OQ->elems[OQ->size - 1] = ZeroElem;
+//     OQ->size--;
+
+//     return max;
+// }
+
+// EelememtType QueueTop(OrderQueue* OQ)
+// {
+//     if (IsEmpty(OQ)) {
+//         printf("empty \n");
+//         EelememtType elem = { 0xfffff, 0xfffff };
+//         return elem;
+//     }
+
+//     EelememtType max = OQ->elems[0];
+//     return max;
+// }
+
+
+// int* maxSlidingWindow(int* nums, int numsSize, int k, int* returnSize)
+// {
+
+//     int *res = (int *)malloc(sizeof(int) * numsSize);
+//     memset(res, 0, sizeof(int) * numsSize);
+//     *returnSize = 0;
+
+//     if (numsSize > 90000) {
+//         return res;
+//     }
+
+//     OrderQueue *OQ = QueueInit(k);
+//     for (int right = 0; right < numsSize; right++) {
+//         if (right <= k - 1) {
+//             EelememtType elem = { nums[right], right };
+//             EnQueue(OQ, elem);
+
+//             if (right == k - 1) {
+//                 res[(*returnSize)++] = QueueTop(OQ).intVal;
+//             }
+//         } else {
+//             while (QueueTop(OQ).intPosition <= right - k) {
+//                 DeQueue(OQ);
+//             }
+//             EelememtType elem = { nums[right], right };
+//             EnQueue(OQ, elem);
+
+//             res[(*returnSize)++] = QueueTop(OQ).intVal;
+//         }
+//         // PrintfQue(OQ);
+//     }
+//     free(OQ);
+//     return res;
+// }
+// ---------------------------解法 结束---------------------------------------------------------
+
+
+
+
+
+// // ---------------------------解法 开始----------单调队列----顺序表实现----因为不需要在中间插入元素，再依靠数组长度，不进行拷贝----------------
+// #define MINPQSize (10)
+// #define MAXPQSize (100002)    // 做题的时候就不用动态申请，直接写死最大值就好了
+// // #define MinDATA (-32767)
+
+// typedef struct EelememtType {
+//     int intVal;
+//     int intPosition;
+// } EelememtType;
+
+// typedef struct HeapStruct {
+//     int capacity;
+
+//     int top;
+//     int tail;
+//     int size;
+//     EelememtType elems[MAXPQSize];   // 做题的时候就不用动态申请，直接写死最大值就好了
+// } HeapStruct, OrderQueue;
+
+// void Swap(OrderQueue* OQ, int IndexA, int indexB)
+// {
+//     EelememtType tmp = OQ->elems[IndexA];
+//     OQ->elems[IndexA] = OQ->elems[indexB];
+//     OQ->elems[indexB] = tmp;
+// }
+
+// int CompareElem(EelememtType elemA, EelememtType elemB)
+// {
+//     return elemA.intVal > elemB.intVal;
+// }
+
+// OrderQueue* QueueInit(int queueSize)
+// {
+//     OrderQueue *PQ = (OrderQueue *)malloc(sizeof(OrderQueue));
+//     memset(PQ, 0, sizeof(OrderQueue));
+//     PQ->capacity = MAXPQSize;
+//     PQ->size = 0;
+//     return PQ;
+// }
+
+
+// bool IsEmpty(OrderQueue* OQ)
+// {
+//     return OQ->size == 0;
+// }
+
+// bool IsFull(OrderQueue* OQ)
+// {
+//     return OQ->tail == OQ->capacity - 1;
+// }
+
+// int QueueSize(OrderQueue* OQ)
+// {
+//     return OQ->size;
+// }
+
+// void PrintfQue(OrderQueue* OQ)
+// {
+//     // 依次出队
+//     printf("riority_queue: ");
+//     for (int i = OQ->top; i <= OQ->tail; i++) {
+//         printf("{ %d, %d } --> ", OQ->elems[i].intVal, OQ->elems[i].intPosition);
+//     }
+//     printf("\n");
+// }
+
+// void EnQueue(OrderQueue* OQ, EelememtType elem)
+// {
+//     if (IsFull(OQ)) {
+//         printf("full \n");
+//         return;
+//     }
+
+//     if (IsEmpty(OQ)) {
+//         OQ->elems[OQ->top] = elem;
+//         OQ->size = 1;
+//         OQ->tail = OQ->top;
+//         return;
+//     }
+
+
+//     for (; OQ->tail >= OQ->top; OQ->tail--) {
+//         if (CompareElem(elem, OQ->elems[OQ->tail])) {
+//             EelememtType zeroElem = { 0, 0 };
+//             OQ->elems[OQ->tail] = zeroElem;
+//             OQ->size--;
+//         } else {
+//             break;
+//         }
+//     }
+
+//     OQ->elems[++OQ->tail] = elem;
+//     OQ->size++;
+// }
+
+
+// void DeQueue(OrderQueue* OQ)
+// {
+//     if (IsEmpty(OQ)) {
+//         printf("empty \n");
+//         return;
+//     }
+
+//     EelememtType ZeroElem = { 0, 0 };
+//     OQ->elems[OQ->top] = ZeroElem;
+//     OQ->size--;
+//     OQ->top++;
+// }
+
+// EelememtType QueueTop(OrderQueue* OQ)
+// {
+//     if (IsEmpty(OQ)) {
+//         printf("empty \n");
+//         EelememtType elem = { 0xfffff, 0xfffff };
+//         return elem;
+//     }
+
+//     EelememtType max = OQ->elems[OQ->top];
+//     return max;
+// }
+
+
+// int* maxSlidingWindow(int* nums, int numsSize, int k, int* returnSize)
+// {
+//     int *res = (int *)malloc(sizeof(int) * numsSize);
+//     memset(res, 0, sizeof(int) * numsSize);
+//     *returnSize = 0;
+
+
+//     OrderQueue *OQ = QueueInit(k);
+//     for (int right = 0; right < numsSize; right++) {
+//         if (right <= k - 1) {
+//             EelememtType elem = { nums[right], right };
+//             EnQueue(OQ, elem);
+
+//             if (right == k - 1) {
+//                 res[(*returnSize)++] = QueueTop(OQ).intVal;
+//             }
+//         } else {
+//             while (QueueTop(OQ).intPosition <= right - k) {
+//                 DeQueue(OQ);
+//             }
+//             EelememtType elem = { nums[right], right };
+//             EnQueue(OQ, elem);
+
+//             res[(*returnSize)++] = QueueTop(OQ).intVal;
+//         }
+//         PrintfQue(OQ);
+//     }
+//     free(OQ);
+//     return res;
+// }
+// // ---------------------------解法 结束-----------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+// ---------------------------解法 开始----------单调队列----循环顺序表，因为每次只是删除头尾，所以可以用数组----------------------------------------------
+// // #define MINPQSize (10)
+// #define MAXPQSize (100001)    // 做题的时候就不用动态申请，直接写死最大值就好了
+// // #define MinDATA (-32767)
+
+// typedef struct EelememtType {
+//     int intVal;
+//     int intPosition;
+// } EelememtType;
+
+// typedef struct HeapStruct {
+//     int capacity;
+//     int size;
+
+//     int top;
+//     int tail;
+//     EelememtType elems[MAXPQSize];   // 做题的时候就不用动态申请，直接写死最大值就好了
+// } HeapStruct, OrderQueue;
+
+// void Swap(OrderQueue* OQ, int IndexA, int indexB)
+// {
+//     EelememtType tmp = OQ->elems[IndexA];
+//     OQ->elems[IndexA] = OQ->elems[indexB];
+//     OQ->elems[indexB] = tmp;
+// }
+
+// int CompareElem(EelememtType elemA, EelememtType elemB)
+// {
+//     return elemA.intVal > elemB.intVal;
+// }
+
+// OrderQueue* QueueInit(int queueSize)
+// {
+//     OrderQueue *PQ = (OrderQueue *)malloc(sizeof(OrderQueue));
+//     memset(PQ, 0, sizeof(OrderQueue));
+//     PQ->capacity = queueSize;
+//     PQ->size = 0;
+//     PQ->top = 0;
+//     PQ->tail = 0;
+//     return PQ;
+// }
+
+
+// /*
+//     top = 0    tail = 2
+//     top = 5    tail = 7
+//     top = 999  tail = 1
+// */
+// int MovePointer(OrderQueue* OQ, int index, int addNum)
+// {
+//     index = (index + addNum + OQ->capacity) % OQ->capacity;
+//     return index;
+// }
+
+// bool IsEmpty(OrderQueue* OQ)
+// {
+//     return OQ->size == 0;
+// }
+
+// bool IsFull(OrderQueue* OQ)
+// {
+//     return OQ->size == OQ->capacity;
+// }
+
+// int QueueSize(OrderQueue* OQ)
+// {
+//     return OQ->size;
+// }
+
+// void PrintfQue(OrderQueue* OQ)
+// {
+//     // 依次出队
+//     printf("riority_queue: ");
+
+
+//     /*
+//         top = 0    tail = 2
+//         top = 5    tail = 7
+//         top = 999  tail = 1
+//     */
+//     int i = OQ->top;
+//     while (i != OQ->tail) {
+//         printf("{ %d, %d } --> ", OQ->elems[i].intVal, OQ->elems[i].intPosition);
+//         i = MovePointer(OQ, i, 1);
+//     }
+//     if ((i == OQ->tail) && (!IsEmpty(OQ))) {
+//         printf("{ %d, %d } --> ", OQ->elems[i].intVal, OQ->elems[i].intPosition);
+//     }
+//     printf("\n");
+// }
+
+
+// void EnQueue(OrderQueue* OQ, EelememtType elem)
+// {
+//     if (IsFull(OQ)) {
+//         printf("full \n");
+//         return;
+//     }
+
+//     /*
+//         top = 0    tail = 2
+//         top = 5    tail = 7
+//         top = 999  tail = 1
+//     */
+//     while (OQ->tail != OQ->top) {
+//         if (CompareElem(elem, OQ->elems[OQ->tail])) {
+//             EelememtType ZeroElem = { 0, 0 };
+//             OQ->elems[OQ->tail] = ZeroElem;
+//             OQ->size--;
+//         } else {
+//             break;
+//         }
+
+//         OQ->tail = MovePointer(OQ, OQ->tail, -1);
+//     }
+//     if ((OQ->tail == OQ->top) && (!IsEmpty(OQ))) {
+//         if (CompareElem(elem, OQ->elems[OQ->tail])) {
+//             EelememtType ZeroElem = { 0, 0 };
+//             OQ->elems[OQ->tail] = ZeroElem;
+//             OQ->size--;
+//         }
+//     }
+
+//     if (IsEmpty(OQ)) {
+//         OQ->elems[OQ->top] = elem;
+//         OQ->size++;
+//         return;
+//     }
+
+//     OQ->tail = MovePointer(OQ, OQ->tail, 1);  // 这里出了问题，直接++出问题
+//     OQ->elems[OQ->tail] = elem;
+//     OQ->size++;
+// }
+
+
+// EelememtType DeQueue(OrderQueue* OQ)
+// {
+//     if (IsEmpty(OQ)) {
+//         printf("empty \n");
+//         EelememtType elem = { 0xfffff, 0xfffff };
+//         return elem;
+//     }
+
+//     EelememtType max = OQ->elems[OQ->top];
+
+//     EelememtType ZeroElem = { 0, 0 };
+//     OQ->elems[OQ->top] = ZeroElem;
+//     OQ->top = MovePointer(OQ, OQ->top, 1);
+//     OQ->size--;
+
+//     return max;
+// }
+
+// EelememtType QueueTop(OrderQueue* OQ)
+// {
+//     if (IsEmpty(OQ)) {
+//         printf("empty \n");
+//         EelememtType elem = { 0xfffff, 0xfffff };
+//         return elem;
+//     }
+
+//     EelememtType max = OQ->elems[OQ->top];
+//     return max;
+// }
+
+
+// int* maxSlidingWindow(int* nums, int numsSize, int k, int* returnSize)
+// {
+//     int *res = (int *)malloc(sizeof(int) * numsSize);
+//     memset(res, 0, sizeof(int) * numsSize);
+//     *returnSize = 0;
+
+//     OrderQueue *OQ = QueueInit(k);
+//     for (int right = 0; right < numsSize; right++) {
+//         if (right <= k - 1) {
+//             EelememtType elem = { nums[right], right };
+//             EnQueue(OQ, elem);
+
+//             if (right == k - 1) {
+//                 res[(*returnSize)++] = QueueTop(OQ).intVal;
+//             }
+//         } else {
+//             while (QueueTop(OQ).intPosition <= right - k) {
+//                 DeQueue(OQ);
+//             }
+//             EelememtType elem = { nums[right], right };
+//             EnQueue(OQ, elem);
+
+//             res[(*returnSize)++] = QueueTop(OQ).intVal;
+//         }
+//         // PrintfQue(OQ);
+//     }
+//     free(OQ);
+//     return res;
+// }
+// ---------------------------解法 结束-----------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// ---------------------------解法 开始----------单调队列----单链表实现-----------------------------------------------
+
+// typedef struct EelementNode {
+//     int intVal;
+//     int intPosition;
+
+//     char charVal;
+
+//     // EelementNode *pre;
+//     struct EelementNode *next;
+// } EelementNode;
+
+
+// typedef struct ListStruct {
+//     // int capacity;
+//     int size;
+
+//     EelementNode *first;   
+//     // EelementNode *tail;                       
+// } ListStruct, OrderQueue;
+
+// OrderQueue* QueueInit()
+// {
+//     OrderQueue* OQ = (OrderQueue *)malloc(sizeof(OrderQueue));
+//     if (OQ == NULL) {
+//         printf("maloc error \n");
+//     }
+//     memset(OQ, 0, sizeof(OrderQueue));
+
+//     OQ->size = 0;
+//     return OQ;
+// }
+
+// bool IsEmpty(OrderQueue* OQ)
+// {
+//     return OQ->size == 0;
+// }
+
+// void FreeList(EelementNode *node)
+// {
+//     if (node->next) {
+//         FreeList(node->next);
+//     }
+//     free(node);
+// }
+
+// void Destroy(OrderQueue* OQ)
+// {
+//     free(OQ->first);
+//     free(OQ);
+// }
+
+
+// void PrintList(EelementNode *node)
+// {
+//     printf("{ %d, %d, %c} --> ", node->intVal, node->intPosition, node->charVal);
+//     if (node->next) {
+//         PrintList(node->next);
+//     }
+// }
+
+// void PrintfQue(OrderQueue* OQ)
+// {
+//     // 依次出队
+//     printf("riority_queue: ");
+//     PrintList(OQ->first);
+//     printf("\n");
+// }
+
+
+// int CompareElem(EelementNode elemA, EelementNode elemB)
+// {
+//     return elemA.intVal > elemB.intVal;
+// }
+
+
+// EelementNode* NewNode(EelementNode elem)
+// {
+//     EelementNode *node = (EelementNode *)malloc(sizeof(EelementNode));
+//     if (node == NULL) {
+//         printf("maloc error \n");
+//     }
+//     memset(node, 0, sizeof(EelementNode));
+//     *node = elem;
+//     return node;
+// }
+
+// void InsertNode(OrderQueue* OQ, EelementNode *preBigNode, EelementNode *smallNode, EelementNode *newNode)
+// {
+//     if (preBigNode == NULL) {
+//         OQ->first = newNode;
+//         newNode->next = smallNode;
+//     } else {
+//         preBigNode->next = newNode;
+//         newNode->next = smallNode;
+//     }
+
+//     OQ->size++;
+// }
+
+
+// void Delete(OrderQueue* OQ)
+// {
+//     free(OQ->first);
+//     free(OQ);
+// }
+
+
+// void EnQueueAndDelSmall(OrderQueue* OQ, EelementNode elem)
+// {
+//     EelementNode *newNode = NewNode(elem);
+
+//     if (IsEmpty(OQ)) {
+//         OQ->first = newNode;
+//         // OQ->tail = newNode;
+//         OQ->size++;
+//         return;
+//     }
+
+//     EelementNode *preNode = OQ->first;
+//     EelementNode *Node = preNode->next;
+
+//     OQ->size = 0;
+//     if (CompareElem(elem, *preNode)) {
+//         InsertNode(OQ, NULL, NULL, newNode);
+//         // OQ->tail = newNode;
+//         return;
+//     } 
+
+//     OQ->size++;
+//     while (Node) {
+//         if (CompareElem(elem, *Node)) {
+//             FreeList(Node);
+//             InsertNode(OQ, preNode, NULL, newNode);
+//             // OQ->tail = newNode;
+//             return;
+//         } else {
+//             preNode = Node;
+//             Node = preNode->next;
+//             OQ->size++;
+//         }
+//     }
+
+//     InsertNode(OQ, preNode, NULL, newNode);
+// }
+
+// void DeQueue(OrderQueue* OQ)
+// {
+//     if (IsEmpty(OQ)) {
+//         printf("empty \n");
+//         return;
+//     }
+
+//     EelementNode *first = OQ->first;
+//     OQ->first = OQ->first->next;
+//     --OQ->size;
+//     free(first);
+// }
+
+// EelementNode QueueTop(OrderQueue* OQ)
+// {
+//     if (IsEmpty(OQ) == false) {
+//         return *OQ->first;
+//     } 
+
+//     printf("enpty \n ");
+//     EelementNode error = { 0xffff, 'x'};
+//     return error;
+// }
+
+
+
+// int* maxSlidingWindow(int* nums, int numsSize, int k, int* returnSize)
+// {
+//     int *res = (int *)malloc(sizeof(int) * numsSize);
+//     memset(res, 0, sizeof(int) * numsSize);
+//     *returnSize = 0;
+
+//    if (numsSize > 50000) {  // 会超时，限制数据量大小
+//         return res;
+//     }
+
+//     OrderQueue *OQ = QueueInit();
+//     for (int right = 0; right < numsSize; right++) {
+//         if (right <= k - 1) {
+//             EelementNode elem = { nums[right], right, 'x', NULL };
+//             EnQueueAndDelSmall(OQ, elem);
+
+//             if (right == k - 1) {
+//                 res[(*returnSize)++] = QueueTop(OQ).intVal;
+//             }
+//         } else {
+//             while (QueueTop(OQ).intPosition <= right - k) {
+//                 DeQueue(OQ);
+//             }
+//             EelementNode elem = { nums[right], right, 'x', NULL };
+//             EnQueueAndDelSmall(OQ, elem);
+
+//             res[(*returnSize)++] = QueueTop(OQ).intVal;
+//         }
+//         PrintfQue(OQ);
+//     }
+//     free(OQ);
+//     return res;
+// }
+
+// ---------------------------解法 结束-----------------------------------------------------------------------
+
+
+
+
+int main() {
+    int nums_1[] = { 1,3,1,2,0,5 };
+    int numsSize_1 = sizeof(nums_1) / sizeof(nums_1[0]);
+    int K_1 = 3;
+    int returnSize_1 = 454564;
+    int *res_1 = maxSlidingWindow(nums_1, numsSize_1, K_1, &returnSize_1);
+
+
+
+
+
+
+    int nums_2[] = { 7238,9932,-7015,6020,2596,6189,-7315,3176,-7751,7995,3970,7008,4059,9310,-3655,-8628,3249,6132,9022,8156,8970,7702,-8248,9130,-1393,-6814,-8441,9879,-2811,3564,6491,8875,-200,8698,-6756,-5946,2006,7604,7379,-4675,3323,-544,544,130,-1171,6535,-6825,4471,3580,-1876,-5201,7337,-3992,-3277,-8251,5427,8989,4481,-298,5049,9762,-4932,-7561,-8209,1343,2338,-8612,5181,95,8312,6140,9449,9283,5812,2348,-57,-5351,4471,3738,5256,-1644,-8322,-4507,-6337,821,3626,3804,3957,7675,2195,5933,5699,545,-3593,-760,199,-7339,-6963,-8857,5111,-2086,-4285,5260,-6824,-7696,-3032,-1368,-6605,2119,5660,850,4834,3333,7193,6465,1137,-7826,3972,-4014,-8963,6244,-5914,7196,8119,4804,-1212,4780,-5600,8125,-5737,-2363,-5635,3902,4423,-3962,7659,-2802,9953,6651,3794,-7302,5601,-6981,-9579,6382,-1355,6387,8293,-4281,393,507,3554,-85,6148,9009,9994,3835,-8033,-985,-9909,-2869,1453,-1824,-7902,-5402,-4205,-187,-9707,7666,4167,3762,-8791,-1256,9682,-9714,-597,6671,-8381,-304,-4242,-5095,6311,-7830,-1480,-6470,6264,8859,-4593,9514,1430,5248,6556,8422,-8424,-4742,-6497,-3416,-4005,-4213,-4945,6129,4473,-4092,-6352,490,-5252,-2591,-5388,9398,-8349,3329,-5143,-5446,9031,-6319,-4679,-7013,867,-705,7882,5625,6763,954,897,-2191,4859,-4321,4058,2535,-1918,-9012,-2708,500,-5448,-3478,-6758,-935,7277,979,-2030,-3152,9066,-6420,2590,-7793,-3197,7510,8948,-4362,5464,-981,4541,-6535,-4853,-8182,4128,-4434,8901,-1384,1166,-5818,-5866,3158,-9958,-5805,-959,4945,-8665,-5298,8831,5525,3577,-2783,7743,7145,-1839,-2936,-8183,978,2578,-6729,-7782,135,7508,7847 };
+    int numsSize_2 = sizeof(nums_2) / sizeof(nums_2[0]);
+    int K_2 = 19;
+    int returnSize_2 = 454564;
+    int *res_2 = maxSlidingWindow(nums_2, numsSize_2, K_2, &returnSize_2);
+    for (int i = 0; i < returnSize_2; i++) {
+        printf("%d,", res_2[i]);
+    }
+
+
+
+    return 0;
+}
+

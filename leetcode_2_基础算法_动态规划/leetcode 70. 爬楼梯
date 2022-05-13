@@ -1,0 +1,185 @@
+/******************************************************************************
+ * 版权所有 (c)
+ * 功能描述   : leetcode 70. 爬楼梯  https://leetcode-cn.com/problems/climbing-stairs/
+ * 作    者   :
+ * 生成日期   :
+ * 动态规划的入门 2 
+ ******************************************************************************/
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdbool.h>
+#include <uthash.h>
+#include <math.h>
+#include <assert.h>
+// 如需使用华为安全函数，请加上 #include "securec.h"
+// #include "securec.h"
+
+
+
+/*
+70. 爬楼梯
+假设你正在爬楼梯。需要 n 阶你才能到达楼顶。
+
+每次你可以爬 1 或 2 个台阶。你有多少种不同的方法可以爬到楼顶呢？
+
+ 
+
+示例 1：
+
+输入：n = 2
+输出：2
+解释：有两种方法可以爬到楼顶。
+1. 1 阶 + 1 阶
+2. 2 阶
+示例 2：
+
+输入：n = 3
+输出：3
+解释：有三种方法可以爬到楼顶。
+1. 1 阶 + 1 阶 + 1 阶
+2. 1 阶 + 2 阶
+3. 2 阶 + 1 阶
+ 
+
+提示：
+
+1 <= n <= 45
+
+
+*/
+
+
+
+
+
+// ---------------------------解法 开始-----自顶向下---递归-----------------------------------------------------
+// int Recursive(int n)
+// {
+//     if ((n == 0) || (n == 1)) {
+//         return 1;
+//     }
+
+//     return (Recursive(n-1) + Recursive(n-2));
+// }
+
+// int climbStairs(int n)
+// {
+//     int result = Recursive(n);
+
+//     return result;
+// }
+// ---------------------------解法一 结束-------------------------------------------------------------
+
+
+
+// ---------------------------解法 开始------自顶向下---递归 + 备忘录------------------------------------------------------
+// int Recursive(int* memory, int n) {
+//     if ((n == 0) || (n == 1)) {
+//         return 1;
+//     }
+
+//     if (memory[n] != 0) {
+//         return memory[n];
+//     }
+
+//     memory[n] = Recursive(memory, n-1) + Recursive(memory, n-2);
+//     return memory[n];
+// }
+
+
+// int climbStairs(int n) {
+//     int memory[50] = { 0 };
+    
+//     int result = Recursive(memory, n);
+
+//     return result;
+// }
+// ---------------------------解法 结束--------------------------------------------------------
+
+
+
+
+
+// ---------------------------解法 开始-----自底向上---递归----------------------自底向上的递归不会超时，自顶向下的递归会超时 ---------------------------------
+void Recursive(int target, int step, int step_2_Val, int step_1_Val, int *result)
+{
+    if (step > target) {
+        return;
+    }
+
+    int thisStep =  step_2_Val + step_1_Val;
+    *result = thisStep;
+
+    Recursive(target, step + 1, step_1_Val, thisStep, result);
+}
+
+int climbStairs(int n)
+{
+    if ((n == 1) || (n == 2)) {
+        return n;
+    }
+
+    int result = 0;
+    Recursive(n, 3, 1, 2, &result);
+
+    return result;
+}
+// ---------------------------解法一 结束-------------------------------------------------------------
+
+
+
+
+
+// ---------------------------解法 开始-------子底向上-----动态规划（就是递归的迭代写法）--DpTable------------------------------------------------
+// int climbStairs(int n)
+// {
+//     int memory[50] = { 0 };
+//     memory[1] = 1;
+//     memory[2] = 2;
+
+//     for (int i = 3; i <= n; i++) {
+//         memory[i] = memory[i-1] + memory[i-2];
+//     }
+    
+//     return memory[n];
+// }
+// ---------------------------解法 结束-------------------------------------------------------------
+
+
+
+
+
+
+// ---------------------------解法 开始---子底向上-----动态规划--DpTable优化-------------------------------------------------------------
+// int climbStairs(int n) {
+//     if ((n == 0) || (n == 1)) {
+//         return 1;
+//     }
+
+//     int tempN_sub1 = 1;
+//     int tempN_sub2 = 1;
+//     for (int i = 2; i <= n; i++) {
+//         int sum = tempN_sub1 + tempN_sub2;
+//         tempN_sub1 = tempN_sub2;
+//         tempN_sub2 = sum;
+//     }
+    
+//     return tempN_sub2;
+// }
+
+// ---------------------------解法 结束-------------------------------------------------------------
+
+
+
+int main() {
+    int n_1 = 45;
+    int result_1 = climbStairs(n_1);
+    assert(result_1 = 1836311903);
+
+
+    return 0;
+}
+
+
+

@@ -1,0 +1,293 @@
+/******************************************************************************
+ * 版权所有 (c)
+ * 功能描述   : OJ 1190. 【软件认证】删除整个目录. https://oj.rnd.huawei.com/problems/1190/details
+ * 作    者   :
+ * 生成日期   :
+
+ * 
+      --- 
+ ******************************************************************************/
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdbool.h>
+#include <uthash.h>
+#include <math.h>
+#include <limits.h>
+#include <assert.h>
+// 如需使用华为安全函数，请加上 #include "securec.h"
+#include "securec.h"
+// #include "vos_priorityqueue.h"
+
+
+
+
+
+/*
+题目描述
+我们定义一种目录结构字符串(类似Windows的tree/f的输出内容)，用它来表达目录树的结构，如图所示：
+
+
+目录结构字符串的输入仅含数字、字母和|-，其中：|- 表示子目录的层次符号；字母或数字表示目录名。
+某目录的子目录的顺序以输入先后顺序为准。
+某目录的多个子目录不能同名，如果出现多个，则只保留第一个，后续的输入忽略。
+无对应的父目录，属于异常情况，直接忽略。
+给定一个目录结构字符串，请按先后顺序删除所有目录，并依次输出删除的目录名称：
+
+如果是叶子目录，直接删除。
+如果某目录含有子目录，则需要先删除其子目录。
+如上图所示的输出为C D F E B lib32 A
+
+解答要求
+时间限制：1000ms, 内存限制：64MB
+输入
+首行是一个整数 n，表示目录结构字符串的行数，取值范围 [1, 50)
+接下来n行，每行字符串表示一个待处理的目录，目录名长度为[1,10]，整行字符串长度为 [1,100]。
+用例保证，有且仅有一个根目录。
+
+输出
+字符串序列，表示依次删除的目录，目录之间以单空格分隔。
+
+样例
+输入样例 1 复制
+
+10
+|-B
+A
+|-B
+|-|-C
+|-|-D
+|-|-D
+|-|-|-|-D
+|-|-E
+|-|-|-F
+|-lib32
+输出样例 1
+
+C D F E B lib32 A
+提示样例 1
+
+
+提示
+样例1解释：
+|-B     // 非顶层目录，并且它前面无对应的父目录，该行输入被忽略
+A     // A为顶层目录
+|-B     // B为第二层，它紧跟的上一层目录为A，因此B为A的子目录
+|-|-C     // C为第三层，它紧跟的上一层目录为B，因此其父目录为B。
+|-|-D     // D为第三层，它紧跟的上一层目录为B，因此其父目录为B，它和C为兄弟关系。
+|-|-D     // D为第三层，与先输入的第三层目录D同名，该行输入被忽略。
+|-|-|-|-D   // D为第五层，前面没有第四层目录，因此无对应的父目录，该行输入被忽略。
+|-|-E      // E为第三层，它紧跟的上一层目录为B，因此其父目录为B，它和C、D为兄弟关系。
+|-|-|-F      // F为第四层，它紧跟的上一层目录为E，因此其父目录为E。
+|-lib32     // lib32为第二层，它紧跟的上一层目录为A，因此其父目录为A，它与B为兄弟关系。
+
+按先后顺序删除时：A有子目录B、lib32，先删除B时，其子目录C、D、E需要被先删除，C、D无子目录直接被删除，E有子目录F则先删除F。以此类推，最终输出为 C D F E B lib32 A
+*/
+
+
+
+
+// ---------------------------解法 开始---先生成树，再按照后续遍历输出树-----------------------------------------------------
+
+ /* 用例不会超过如下规格 */
+#define MAX_LINE 64
+#define LINE_BUF_LEN 64
+#define OUT_BUF_LEN 128
+
+
+
+typedef struct {
+    int pos;
+    char name[LINE_BUF_LEN];
+} NAME_POS;
+
+static void PreProcessLine(char **lines, int lineNum, NAME_POS *namePos)
+{
+    for (int i = 0; i < lineNum; i++) {
+        int pos = 0;
+        int j = 0;
+        int len = (int)strlen(lines[i]);
+        for (j = 0; j < len - 1; j += 2) {
+            if (lines[i][j] == '|' && (lines[i][j + 1] == '-')) {
+                pos++;
+            } else {
+                break;
+            }
+        }
+        namePos[i].pos = pos;
+        (void)memset_s(namePos[i].name, LINE_BUF_LEN, 0, LINE_BUF_LEN);
+        (void)memcpy_s(namePos[i].name, LINE_BUF_LEN, &(lines[i][j]), LINE_BUF_LEN - j - 1);
+    }
+}
+
+
+
+typedef struct Tree {
+    NAME_POS val;
+    int index;
+
+    int subCnt;
+    struct Tree* sub[MAX_LINE];
+} Tree;
+
+Tree* CreatTreeNode(NAME_POS name, int index)
+{
+    Tree *node = (Tree *)malloc(sizeof(Tree));
+    memset_s(node, (size_t)sizeof(Tree), 0, (size_t)sizeof(Tree));
+    node->val = name;
+    node->index = index;
+    return node;
+}
+
+void TreeBack(Tree* root, char *outBuf, int* resLen, int maxOutBufLen)
+{
+    
+    for (int i = 0; i < root->subCnt; i++) {
+        TreeBack(root->sub[i], outBuf, resLen, maxOutBufLen);
+    }
+
+    (*resLen) += sprintf_s(outBuf + (*resLen), maxOutBufLen, "%s ", root->val.name);
+}
+
+
+typedef struct Queue {
+    int head;
+    int tail;
+    Tree* queue[MAX_LINE]; 
+} Queue;
+Queue g_queue;
+
+
+typedef struct UthshCharArray {
+    char key[LINE_BUF_LEN];
+    int val;  // 
+    UT_hash_handle hh;
+} UthshCharArray;
+UthshCharArray* UthshFindByKey(UthshCharArray **UthshHead, char ikey[])
+{
+    UthshCharArray *temp = NULL;
+    HASH_FIND_STR(*UthshHead, ikey, temp);
+    return temp;
+}
+// UthshCharArray* UthshAddByKey(UthshCharArray **UthshHead, char ikey[], int value)
+// {
+//     UthshCharArray *temp = UthshFindByKey(UthshHead, ikey);
+//     if (temp == NULL) {
+//         temp = (UthshCharArray *)malloc(sizeof(UthshCharArray));
+//         memset(temp, 0, sizeof(UthshCharArray));
+//         strcpy(temp->key, ikey), temp->val = value;
+//         HASH_ADD_STR(*UthshHead, key, temp);
+//         return temp;
+//     } else {
+//         printf("linr 38 error");
+//         return NULL;
+//     }
+// }
+
+bool UthshAddByKey(UthshCharArray **UthshHead, char ikey[], int value)
+{
+    UthshCharArray *temp = UthshFindByKey(UthshHead, ikey);
+    if (temp == NULL) {
+        temp = (UthshCharArray *)malloc(sizeof(UthshCharArray));
+        memset(temp, 0, sizeof(UthshCharArray));
+        strcpy(temp->key, ikey), temp->val = value;
+        HASH_ADD_STR(*UthshHead, key, temp);
+        return true;
+    } else {
+        return false;
+    }
+}
+void TuhashDeleteAll(UthshCharArray** hashtableHead) {
+    UthshCharArray *current_user, *tmp;
+
+    HASH_ITER(hh, *hashtableHead, current_user, tmp) {
+        HASH_DEL(*hashtableHead, current_user);  /* delete it (users advances to next) */
+        free(current_user);             /* free it */
+    }
+}
+
+void PRINT(NAME_POS *namePos)
+{
+    for (int i = g_queue.tail; i < g_queue.head; i++) {
+        int index = g_queue.queue[i]->index;
+        printf("{ %d, %d %s }", index, namePos[index].pos, namePos[index].name);
+    }
+    printf("\n");
+}
+
+
+
+// 待实现函数，请在此填入答题代码。
+// 生成的信息存于outBuf中，maxOutBufLen是最大数组长度。
+static void DelAllDirectorys(NAME_POS *namePos, int lineNum, char *outBuf, int maxOutBufLen)
+{
+    Tree *root = NULL;
+    memset_s(&g_queue, (size_t)sizeof(g_queue), 0, (size_t)sizeof(g_queue));
+    // 找根节点
+    for (int i = 0; i < lineNum; i++) {
+        if (namePos[i].pos == 0) {
+            root = CreatTreeNode(namePos[i], i);
+            g_queue.queue[g_queue.head++] = root;
+            break;
+        }
+    }
+
+    int currPos = 1;
+    while(g_queue.head > g_queue.tail) {
+        int start = g_queue.tail;
+        int end = g_queue.head;
+        for (; start < end; start++) {
+            Tree *parNode = g_queue.queue[start];
+            int index = parNode->index;
+
+            int next = (start + 1 < end) ? g_queue.queue[start + 1]->index: lineNum; // 子目录的边界
+            UthshCharArray *UthshHead = NULL;
+            for (int i = index + 1; i < next; i++) {
+                if (currPos == namePos[i].pos) {
+                    bool newEle = UthshAddByKey(&UthshHead, namePos[i].name, 0);
+                    if (newEle == true) {
+                        Tree *newNode = CreatTreeNode(namePos[i], i);
+                        g_queue.queue[g_queue.head++] = newNode;
+                        parNode->sub[parNode->subCnt++] = newNode;
+                    }
+                }
+            }
+            TuhashDeleteAll(&UthshHead);
+            //PRINT(namePos);
+        }
+        
+        g_queue.tail = start;
+        currPos++;
+    }
+
+    memset_s(outBuf, (size_t)sizeof(char) * maxOutBufLen, 0, (size_t)sizeof(char) * maxOutBufLen);
+    int resLen = 0;
+    TreeBack(root, outBuf, &resLen, maxOutBufLen);
+    sprintf_s(outBuf + resLen - 1, maxOutBufLen, "\0"); // 最后一个元素的输出
+}
+
+int main(void)
+{
+    int n;
+    if (scanf_s("%d\n", &n) != 1) { return -1; }
+
+    static char buf[MAX_LINE][LINE_BUF_LEN];
+    static char *input[MAX_LINE];
+    int i;
+    for (i = 0; i < n; i++) {
+        if (gets_s(buf[i], sizeof(buf[i])) == NULL) { return -1; }
+        input[i] = buf[i];
+    }
+
+    // 预处理输入参数
+    NAME_POS nameData[MAX_LINE] = { 0 };
+    PreProcessLine(input, n, nameData);
+
+    static char outBuf[OUT_BUF_LEN] = { 0 };
+    DelAllDirectorys(nameData, n, outBuf, sizeof(outBuf));
+    (void)printf("%s", outBuf);
+    return 0;
+}
+
+// ---------------------------解法 结束---------------------------------------------------------------------
+

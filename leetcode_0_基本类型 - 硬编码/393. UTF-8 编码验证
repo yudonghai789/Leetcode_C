@@ -1,0 +1,110 @@
+/*
+ * Copyright (c) Huawei Technologies Co., Ltd. 2019-2020. All rights reserved.
+ */
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <stdbool.h>
+#include <uthash.h>
+// 如需使用华为安全函数，请加上 #include "securec.h"
+#include "securec.h"
+#include "systemDesgin.h"
+#include <math.h>
+#include <assert.h>
+
+
+/* leetcode 393. UTF-8 编码验证. https://leetcode-cn.com/problems/utf-8-validation/
+ */
+
+bool validUtf8(int* data, int dataSize)
+{
+    // 超大整数，只取低8Bit 一个字节的数据
+    for (int i = 0; i < dataSize; i++) {
+        data[i] = data[i] & 0xff; // 取低8bit;
+    }
+
+    int i = 0;
+    while (i < dataSize) {
+        printf("i(%d), data[i] (%d) \n",i, data[i]);
+        if ((data[i] & 0b10000000) == 0b00000000) {
+            // 对于 1 字节 的字符，字节的第一位设为 0 ，后面 7 位为这个符号的 unicode 码。
+        } else if ((data[i] & 0b11100000) == 0b11000000) {
+            i++;
+            if ((i >= dataSize) || ((data[i] & 0b11000000) != 0b10000000)) {
+                return false;
+            }
+        } else if ((data[i] & 0b11110000) == 0b11100000) {
+            i++;
+            if ((i >= dataSize) || ((data[i] & 0b11000000) != 0b10000000)) {
+                return false;
+            }
+            i++;
+            if ((i >= dataSize) || ((data[i] & 0b11000000) != 0b10000000)) {
+                return false;
+            }
+        } else if ((data[i] & 0b11111000) == 0b11110000) {
+            i++;
+            if ((i >= dataSize) || ((data[i] & 0b11000000) != 0b10000000)) {
+                return false;
+            }
+            i++;
+            if ((i >= dataSize) || ((data[i] & 0b11000000) != 0b10000000)) {
+                return false;
+            }
+            i++;
+            if ((i >= dataSize) || ((data[i] & 0b11000000) != 0b10000000)) {
+                return false;
+            }
+        } else {
+            return false;
+        }
+
+        i++;
+    }
+
+    return true;
+}
+
+
+
+
+
+int main(int argc, const char *argv[])
+{
+    int data_1[] = { 197,130,1 };
+    int dataSize_1 = sizeof(data_1) / sizeof(data_1[0]);
+    bool res_1 = validUtf8(data_1, dataSize_1);
+    assert(res_1 == true);
+
+    int data_2[] = { 235,140,4 };
+    int dataSize_2 = sizeof(data_2) / sizeof(data_2[0]);
+    bool res_2 = validUtf8(data_2, dataSize_2);
+    assert(res_2 == false);
+
+
+    // 超大整数，只取低8Bit 一个字节的数据
+    int data_3[] = { 4096 + 197, 4096 + 130 ,1 }; 
+    int dataSize_3 = sizeof(data_3) / sizeof(data_3[0]);
+    bool res_3 = validUtf8(data_3, dataSize_3);
+    assert(res_3 == true);
+
+
+    int data_4[] = { 255 }; 
+    int dataSize_4 = sizeof(data_4) / sizeof(data_4[0]);
+    bool res_4 = validUtf8(data_4, dataSize_4);
+    assert(res_4 == false);
+
+    int data_5[] = { 240,162,138,147 }; 
+    int dataSize_5 = sizeof(data_5) / sizeof(data_5[0]);
+    bool res_5 = validUtf8(data_5, dataSize_5);
+    assert(res_5 == true);
+
+
+    int data_6[] = { 32,196,147,225,184,165,246,149,170,129,204,153,243,188,141,147,0,217,149,234,176,176,243,178,133,144,213,181,193,187,238,137,134,218,155,33,231,134,162,243,184,144,131,71,201,131,244,133,189,140,242,178,128,156,207,154,230,165,181,240,181,134,180,227,129,199,172,226,158,164,214,183,224,137,141,20,194,188,232,177,151,242,157,180,153,200,189,239,153,186,240,153,181,154 }; 
+    int dataSize_6 = sizeof(data_6) / sizeof(data_6[0]);
+    bool res_6 = validUtf8(data_6, dataSize_6);
+    assert(res_6 == false);
+
+
+    return 0;
+}

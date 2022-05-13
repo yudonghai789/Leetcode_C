@@ -1,0 +1,288 @@
+#include <assert.h>
+#include <math.h>
+#include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+
+/* 单链表的遍历，分为递归写法和迭代写法，顺序可以分为前序和后序
+ * 递归其实就是隐式的维护了一个栈
+ */
+
+
+/* 剑指 Offer 24. 反转链表    206. 反转链表
+ * 单链表的迭代
+ */
+
+
+/* 92. 反转链表 II
+ * 单链表的迭代
+ */
+
+
+/* 25. K 个一组翻转链表
+ * 单链表的迭代
+ */
+
+
+/* ---------------------------------------------- *
+ *                -- 结构体定义 --                *
+ * ---------------------------------------------- */
+typedef struct ListNode {
+    int val;
+    struct ListNode* next;
+} ListNode;
+
+
+/* ---------------------------------------------- *
+ *  通过数组生成链表             *
+ * ---------------------------------------------- */
+struct ListNode* CreateListNodeByIntArray(int* intArray, int intArrayLength) {
+    struct ListNode* outListNodeHead = (struct ListNode*)malloc(sizeof(struct ListNode) * (intArrayLength));
+    memset(outListNodeHead, 0, sizeof(struct ListNode) * (intArrayLength));
+    struct ListNode* outListNode = outListNodeHead;
+    
+    for (int i = 0; i < intArrayLength; i++) {
+        outListNode[i].val = intArray[i];
+        if (i != intArrayLength - 1) {
+            outListNode[i].next = &outListNode[i + 1];
+        }
+    }
+
+    return outListNodeHead;    
+}
+
+
+
+/* ---------------------------------------------- *
+ *  链表的递归遍历 - 链表的后续遍历      
+ *  剑指 Offer 24. 反转链表
+ * ---------------------------------------------- */
+struct ListNode* RevertWholeListByRecursion(struct ListNode* list) {
+    if (list->next == NULL) {return list;}
+    struct ListNode* last = RevertWholeListByRecursion(list->next);
+    list->next->next = list;
+    list->next= NULL;
+    return last;
+}
+
+/* ---------------------------------------------- *
+ *  链表的递归遍历 - 翻转部分链表
+ * ---------------------------------------------- */
+struct ListNode* recursion(struct ListNode* head, int left, int right) {
+    if (head->next == NULL) {
+        return head;
+    }
+
+    if (left == right) {
+        return head;
+    }
+
+    struct ListNode* lastNode = recursion(head->next, left + 1, right);
+
+    head->next->next = head;
+    head->next = NULL;
+
+    return lastNode;
+}
+
+struct ListNode* reverseBetweenByRecursion(struct ListNode* head, int left, int right) {
+    if (head == NULL) {
+        return NULL;
+    }
+
+    struct ListNode* leftNode = NULL;
+    struct ListNode* rightNode = NULL;
+    struct ListNode* Node = head;
+    struct ListNode* temp = head;
+
+    int i = 0;
+    while (Node != NULL) {
+        if (i == left - 2) {
+            leftNode = Node;
+            temp = leftNode->next;
+        }
+
+        if (i == right) {
+            rightNode = Node;
+        }
+
+        Node = Node->next;
+        i = i + 1; 
+    }
+
+    struct ListNode* lastNode = recursion(temp, left, right);
+
+    if (leftNode == NULL) {
+        head = lastNode;
+    } else {
+        leftNode->next = lastNode;
+    }
+    
+    if (rightNode == NULL) {
+
+    } else {
+        temp->next = rightNode;
+    }
+    
+    return head;
+}
+
+
+
+/* ---------------------------------------------- *     
+ *  25. K 个一组翻转链表
+ *  递归加迭代，递归加递归
+ * ---------------------------------------------- */
+struct ListNode* RevertKListByRecursion(struct ListNode* a, struct ListNode* b) {
+    if (a->next == b) {return a;}
+    struct ListNode* last = RevertKListByRecursion(a->next, b);
+    a->next->next = a;
+    a->next= NULL;
+    return last;
+}
+
+struct ListNode* RevertKList(struct ListNode* a, struct ListNode* b) {
+    struct ListNode *pre = NULL, *cur = a, *next = a;
+    while(cur != b) {
+        next = cur->next;
+        cur->next = pre;
+        pre = cur;
+        cur = next;
+    }
+    return pre;
+}
+
+struct ListNode* reverseKGroup(struct ListNode* head, int k) {
+    if (head == NULL) { return NULL; }
+
+    struct ListNode *a = head, *b = head;
+    for (int i = 0; i < k; i++) {
+        if (b == NULL) { return head; }
+        b = b->next;
+    }
+
+    struct ListNode *newHead = RevertKList(a, b);
+
+    a->next = reverseKGroup(b, k);
+    return newHead;
+}
+
+
+
+/* ---------------------------------------------- *
+ *  链表的迭代遍历 - 翻转整个链表
+ *  添加一个头结点 指向NULL
+ *  剑指 Offer 24. 反转链表     
+ * ---------------------------------------------- */
+struct ListNode* RevertWholeList(struct ListNode* list) {
+    struct ListNode* pre = NULL;
+    struct ListNode* cur = list;
+    struct ListNode* next = NULL;
+
+    while(cur != NULL){
+        next = cur->next;
+        cur->next = pre;
+
+        pre = cur;
+        cur = next;
+    }
+    return pre;
+}
+
+/* ---------------------------------------------- *
+ *  链表的迭代遍历 - 翻转部分链表   
+ *  leetcode 92. 反转链表 II
+ * 
+ * ---------------------------------------------- */
+struct ListNode* reverseBetween(struct ListNode* head, int left, int right) {
+    if (head == NULL) {
+        return NULL;
+    }
+
+    struct ListNode* leftListLast = NULL;
+    struct ListNode* rightListFirst = NULL;
+
+    struct ListNode* changeListLeft = NULL;
+    struct ListNode* changeListRight = NULL;
+
+    struct ListNode* pre = NULL;
+    struct ListNode* cur = head;
+    struct ListNode* perTemp = NULL;
+    struct ListNode* nextTemp = NULL;
+
+    int positionCount = 1;
+    while (cur != NULL) {
+        if (positionCount <= left) {
+            leftListLast = perTemp;
+            changeListLeft = cur;
+            pre = perTemp;
+            perTemp = cur;
+        }
+
+        if (positionCount <= right) {
+            rightListFirst = cur->next;
+            changeListRight = cur;
+        }
+
+        cur = cur->next;
+        positionCount++; 
+    }
+    
+    positionCount = left + 1;
+    pre = changeListLeft;
+    cur = changeListLeft->next;
+    while(positionCount <= right){
+        nextTemp = cur->next;
+        cur->next = pre;
+
+        pre = cur;
+        cur = nextTemp;
+        positionCount++;
+    }
+
+    if (leftListLast == NULL) {
+        head = pre;
+    } else {
+        leftListLast->next = pre;
+    }
+    
+    if (rightListFirst == NULL) {
+        changeListLeft->next = NULL;
+    } else {
+        changeListLeft->next = rightListFirst;
+    }
+    
+    return head;
+}
+
+
+
+
+
+/* ---------------------------------------------- *
+ *                -- 主函数 --                
+ * ---------------------------------------------- */
+int main() {
+    int intArray_1[] = {1,2,3,4,5};
+    int intArrayLength_1  = sizeof(intArray_1) / sizeof(intArray_1[0]);
+    struct ListNode* outListNode_1 = CreateListNodeByIntArray(intArray_1, intArrayLength_1);
+
+    // struct ListNode* revertLiist = RevertWholeList(outListNode);
+    struct ListNode* revertList_1 = reverseBetween(outListNode_1, 2, 4);
+
+
+    int intArray_2[] = {3,5};
+    int intArrayLength_2  = sizeof(intArray_2) / sizeof(intArray_2[0]);
+    struct ListNode* outListNode_2 = CreateListNodeByIntArray(intArray_2, intArrayLength_2);
+    struct ListNode* revertList_2 = reverseBetween(outListNode_2, 2, 2);
+
+    int intArray_3[] = {1,2,3,4,5};
+    int intArrayLength_3  = sizeof(intArray_3) / sizeof(intArray_3[0]);
+    struct ListNode* outListNode_3 = CreateListNodeByIntArray(intArray_3, intArrayLength_3);
+    struct ListNode* revertList_3 = reverseKGroup(outListNode_3, 2);
+
+
+    return 0;
+}

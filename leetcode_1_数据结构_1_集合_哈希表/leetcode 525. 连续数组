@@ -1,0 +1,94 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdbool.h>
+#include <string.h>
+#include <math.h>
+#include <assert.h>
+#include <uthash.h>
+
+
+/* 525. 连续数组
+ * 使用前缀和，空间换时间，hash 表存储前缀和
+ */
+
+
+// ---------------------------解法一 开始---暴力循环-所有的子串可以通过两层循环遍历出来------------------------------------------------
+// int sum(int* nums, int head, int tail) {
+//     int result = 0;
+//     for (int i = tail; i <= head; i++) {
+//         result = result + ((nums[i] == 0) ? -1: 1);
+//     }
+
+//     return result;
+// }
+
+// int findMaxLength(int* nums, int numsSize) 
+// {
+//     int result = 0;
+//     for (int subHead = 1; subHead < numsSize; subHead++) {
+//         for (int subTail = 0; subTail < subHead; subTail++) {
+//             if ((subHead - subTail) % 2 == 1) {
+//                 if (sum(nums, subHead, subTail) == 0) {
+//                     result = fmax(result, subHead - subTail + 1);
+//                 };
+//             }
+//         }
+//     }
+
+//     return result;
+// }
+// ---------------------------解法结束--------------------------------------------------
+
+
+
+
+// ---------------------------解法二：哈希集合-------------------------------------------------
+struct HashTable {
+    int key; // 存储和
+    int val; // 不同的和出现的第一个位置
+    UT_hash_handle hh;
+};
+
+int findMaxLength(int* nums, int numsSize) {
+    struct HashTable* hashTable = NULL;
+
+    struct HashTable* tmp = (struct HashTable*)malloc(sizeof(struct HashTable));
+    tmp->key = 0, tmp->val = -1;
+    HASH_ADD_INT(hashTable, key, tmp);
+
+    int maxLength = 0; // 最后的结果,每次循环后更新
+    int counter = 0; // 前缀和
+    for (int i = 0; i < numsSize; i++) {
+        counter = counter + ((nums[i] == 0) ? -1: 1);
+
+        HASH_FIND_INT(hashTable, &counter, tmp);
+        if (tmp != NULL) {
+            int prevIndex = tmp->val;
+            maxLength = fmax(maxLength, i - prevIndex);
+        } else {
+            tmp = (struct HashTable*)malloc(sizeof(struct HashTable));
+            tmp->key = counter, tmp->val = i;
+            HASH_ADD_INT(hashTable, key, tmp);
+        }
+    }
+    return maxLength;
+}
+
+// ---------------------------解法结束--------------------------------------------------
+
+
+
+int main(int argc, const char *argv[])
+{
+    int nums_1[] = {0,1};
+    int numsSize_1 = sizeof(nums_1) / sizeof(nums_1[0]);
+    int result_1 = findMaxLength(nums_1, numsSize_1);
+    assert(result_1 == 2);
+
+    int nums_2[] = {0,1,0,1,0,1,1,1,1,0,0,0,1,0,1,0,1};
+    int numsSize_2 = sizeof(nums_2) / sizeof(nums_2[0]);
+    int result_2 = findMaxLength(nums_2, numsSize_2);
+    assert(result_2 == 16);
+
+    return 0;
+}

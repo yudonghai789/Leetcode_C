@@ -1,0 +1,82 @@
+/*
+ * Copyright (c) Huawei Technologies Co., Ltd. 2019-2020. All rights reserved.
+ */
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <stdbool.h>
+#include <uthash.h>
+// 如需使用华为安全函数，请加上 #include "securec.h"
+#include "securec.h"
+#include "systemDesgin.h"
+#include <math.h>
+#include <assert.h>
+
+/**
+ * leetcode 516. 最长回文子序列 https://leetcode-cn.com/problems/longest-palindromic-subsequence/
+ */
+
+// ---------------------------解法一 开始--------------------------------------------------------------------
+
+// ---------------------------解法一 结束--------------------------------------------------------
+
+// ---------------------------解法一 开始--------------------------------------------------------------------
+/**
+ * 动态规划
+ */
+int dpRes[1010][1010];
+
+int GetDpValue(int right, int left, int len)
+{
+    if ((right < 0) || (left >= len) || (right > left)) {
+        return 0;
+    }
+
+    return dpRes[right][left];
+}
+
+int longestPalindromeSubseq(char *s)
+{
+    memset(dpRes, 0, sizeof(dpRes));
+
+    int len = strlen(s);
+    for (int i = 0; i < len; i++) {
+        dpRes[i][i] = 1;
+    }
+
+    for (int lenth = 1; lenth <= len; lenth++) {
+        for (int right = 0; right + lenth < len; right++) {
+            int left = right + lenth;
+            if (s[left] == s[right]) {
+                dpRes[right][left] = GetDpValue(right + 1, left - 1, len) + 2;
+            } else {
+                dpRes[right][left] = fmax(GetDpValue(right, left - 1, len), GetDpValue(right + 1, left, len));
+            }
+        }
+    }
+
+    return dpRes[0][len - 1];
+}
+
+// ---------------------------解法一 结束--------------------------------------------------------
+
+int main()
+{
+    // char string_1[] = "bbbab";
+    // int result_1 = longestPalindromeSubseq(string_1);
+    // assert(result_1 == 4);
+
+    char string_2[] = "cbbd";
+    int result_2 = longestPalindromeSubseq(string_2);
+    assert(result_2 == 2);
+
+    char string_3[] = "a";
+    int result_3 = longestPalindromeSubseq(string_3);
+    assert(result_3 == 1);
+
+    char string_4[] = "aaaa";
+    int result_4 = longestPalindromeSubseq(string_4);
+    assert(result_4 == 4);
+
+    return 0;
+}

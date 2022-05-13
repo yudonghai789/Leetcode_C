@@ -1,0 +1,128 @@
+/*
+ * Copyright (c) Huawei Technologies Co., Ltd. 2019-2020. All rights reserved.
+ */
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdbool.h>
+#include <uthash.h>
+// 如需使用华为安全函数，请加上 #include "securec.h"
+#include "diyiti.h"
+#include <math.h>
+#include <assert.h>
+
+/* leetcode 71. 简化路径：https://leetcode-cn.com/problems/simplify-path/
+ */
+
+// ---------------------------解法 ---------------------------------------------------
+# define MAXSTRINGLEN 3001
+
+bool IsMatch(char *path, int start, int end, char *style)
+{
+    for (int i = start, j = 0; i <= end; i++, j++) {
+        if (i == strlen(path)) { continue; }
+        if (path[i] != style[j]) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+
+char * simplifyPath(char * path)
+{
+    char *stack = (char*)malloc(sizeof(char) * MAXSTRINGLEN);
+    memset((void *)stack, 0, sizeof(char) * MAXSTRINGLEN);
+    int stackPointer = 0;
+
+    char currentFloder[]  = "/./";
+    char upFloder[]  = "/../";
+
+    int strLength = strlen(path);
+    int i = 0;
+    while (i < strLength) {
+        switch (path[i]) {
+            case '/':
+                while (path[i + 1] == '/') {
+                    i = i + 1;
+                }
+
+                if (path[i + 1] != '.') {
+                    stack[stackPointer] = '/';
+                    stackPointer++;
+                    i++;
+                    break;
+                }
+
+                if (IsMatch(path, i, i + 2, currentFloder)) {
+                    i = i + 2;
+                    break;
+                }
+
+                if (IsMatch(path, i, i + 3, upFloder)) {
+                    i = i + 3;
+                    while ((stackPointer > 0) && (stack[stackPointer - 1] != '/')){ 
+                        stack[stackPointer - 1] = 0;
+                        stackPointer--;
+                    }
+                    if ((stack[stackPointer - 1] == '/') && (stackPointer -1 >= 0)) {
+                        stack[stackPointer - 1] = 0;
+                        stackPointer--;
+                    }
+                    break;
+                }
+
+
+            default:
+                stack[stackPointer] = path[i];
+                stackPointer++;
+                i++;
+                break;
+        }
+    }
+
+    if (stackPointer == 0) {
+        stack[stackPointer] = '/';
+        stackPointer++;
+    } else if (stackPointer > 1) {
+        if (stack[stackPointer - 1] == '/') {
+            stack[stackPointer - 1] = 0;
+            stackPointer--;
+        }
+    }
+
+    return stack;
+}
+// ---------------------------解法 结束--------------------------------------------------------
+int main() {
+    char string_1[] = "/home/";
+    char* result_1 = simplifyPath(string_1);
+    printf("path = %s \n", result_1);    // "/home"
+
+    char string_2[] = "/../";
+    char* result_2 = simplifyPath(string_2);
+    printf("path = %s \n", result_2);    // "/"
+
+    char string_3[] = "/home//foo/";
+    char* result_3 = simplifyPath(string_3);
+    printf("path = %s \n", result_3);    // "/home/foo"
+
+    char string_4[] = "/a/./b/../../c/";
+    char* result_4 = simplifyPath(string_4);
+    printf("path = %s \n", result_4);    // "/c"
+
+    char string_5[] = "/a/../../b/../c//.//";
+    char* result_5 = simplifyPath(string_5);
+    printf("path = %s \n", result_5);    // "/c"
+
+    char string_6[] = "/a//b////c/d//././/..";
+    char* result_6 = simplifyPath(string_6);
+    printf("path = %s \n", result_6);   // "/a/b/c"
+
+    char string_7[] = "/.";
+    char* result_7 = simplifyPath(string_7);
+    printf("path = %s \n", result_7);   // "/"
+
+    return 0;
+}

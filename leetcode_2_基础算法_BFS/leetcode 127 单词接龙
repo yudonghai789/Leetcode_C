@@ -1,0 +1,91 @@
+/*
+ * Copyright (c) Huawei Technologies Co., Ltd. 2019-2020. All rights reserved.
+ */
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdbool.h>
+#include <uthash.h>
+// 如需使用华为安全函数，请加上 #include "securec.h"
+#include <math.h>
+#include <assert.h>
+
+/* leetcode 127. 单词接龙 https://leetcode-cn.com/problems/word-ladder/
+ * BFS 一维数组的BFS
+ */
+#define MAX_QUEUE_SIZE 100000
+
+/* 判断两个节点是否相连 */
+bool IsWordConted(char *a, char *b)
+{
+    int len = strlen(a); // 所有单词具有相同的长度, beginWord 和 endWord 是非空的
+    int cnt = 0;
+
+    for (int i = 0; i < len; i++) {
+        if (a[i] != b[i]) { cnt++; }
+        if (cnt > 1) { return false; }
+    }
+    return true;
+}
+
+int ladderLength(char *beginWord, char *endWord, char **wordList, int wordListSize)
+{
+    // 创建 BFS 队列
+    char *queue[MAX_QUEUE_SIZE] = {0}; // 这里是存储的是字符串地址，不是字符串内容。 队列可以用链表，也可以直接用数组
+    int start = 0;
+    int end = 0;
+
+    // 创建 BFS 备忘录，已经遍历过的节点就不再遍历
+    int dpFlag[wordListSize];
+    memset(dpFlag, 0, sizeof(int) * wordListSize);
+
+    int step = 1;
+    queue[end++] = beginWord;
+    while (start < end) {
+        int thisLoopNum = end - start; // 遍历当前变化次数相同的单词，查看当前的word变化情况，是否满足条件
+        for (int i = 0; i < thisLoopNum; i++) {
+            char *tem = queue[start + i];
+
+            // 判断是否满足条件
+            if (strcmp(tem, endWord) == 0) {
+                return step; // 广度优先搜索，出现该字符的变化一定是最小步骤变化而来，可以直接返回
+            }
+
+            // 不满足条件时 添加下一步需要遍历的节点到队列中
+            for (int j = 0; j < wordListSize; j++) {
+                // 当前word未访问过，同时tem和当前word能够通过一次字母变化变成相同的
+                if (dpFlag[j] == 0 && IsWordConted(tem, wordList[j]) == true) {
+                    queue[end++] = wordList[j];
+                    dpFlag[j] = 1;
+                }
+            }
+        }
+	
+	// 这一步的遍历结束
+        start += thisLoopNum; // 将遍历过的节点出队列
+        step++;
+    }
+
+    return 0;
+}
+// ---------------------------解法结束-------------------------------------------------
+
+
+int main()
+{
+    char *beginWord_1 = "hit";
+    char *endWord_1 = "cog";
+    char *wordList_1[] = {"hot","dot","dog","lot","log","cog"};
+    int wordListSize_1 = 6;
+	int result_1 = ladderLength(beginWord_1, endWord_1, wordList_1, wordListSize_1);
+    assert(result_1 == 5);
+
+    char *beginWord_2 = "hit";
+    char *endWord_2 = "cog";
+    char *wordList_2[] = {"hot","dot","dog","lot","log"};
+    int wordListSize_2 = 5;
+	int result_2 = ladderLength(beginWord_2, endWord_2, wordList_2, wordListSize_2);
+    assert(result_2 == 0);
+
+    return 0;
+}

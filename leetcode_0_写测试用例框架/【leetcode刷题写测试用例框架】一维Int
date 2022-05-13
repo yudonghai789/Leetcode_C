@@ -1,0 +1,153 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdbool.h>
+#include <math.h>
+#include <assert.h>
+
+
+/* 198. 打家劫舍
+ * 这就是一个01背包问题加上相邻不能取的限制,以及不限制数量
+ * 
+ */
+
+// ---------------------------解法一 开始---从下到上求解 dp数组-不需要递归----------------------------------------------------
+// int rob(int* nums, int numsSize){
+//     if ((nums == NULL) || (numsSize == 0)) {
+//         return 0;
+//     }
+
+//     int* mem = (int *)malloc(sizeof(int) * (numsSize + 1));
+//     for (size_t i = 0; i < (numsSize + 1); i++) {
+//         mem[i] = 0x5a5a5a5a;
+//     }
+
+//     mem[0] = 0;
+//     mem[1] = nums[0];
+
+//     for (size_t i = 1; i < numsSize; i++) {
+//         mem[i+1] = fmax(mem[i], mem[i-1] + nums[i]);
+//     }
+
+//     int result = mem[numsSize];
+//     free(mem);
+//     return result;
+// }
+// ---------------------------解法一 结束--------------------------------------------------------
+
+// ---------------------------解法一 开始---从下到上求解 dp数组---写法二---不需要递归-----------------------------------------------
+// int dp(int* mem, int* nums, int n) {
+//     // base case
+//     if (n == 0)  { return 0; }
+//     if (n == 1)  { return nums[0]; }
+
+//     if (mem[n] != 0x5a5a5a5a) {
+//         return mem[n];
+//     }
+
+//     for (size_t i = 1; i < n; i++) {
+//         mem[i+1] = fmax(mem[i], mem[i-1] + nums[start + i]);
+//     }
+
+//     return mem[n];
+// }
+
+// int rob(int* nums, int numsSize){
+//     if ((nums == NULL) || (numsSize == 0)) {
+//         return 0;
+//     }
+
+//     int* mem = (int *)malloc(sizeof(int) * (numsSize + 1));
+//     for (size_t i = 0; i < (numsSize + 1); i++) {
+//         mem[i] = 0x5a5a5a5a;
+//     }
+
+//     int result = dp(mem, nums, numsSize);
+//     free(mem);
+//     return result;
+// }
+// ---------------------------解法一 结束--------------------------------------------------------
+
+
+// ---------------------------解法二 开始---从上到下求解 dp数组-需要函数递归调用----------------------------------------------------
+// int dp(int* mem, int* nums, int n) {
+//     // base case
+//     if (n == 0)  { return 0; }
+//     if (n == 1)  { return nums[0]; }
+
+//     if (mem[n] != 0x5a5a5a5a) {
+//         return mem[n];
+//     }
+
+//     mem[n] = fmax(dp(mem, nums, n-1), dp(mem, nums, n-2) + nums[n-1]);
+
+//     return mem[n];
+// }
+
+
+// int rob(int* nums, int numsSize){
+//     if ((nums == NULL) || (numsSize == 0)) {
+//         return 0;
+//     }
+
+//     int* mem = (int *)malloc(sizeof(int) * (numsSize + 1));
+//     for (size_t i = 0; i < (numsSize + 1); i++) {
+//         mem[i] = 0x5a5a5a5a;
+//     }
+
+//     int result = dp(mem, nums, numsSize);
+//     free(mem);
+//     return result;
+// }
+// ---------------------------解法二 结束--------------------------------------------------------
+
+
+
+// ---------------------------解法三 开始---从上到下递归，不使用的dp备忘录数组--这种情况只能使用递归,让函数栈临时记录各节点的值,从上到下---------------------------------------------------
+int digui(int* nums, int numsSize) {
+    if (numsSize == 1) {
+       return nums[0]; 
+    }
+
+    if (numsSize == 2) {
+       return fmax(nums[0], nums[1]); 
+    }
+
+    return fmax(digui(nums,numsSize-2) + nums[numsSize-1], digui(nums, numsSize-1));
+}
+
+
+int rob(int* nums, int numsSize){
+    if ((nums == NULL) || (numsSize == 0)) {
+        return 0;
+    }
+
+    int result = digui(nums, numsSize);
+
+    return result;
+}
+// ---------------------------解法三 结束--------------------------------------------------------
+
+int main() {
+    int nums_1[] = {1,2,3,1};
+    int numsSize_1 = sizeof(nums_1)/sizeof(int);
+    int result = rob(nums_1, numsSize_1);
+    assert(result == 4);
+
+    int nums_2[] = {2,7,9,3,1};
+    int numsSize_2 = sizeof(nums_2)/sizeof(int);
+    int result2 = rob(nums_2, numsSize_2);
+    assert(result2 == 12);
+
+    int nums_3[] = {2,1,1,2};
+    int numsSize_3 = sizeof(nums_3)/sizeof(int);
+    int result3 = rob(nums_3, numsSize_3);
+    assert(result3 == 4);
+
+    return 0;
+}
+
+
+
+
+

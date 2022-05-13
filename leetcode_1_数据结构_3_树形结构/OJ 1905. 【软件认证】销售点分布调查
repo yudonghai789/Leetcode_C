@@ -1,0 +1,188 @@
+/******************************************************************************
+ * 版权所有 (c)
+ * 功能描述   : OJ 1905. 【软件认证】销售点分布调查. https://oj.rnd.huawei.com/problems/1904/details
+ * 作    者   :
+ * 生成日期   :
+
+ * 
+      --- 
+ ******************************************************************************/
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdbool.h>
+#include <uthash.h>
+#include <math.h>
+#include <limits.h>
+#include <assert.h>
+// 如需使用华为安全函数，请加上 #include "securec.h"
+#include "securec.h"
+// #include "vos_priorityqueue.h"
+
+
+
+
+
+/*
+题目描述
+终端部门按层级管理销售负责人，即：销售总裁直接对接公司分布在若干个国家的销售负责人，每个国家的销售负责人对接本国各大区负责人，大区负责人对接本区内各省负责人，各省负责人对接本省各市负责人等等…… 这里假设每个级别的负责人都仅向唯一的上级领导汇报。
+
+假设共有N（N<100）位销售负责人，每人有一个两位数的代号（从 01 到 N），销售总裁的代号为01。如下样例给出了一个23人销售负责人的层级结构图：
+
+
+给定销售负责人的层级关系数据，请统计指定负责人名下人数最多的层级是哪一层，该层有多少人？
+
+当有多个层级的人数相同时，选择最高的那个层级。
+所统计的层级是相对的，指定负责人的层级为 1，其下的层级逐层递增。
+解答要求
+时间限制：1000ms, 内存限制：256MB
+输入
+第一行一个整数 N 表示销售负责人总数，取值范围：[1,100)。
+第二行一个整数 M （0 <= M < N）表示有下属的负责人的人数。
+随后 M 行，每行给出一位负责人，格式为ID K ID[1] ID[2] ... ID[K]，其中 ID 是该负责人的代号，K (K > 0) 是其下属人数，后面给出的其下属们的代号。
+最后一行给出待统计的指定负责人的代号ID
+
+输出
+两个数字，依次表示指定负责人名下人数最多的层级，及该层级的人数。
+
+样例
+输入样例 1 复制
+
+23
+13
+21 1 23
+01 4 03 02 04 05
+03 3 06 07 08
+06 2 12 13
+13 1 21
+08 2 15 16
+02 2 09 10
+11 2 19 20
+17 1 22
+05 1 11
+07 1 14
+09 1 17
+10 1 18
+01
+输出样例 1
+
+[4 9]
+提示样例 1
+01号负责人，其名下人数最多的层级是第4层（01号自身算第1层，其名下的层级逐层递增），该层有9人；因此输出[4 9]
+
+补充说明：
+
+如果统计09号负责人：其名下所有层级的人数都是1人，取最高层级即自身层级 1，输出[1 1]。
+如果统计06号负责人：其名下第2层人数最多，有2人，输出[2 2]。
+如果统计20号负责人：其名下没有层级，取自身层级 1，人数 1，输出[1 1]。
+
+*/
+
+
+
+
+// ---------------------------解法 树的生成与层序遍历-----------------------------------------------------
+
+
+#define MAXP 106
+
+struct mp {
+    int subnum;
+    int sublist[MAXP];
+};
+
+#define MAX_SUB_NUM 100
+typedef struct TreeNode {
+    int index;
+    int subCnt;
+    struct TreeNode *sub[MAX_SUB_NUM];
+} TreeNode;
+
+int g_res[2];
+void Bfs(TreeNode *node, int *resLvel, int *resNum)
+{
+    TreeNode *queue[MAXP] = { 0 };
+    int queHead = 0;
+    int queTail = 0;
+
+    int tempLevel = 1;
+    int tempNum = INT_MIN;
+    queue[queHead++] = node;
+    while (queHead > queTail) {
+        int start = queTail;
+        int end = queHead;
+        tempNum = (queHead - queTail);
+        if (tempNum > (*resNum)) {
+            *resNum = tempNum;
+            *resLvel = tempLevel;
+        }
+
+        for (; start < end; start++) {
+            TreeNode *one = queue[start];
+            for (int i = 0; i < one->subCnt; i++) {
+                queue[queHead++] = one->sub[i];
+            }
+        }
+
+        queTail = start;
+        tempLevel++;
+    }
+}
+
+
+
+// 待实现函数，在此函数中填入答题代码
+int *PointSaleSurvey(int totalSales, struct mp *g_mp, int appointSale)
+{
+    TreeNode tree[MAXP] = { 0 };
+    for (int i = 1; i <= totalSales; i++) {
+        tree[i].index = i;
+        tree[i].subCnt = g_mp[i].subnum;
+        for (int j = 0; j < g_mp[i].subnum; j++) {
+            tree[i].sub[j] = &tree[g_mp[i].sublist[j]];
+        }
+    }
+
+    g_res[0] = 0;
+    g_res[1] = 0;
+    Bfs(&tree[appointSale], &g_res[0], &g_res[1]);
+    return g_res;
+}
+
+int main(void)
+{
+    int totalSales, supNum;
+    if (scanf_s("%d %d", &totalSales, &supNum) != 2) {
+        return -1;
+    }
+
+    int sup, sub;
+    int subCnt;
+    struct mp g_mp[MAXP];
+    for (int i = 0; i < supNum; i++) {
+        if (scanf_s("%d %d", &sup, &subCnt) != 2) {
+            return -1;
+        }
+        for (int j = 0; j < subCnt; j++) {
+            if (scanf_s("%d", &sub) != 1) {
+                return -1;
+            }
+            g_mp[sup].sublist[j] = sub;
+        }
+        g_mp[sup].subnum = subCnt;
+    }
+
+    int qid;
+    if (scanf_s("%d", &qid) != 1) {
+        return -1;
+    }
+
+    int *output = PointSaleSurvey(totalSales, g_mp, qid);
+    printf("[%d %d]", output[0], output[1]);
+
+    return 0;
+}
+
+
+// ---------------------------解法 结束---------------------------------------------------------------------
+

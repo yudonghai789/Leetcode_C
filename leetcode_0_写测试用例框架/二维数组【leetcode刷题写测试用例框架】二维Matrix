@@ -1,0 +1,274 @@
+/******************************************************************************
+ * 版权所有 (c)
+ * 功能描述   : leetcode 329. 矩阵中的最长递增路径  https://leetcode-cn.com/problems/longest-increasing-path-in-a-matrix/
+ * 作    者   :
+ * 生成日期   :
+ * 从前往后递归不能使用备忘录，因为前面的结果先计算，后面的结果后计算，但是前面的结果是依赖后面数据，所以不能使用备忘录
+ * 递推只能是后面根据前面的结果递推
+ ******************************************************************************/
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdbool.h>
+#include <uthash.h>
+#include <math.h>
+#include <assert.h>
+// 如需使用华为安全函数，请加上 #include "securec.h"
+// #include "securec.h"
+
+
+
+
+
+// ---------------------------解法 开始-----BFS 递归模板: -----------------------------------------------------
+
+// ---------------------------解法 结束-------------------------------------------------------------
+
+
+
+// ---------------------------解法 开始-----BFS 迭代模板: -----------------------------------------------------
+
+// ---------------------------解法 结束-------------------------------------------------------------
+
+
+
+
+
+// ---------------------------解法 开始-----DFS 递归模板: -----------------------------------------------------
+#define MAX_ARRAY_LEN 201
+
+int g_memTable[MAX_ARRAY_LEN][MAX_ARRAY_LEN];
+
+int DfsRecursive(int** matrix, int matrixSize, int* matrixColSize, int low, int col)
+{
+    // if ((low < 0) || (low >= matrixSize) || (col < 0) || (col >= matrixColSize[0])) {
+    //     return 0;
+    // }
+
+    if (g_memTable[low][col] != 0xf0f0f0f0) {
+        return g_memTable[low][col];
+    }
+
+    g_memTable[low][col] = 1;
+    if ((low + 1 < matrixSize) && (matrix[low + 1][col] > matrix[low][col])) {
+        g_memTable[low][col] = fmax(g_memTable[low][col], 1 + DfsRecursive(matrix, matrixSize, matrixColSize, low + 1, col));
+    }
+    if ((low - 1 >= 0) && (matrix[low - 1][col] > matrix[low][col])) {
+        g_memTable[low][col] = fmax(g_memTable[low][col], 1 + DfsRecursive(matrix, matrixSize, matrixColSize, low - 1, col));
+    }
+    if ((col + 1 < matrixColSize[0]) && (matrix[low][col + 1] > matrix[low][col])) {
+        g_memTable[low][col] = fmax(g_memTable[low][col], 1 + DfsRecursive(matrix, matrixSize, matrixColSize, low, col + 1));
+    }
+    if ((col - 1 >= 0) && (matrix[low][col - 1] > matrix[low][col])) {
+        g_memTable[low][col] = fmax(g_memTable[low][col], 1 + DfsRecursive(matrix, matrixSize, matrixColSize, low, col - 1));
+    }
+    
+    return g_memTable[low][col];
+}
+
+int longestIncreasingPath(int** matrix, int matrixSize, int* matrixColSize)
+{
+    memset(g_memTable, 0xf0, sizeof(g_memTable));
+
+    int res = INT_MIN;
+    for (int i = 0; i < matrixSize; i++) {
+        for (int j = 0; j < matrixColSize[i]; j++) {
+            res = fmax(res, DfsRecursive(matrix, matrixSize, matrixColSize, i, j));
+        }
+    }
+
+    return res;
+}
+// ---------------------------解法 结束-------------------------------------------------------------
+
+
+// ---------------------------解法 开始-----DFS 迭代模板: -----迭代的写法十分复杂，维护队列，栈十分困难--未完成----------------------------------------------
+// #define MAX_ARRAY_LEN 201
+// int g_memTable[MAX_ARRAY_LEN][MAX_ARRAY_LEN];
+
+// typedef enum Satus {
+//     INIT = 0x3f3f3f3f,
+//     IN_STACK = 1,
+//     CALCATED = 0x5a5a5a5a
+// } Satus;
+// int g_visitTable[MAX_ARRAY_LEN][MAX_ARRAY_LEN];
+
+// typedef struct Position {
+//     int low;
+//     int col;
+// } Position;
+// typedef struct StackPosition {
+//     int top;
+//     Position stack[MAX_ARRAY_LEN * MAX_ARRAY_LEN];
+// } StackPosition;
+
+// void StackPush(StackPosition* stack, int low, int col)
+// {
+//     stack->stack[++stack->top].low = low;
+//     stack->stack[stack->top].col = col;
+// }
+
+// Position StackPop(StackPosition* stack)
+// {
+//     Position topElem = { 0 };
+//     if (stack->top == -1) {
+//         printf("空栈");
+//         return topElem;
+//     }
+//     printf("弹栈元素：{ %d, %d }\n",stack->stack[stack->top].low, stack->stack[stack->top].col);
+//     topElem = stack->stack[stack->top];
+//     stack->top--;
+//     return topElem;
+// }
+
+// Position StackPeek(StackPosition* stack)
+// {
+//     Position topElem = { 0 };
+//     if (stack->top == -1) {
+//         printf("空栈");
+//         return topElem;
+//     }
+//     printf("弹栈元素：{ %d, %d }\n",stack->stack[stack->top].low, stack->stack[stack->top].col);
+//     topElem = stack->stack[stack->top];
+//     return topElem;
+// }
+
+
+// int DfsIter(int** matrix, int matrixSize, int* matrixColSize, StackPosition* stack, int low, int col)
+// {
+//     StackPush(stack, low, col);
+//     g_visitTable[low][col] = IN_STACK;
+
+//     int res = INT_MIN;
+
+//     while (stack->top != -1) {
+//         Position thi = StackPeek(stack);
+//         int low = thi.low;
+//         int col = thi.col;
+
+//         if (g_visitTable[low][col] == CALCATED) {
+//             return g_memTable[low][col];
+//         }
+
+//         if ((low + 1 < matrixSize) && (matrix[low + 1][col] > matrix[low][col]) && (g_visitTable[low + 1][col] == 0x3f3f3f3f)) {
+//             g_visitTable[low + 1][col] = IN_STACK;
+//             StackPush(stack, low + 1, col);
+//         }
+//         if ((low - 1 >= 0) && (matrix[low - 1][col] > matrix[low][col]) && (g_visitTable[low - 1][col] == 0x3f3f3f3f)) {
+//             g_visitTable[low - 1][col] = IN_STACK;
+//             StackPush(stack, low - 1, col);
+//         }
+//         if ((col + 1 < matrixColSize[0]) && (matrix[low][col + 1] > matrix[low][col]) && (g_visitTable[low][col + 1] == 0x3f3f3f3f)) {
+//             g_visitTable[low][col + 1] = IN_STACK;
+//             StackPush(stack, low, col + 1);
+//         }
+//         if ((col - 1 >= 0) && (matrix[low][col - 1] > matrix[low][col]) && (g_visitTable[low][col - 1] == 0x3f3f3f3f)) {
+//             g_visitTable[low][col - 1] = IN_STACK;
+//             StackPush(stack, low, col - 1);
+//         }
+
+//     }
+        
+//     return res;
+// }
+
+// int longestIncreasingPath(int** matrix, int matrixSize, int* matrixColSize)
+// {
+//     memset(g_memTable, 0x3f, sizeof(g_memTable));
+//     memset(g_visitTable, 0x3f, sizeof(g_visitTable));
+
+//     int res = INT_MIN;
+//     for (int i = 0; i < matrixSize; i++) {
+//         for (int j = 0; j < matrixColSize[i]; j++) {
+//             StackPosition stack = { 0 };
+//             stack.top = -1;
+//             res = fmax(res, DfsIter(matrix, matrixSize, matrixColSize, &stack, i, j));
+//         }
+//     }
+
+//     return res;
+// }
+// ---------------------------解法 结束-------------------------------------------------------------
+
+
+
+// ---------------------------解法 开始-----动态规划 ------动态规划就是一步一步转化状态，状态就是递归过程中会重复出现的递归过程--------关键是，计算当前节点的时候要先把相邻的比它大的节点先计算出来----------------------------------------------
+
+// ---------------------------解法 结束-------------------------------------------------------------
+
+
+#define MAX_LEN 201
+
+typedef struct Matrix {
+    int matrixSize;
+    int matrixColSize[MAX_LEN];
+    int matrix[MAX_LEN][MAX_LEN];
+    int* matrixPoin[MAX_LEN];
+} Matrix;
+
+void printfMatrix(int a[][MAX_LEN], int n, int m)
+{
+    for (int i  = 0; i < n; i++) {
+        for (int j  = 0; j < m; j++) {
+            printf("%-10d", a[i][j]);
+        }
+        printf("\n");
+    }
+    printf("\n");
+}
+
+int main()
+{
+    Matrix matrix_1 = {
+        3,
+        { 3, 3, 3 },
+        {
+            { 9, 9, 4 },
+            { 6, 6, 8 },
+            { 2, 1, 1 },
+        }
+    };
+    for (int i = 0; i < matrix_1.matrixSize; i++) {
+        matrix_1.matrixPoin[i] = &matrix_1.matrix[i][0];
+    }
+    printfMatrix(matrix_1.matrix, matrix_1.matrixSize, matrix_1.matrixColSize[0]);
+    int res_1 = longestIncreasingPath(matrix_1.matrixPoin, matrix_1.matrixSize, matrix_1.matrixColSize);
+    assert(res_1 == 4);
+
+
+
+    Matrix matrix_2 = {
+        3,
+        { 3, 3, 3 },
+        {
+            { 3, 4, 5 },
+            { 3, 2, 6 },
+            { 2, 2, 1 },
+        }
+    };
+    for (int i = 0; i < matrix_2.matrixSize; i++) {
+        matrix_2.matrixPoin[i] = &matrix_2.matrix[i][0];
+    }
+    printfMatrix(matrix_2.matrix, matrix_2.matrixSize, matrix_2.matrixColSize[0]);
+    int res_2 = longestIncreasingPath(matrix_2.matrixPoin, matrix_2.matrixSize, matrix_2.matrixColSize);
+    assert(res_2 == 4);
+
+
+
+    Matrix matrix_3 = {
+        1,
+        { 1 },
+        {
+            { 1 },
+        }
+    };
+    for (int i = 0; i < matrix_3.matrixSize; i++) {
+        matrix_3.matrixPoin[i] = &matrix_3.matrix[i][0];
+    }
+    printfMatrix(matrix_3.matrix, matrix_3.matrixSize, matrix_3.matrixColSize[0]);
+    int res_3 = longestIncreasingPath(matrix_3.matrixPoin, matrix_3.matrixSize, matrix_3.matrixColSize);
+    assert(res_3 == 1);
+
+
+    return 0;
+}

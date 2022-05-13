@@ -1,0 +1,50 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdbool.h>
+#include <string.h>
+#include <math.h>
+#include <assert.h>
+
+
+
+/* 1247. 交换字符使得字符串相同
+ * 遍历统计 + 贪心算法问题
+ * 1.先分析归纳：
+     不论两行之间的差别。1）如果 x-y x-y 或者 y - x  y - x,则这两行的可以通过交换一次；2）如果是x-y y-x,则需要交换两次。
+     将所有有差别的行统计出来。先通过这种第一种方式交换，再使用第二种方式交换。
+ */
+
+
+int minimumSwap(char * s1, char * s2) {
+    // 先统计我们需要的
+    int xyCount = 0, yxCount = 0;
+    for (size_t i = 0; i < strlen(s1); i++) {
+        if ((s1[i] == 'x') && (s2[i]) == 'y') {
+            xyCount = xyCount + 1;
+        }
+        if ((s1[i] == 'y') && (s2[i]) == 'x') {
+            yxCount = yxCount + 1;
+        }
+    }
+
+    // 根据统计结果的分为返回结果
+    int result = 0;
+    if ((xyCount + yxCount) % 2 == 1) {
+        result = -1;
+    } else {
+        // 贪心算法
+        int case1 = (int)(xyCount / 2) + (int)(yxCount / 2);
+        int case2 = xyCount % 2;
+        result = case1 + case2 * 2;
+    }
+    return result;
+}
+
+
+int main() {
+    char s1[11] = "xxyyxyxyxx";
+    char s2[11] = "xyyxyxxxyx";
+
+    int result = minimumSwap(s1, s2);
+}
+

@@ -1,0 +1,138 @@
+/******************************************************************************
+ * 版权所有 (c)
+ * 功能描述   : leetcode 370. 区间加法. https://leetcode-cn.com/problems/range-sum-query-immutable/
+ * 作    者   :
+ * 生成日期   :
+
+ * 
+      --- 
+ ******************************************************************************/
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdbool.h>
+#include <uthash.h>
+#include <math.h>
+#include <assert.h>
+// 如需使用华为安全函数，请加上 #include "securec.h"
+#include "securec.h"
+// #include "vos_priorityqueue.h"
+
+
+
+
+
+/*
+
+*/
+
+
+
+
+
+// ---------------------------解法 开始-----暴力遍历: -----------------------------------------------------
+// typedef struct UpdateInfo {
+//     int startIndex;
+//     int endIndex;
+//     int Add;
+// } UpdateInfo;
+
+// void UpdateArray(int *array, int arrayLen, UpdateInfo *updateInfo)
+// {
+//     for (int i = updateInfo->startIndex; i <= updateInfo->endIndex; i++) {
+//         array[i] += updateInfo->Add;
+//     }
+// }
+
+// int *GetModiFiedArray(int length, int **updates, int updateSize, int *updateColSize)
+// {
+//     int *res = (int *)malloc(sizeof(int) * length);
+//     memset(res, 0, sizeof(int) * length);
+//     for (int i = 0; i < updateSize; i++) {
+//         UpdateInfo updateInfo = { updates[i][0], updates[i][1], updates[i][2] };
+//         UpdateArray(res, length, &updateInfo);
+//     }
+
+//     return res;
+// }
+
+// ---------------------------解法 结束---------------------------------------------------------------------
+
+
+
+
+
+
+// ---------------------------解法 开始-----差分技巧 -----------------------------------------------------
+typedef struct UpdateInfo {
+    int startIndex;
+    int endIndex;
+    int Add;
+} UpdateInfo;
+
+typedef struct DiffArray {
+    int *diff;
+    int size;
+} DiffArray;
+
+DiffArray *DiffArrInit(int *array, int arrayLen)
+{
+    DiffArray *diffArr = (DiffArray *)malloc(sizeof(DiffArray));
+    diffArr->diff = (int *)malloc(sizeof(int) * (arrayLen + 1 ));  // 多出的一个在尾部，是无效的
+    diffArr->diff[0] = array[0];
+    for (int i = 1; i < arrayLen; i++) {
+        diffArr->diff[i] = array[i] - array[i - 1];
+    }
+
+    return diffArr;
+}
+
+void DiffArrDestory(DiffArray *diffArr)
+{
+    free(diffArr->diff);
+    free(diffArr);
+}
+
+void DiffArrUpdate(DiffArray *diffArr, UpdateInfo *updateInfo)
+{
+    diffArr->diff[updateInfo->startIndex] += updateInfo->Add;
+    diffArr->diff[updateInfo->endIndex + 1] -= updateInfo->Add;
+}
+
+void DiffArrReArray(DiffArray *diffArr, int *array, int length)
+{
+    array[0] = diffArr->diff[0];
+    for (int i = 1; i < length; i++) {
+        array[i] += array[i - 1] + diffArr->diff[i];
+    }
+}
+
+
+int* corpFlightBookings(int** bookings, int bookingsSize, int* bookingsColSize, int n, int* returnSize)
+{
+    int *res = (int *)malloc(sizeof(int) * n);
+    memset(res, 0, sizeof(int) * n);
+
+    DiffArray *diffArr = DiffArrInit(res, n);
+    for (int i = 0; i < bookingsSize; i++) {
+        UpdateInfo updateInfo = { bookings[i][0] - 1, bookings[i][1] - 1, bookings[i][2] };
+        DiffArrUpdate(diffArr, &updateInfo);
+    }
+    DiffArrReArray(diffArr, res, n);
+    *returnSize = n;
+
+    DiffArrDestory(diffArr);
+    return res;
+}
+// ---------------------------解法 结束---------------------------------------------------------------------
+
+
+
+
+
+/* 代码仅供参考，注意避免圈复杂度过大 */
+int main(void)
+{
+
+    return 0;
+}

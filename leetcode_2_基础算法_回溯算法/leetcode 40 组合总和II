@@ -1,0 +1,198 @@
+/*
+ * Copyright (c) Huawei Technologies Co., Ltd. 2019-2020. All rights reserved.
+ */
+#define _CRTDBG_MAP_ALLOC
+#include <stdlib.h>
+#include <crtdbg.h>
+#include <stdio.h>
+#include <string.h>
+#include <stdbool.h>
+#include <uthash.h>
+// 如需使用华为安全函数，请加上 #include "securec.h"
+#include "systemDesgin.h"
+#include <math.h>
+#include <assert.h>
+
+/*
+ * leetcode 40. 组合总和 II https://leetcode-cn.com/problems/combination-sum-ii/
+ * 回溯算法 + 剪枝
+ * 
+ */
+
+// ---------------------------解法一 开始--------------------------------------------------------
+#define MAX_RESULT_SIZE 1000
+#define MAX_RESULT_ITEM_LEN 30
+#define MAX_INPUT_ARRAY_LEN 100
+
+typedef enum Status {
+    INIT = 0,
+    REMOVE = INIT,
+    USING = 0x5a5a
+} Status;
+
+typedef struct BackTracePointer {
+    int sum;
+    int item[MAX_RESULT_ITEM_LEN];
+    int len;
+
+    Status usedFlag[MAX_INPUT_ARRAY_LEN];
+} BackTracePointer;
+
+int CompareInt(const void *IntA, const void *IntB)
+{
+    return (*(int*)IntA - *(int*)IntB);
+}
+
+void BackTrace(int* candidates, int candidatesSize, int target, int index, BackTracePointer *backTracePointer, int* returnSize, int** returnColumnSizes, int **result)
+{
+    if (backTracePointer->sum == target) {
+        (*returnColumnSizes)[(*returnSize)] = backTracePointer->len;
+        result[(*returnSize)] = (int *)malloc(sizeof(int) * backTracePointer->len);
+        memcpy(&result[(*returnSize)][0], &backTracePointer->item[0], sizeof(int) * backTracePointer->len);
+        (*returnSize)++;
+        if ((*returnSize) >= MAX_RESULT_SIZE) { 
+            printf("error 54 \n");
+        }
+        return;
+    }
+
+    for (int i = index; i < candidatesSize; i++) {
+        if ((i >= MAX_INPUT_ARRAY_LEN) || (i < 0)) { 
+            printf("error 59 \n");
+        }
+        if (backTracePointer->sum + candidates[i] > target) {
+            return;
+        }
+
+        if (backTracePointer->usedFlag[i] == USING) {
+            continue;
+        }
+
+        if ((i > index) && (candidates[i] == candidates[i - 1]) && (backTracePointer->usedFlag[i - 1] == REMOVE)){
+            continue;
+        }
+
+        backTracePointer->usedFlag[i] = USING;
+        backTracePointer->sum += candidates[i];
+        if ((backTracePointer->len >= MAX_RESULT_ITEM_LEN) || (backTracePointer->len < 0)) { 
+            printf("error 79 \n"); 
+        }
+        backTracePointer->item[backTracePointer->len] = candidates[i];
+        backTracePointer->len++;
+        BackTrace(candidates, candidatesSize, target, i, backTracePointer, returnSize, returnColumnSizes, result);
+        if ((i >= MAX_INPUT_ARRAY_LEN) || (i < 0)) { 
+            printf("error 78 \n"); 
+        }
+
+        backTracePointer->usedFlag[i] = REMOVE;
+        backTracePointer->sum -= candidates[i];
+        backTracePointer->len--;
+        if ((backTracePointer->len >= MAX_RESULT_ITEM_LEN) || (backTracePointer->len < 0)) { 
+            printf("error 83 \n"); 
+        }
+        backTracePointer->item[backTracePointer->len] = 0;
+    }
+}
+
+int** combinationSum2(int* candidates, int candidatesSize, int target, int* returnSize, int** returnColumnSizes)
+{
+    // 基本校验
+    
+    BackTracePointer backTracePointer = { 0 };
+    (*returnSize) = 0;
+    int **result = (int **)malloc(sizeof(int*) * MAX_RESULT_SIZE);
+    memset(result, 0, sizeof(int*) * MAX_RESULT_SIZE);
+
+    (*returnColumnSizes) = (int *)malloc(sizeof(int) * MAX_RESULT_SIZE);
+    memset((*returnColumnSizes), 0, sizeof(int) * MAX_RESULT_SIZE);
+
+    qsort(candidates, candidatesSize, sizeof(int), CompareInt);
+
+    BackTrace(candidates, candidatesSize, target, 0, &backTracePointer, returnSize, returnColumnSizes, result);
+    return result;
+}
+
+
+
+
+// ---------------------------解法一 结束--------------------------------------------------------
+int main() {
+    // _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
+
+
+    // int candidates_1[] = { 10, 1, 2, 7, 6, 1, 5 };
+    // int candidatesSize_1 = sizeof(candidates_1) / sizeof(candidates_1[0]);
+    // int returnSize_1 = 44554;
+    // int* returnColumnSizes_1 = NULL;
+    // int target_1 = 8;
+    // int** result_1 = combinationSum2(candidates_1, candidatesSize_1, target_1, &returnSize_1, &returnColumnSizes_1);
+    // for (int i = 0; i < returnSize_1; i++) {
+    //     for (int j = 0; j < returnColumnSizes_1[i]; j++) {
+    //         printf("%d", result_1[i][j]);
+    //     }
+    //     printf("\n");
+    // }
+    // printf("\n");
+    // for (size_t i = 0; i < returnSize_1; i++) { free(result_1[i]);}
+    // free(result_1);
+    // free(returnColumnSizes_1);
+    
+
+    // int candidates_2[] = { 2, 5, 2, 1, 2 };
+    // int candidatesSize_2 = sizeof(candidates_2) / sizeof(candidates_2[0]);
+    // int returnSize_2 = 44554;
+    // int* returnColumnSizes_2 = NULL;
+    // int target_2 = 5;
+    // int** result_2 = combinationSum2(candidates_2, candidatesSize_2, target_2, &returnSize_2, &returnColumnSizes_2);
+    // for (int i = 0; i < returnSize_2; i++) {
+    //     for (int j = 0; j < returnColumnSizes_2[i]; j++) {
+    //         printf("%d", result_2[i][j]);
+    //     }
+    //     printf("\n");
+    // }
+    // printf("\n");
+    // for (size_t i = 0; i < returnSize_2; i++) { free(result_2[i]);}
+    // free(result_2);
+    // free(returnColumnSizes_2);
+
+
+    // int candidates_3[] = { 14,6,25,9,30,20,33,34,28,30,16,12,31,9,9,12,34,16,25,32,8,7,30,12,33,20,21,29,24,17,27,34,11,17,30,6,32,21,27,17,16,8,24,12,12,28,11,33,10,32,22,13,34,18,12 };
+    // int candidatesSize_3 = sizeof(candidates_3) / sizeof(candidates_3[0]);
+    // int returnSize_3 = 44554;
+    // int* returnColumnSizes_3 = NULL;
+    // int target_3 = 27;
+    // int** result_3 = combinationSum2(candidates_3, candidatesSize_3, target_3, &returnSize_3, &returnColumnSizes_3);
+    // for (int i = 0; i < returnSize_3; i++) {
+    //     for (int j = 0; j < returnColumnSizes_3[i]; j++) {
+    //         printf("%d", result_3[i][j]);
+    //     }
+    //     printf("\n");
+    // }
+    // printf("\n");
+    // for (size_t i = 0; i < returnSize_3; i++) { free(result_3[i]);}
+    // free(result_3);
+    // free(returnColumnSizes_3);
+
+
+
+    int candidates_4[] = { 14,18,19,30,6,5,14,23,28,18,26,21,12,15,29,18,32,23,6,21,19,30,6,28,17,13,29,28,10,34,26,11,10,32,7,11,32,8,21,18,22,5,34,21,7,20,26,5,9,28,21,23,23,15,8,27,23,32,12,20,31,33,27,28,30,21,34,19 };
+    int candidatesSize_4 = sizeof(candidates_4) / sizeof(candidates_4[0]);
+    int returnSize_4 = 44554;
+    int* returnColumnSizes_4 = NULL;
+    int target_4 = 29;
+    int** result_4 = combinationSum2(candidates_4, candidatesSize_4, target_4, &returnSize_4, &returnColumnSizes_4);
+    for (int i = 0; i < returnSize_4; i++) {
+        for (int j = 0; j < returnColumnSizes_4[i]; j++) {
+            printf("%d", result_4[i][j]);
+        }
+        printf("\n");
+    }
+    printf("\n");
+    for (size_t i = 0; i < returnSize_4; i++) { free(result_4[i]);}
+    free(result_4);
+    free(returnColumnSizes_4);
+
+
+
+    return 0;
+}

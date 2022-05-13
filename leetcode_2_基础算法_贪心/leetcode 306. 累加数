@@ -1,0 +1,300 @@
+/******************************************************************************
+ * 版权所有 (c)
+ * 功能描述   : leetcode 306. 累加数   https://leetcode-cn.com/problems/largest-number/
+ * 作    者   :
+ * 生成日期   :
+
+ *  
+      --- 
+ ******************************************************************************/
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdbool.h>
+#include <uthash.h>
+#include <math.h>
+#include <assert.h>
+// 如需使用华为安全函数，请加上 #include "securec.h"
+// #include "securec.h"
+
+
+
+
+
+/*
+306. 累加数
+累加数 是一个字符串，组成它的数字可以形成累加序列。
+
+一个有效的 累加序列 必须 至少 包含 3 个数。除了最开始的两个数以外，序列中的每个后续数字必须是它之前两个数字之和。
+
+给你一个只包含数字 '0'-'9' 的字符串，编写一个算法来判断给定输入是否是 累加数 。如果是，返回 true ；否则，返回 false 。
+
+说明：累加序列里的数，除数字 0 之外，不会 以 0 开头，所以不会出现 1, 2, 03 或者 1, 02, 3 的情况。
+
+ 
+
+示例 1：
+
+输入："112358"
+输出：true 
+解释：累加序列为: 1, 1, 2, 3, 5, 8 。1 + 1 = 2, 1 + 2 = 3, 2 + 3 = 5, 3 + 5 = 8
+示例 2：
+
+输入："199100199"
+输出：true 
+解释：累加序列为: 1, 99, 100, 199。1 + 99 = 100, 99 + 100 = 199
+ 
+
+提示：
+
+1 <= num.length <= 35
+num 仅由数字（0 - 9）组成
+*/
+
+
+
+
+
+// ---------------------------解法 开始-----暴力遍历: -----------------------------------------------------
+
+// ---------------------------解法 结束---------------------------------------------------------------------
+
+
+
+
+
+
+
+// ---------------------------解法 开始-----BFS 递归模板: -----------------------------------------------------
+
+// ---------------------------解法 结束---------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+// ---------------------------解法 开始-----BFS 迭代模板: -----------------------------------------------------
+
+// ---------------------------解法 结束-----------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+// ---------------------------解法 开始-----DFS 递归模板: --------------结果不能重复的问题--------------------------------------
+
+// ---------------------------解法 结束----------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+// ---------------------------解法 开始-----DFS 迭代模板: --------------------------------------------------
+
+// ---------------------------解法 结束----------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+// ---------------------------解法 开始-----动态规划 记忆化搜索: ----memTable一定要注意表达 可以表达唯一结果的递归路径,维度不够时，不同结果的的递归路径被误当做相同的路径，维度太多时，剪枝效果不大------------------
+
+// ---------------------------解法 结束----------------------------------------------------------------------
+
+
+
+
+
+
+
+// ---------------------------解法 开始-----动态规划 按顺序递推-----------------------------------------------------
+
+// ---------------------------解法 结束--------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+// ---------------------------解法 开始-----贪心 ---------------------这个解答是错误的   3,30,34,5,9 --9534330 在 34 与3之间选择错了--------------------------------------
+#define MAX_STRING_LEN 11
+#define MAX_ARRAY_LEN 101
+#define MAX_RES_LEN MAX_STRING_LEN * MAX_ARRAY_LEN
+
+
+void MyItoa(unsigned long long inter, char string[])
+{
+    char temp[35] = { 0 };
+    temp[0] = inter % 10 + '0';
+    int weiSu = 1;
+    while (inter / 10) {
+        inter = inter / 10;
+        temp[weiSu++] = inter % 10 + '0';
+    }
+
+    int i = 0;
+    while (weiSu > 0) {
+        string[i++] = temp[--weiSu];
+    }
+}
+
+unsigned long long MyAtoI(char string[])
+{
+    int len = strlen(string);
+
+    unsigned long long res = 0;
+    for (int i = 0; i < len; i++) {
+        res = res * 10 + (string[i] - '0');
+    }
+
+    return res;
+}
+
+typedef struct ValArray {
+    int start;
+    int end;
+    unsigned long long val;
+} ValArray;
+
+bool Dfs(char *num, int len, int num1Index, int num2Index, ValArray* arr)
+{
+    int num3Index = num2Index + 1;
+    arr[num3Index].val = arr[num1Index].val + arr[num2Index].val;
+    char temp3[35] = { 0 };
+    MyItoa(arr[num3Index].val, temp3);
+
+    int num3len = strlen(temp3);
+    arr[num3Index].start =  arr[num2Index].end + 1;
+    arr[num3Index].end =  arr[num3Index].start + num3len - 1;
+
+    for (int i = 0; i < 3; i++) {
+        if ((arr[num1Index + i].end - arr[num1Index + i].start > 0) && (num[arr[num1Index + i].start] == '0')) {
+            return false;
+        }
+    }
+
+    for (int i = 0; i < num3len; i++) {
+        int compareIndex = i + arr[num3Index].start;
+        if ((compareIndex >= len) || (num[compareIndex] != temp3[i]) ) {
+            return false;
+        }
+    }
+
+    if (arr[num3Index].end == len - 1) {
+        return true;
+    }
+
+    return Dfs(num, len, num2Index, num3Index, arr);
+}
+
+bool JudgeIsValid(char *num, int len, int Num1Start, int Num1End, int Num2Start, int Num2End)
+{
+    ValArray arr[35] = { 0 };
+
+    char temp1[36] = { 0 };
+    int index1 = 0;
+    for (int i = Num1Start; i <= Num1End; i++) {
+        temp1[index1++] = num[i];
+    }
+    unsigned long long num1 = MyAtoI(temp1);
+    arr[0].start = Num1Start;
+    arr[0].end = Num1End;
+    arr[0].val = num1;
+
+    char temp2[36] = { 0 };
+    int index2 = 0;
+    for (int i = Num2Start; i <= Num2End; i++) {
+        temp2[index2++] = num[i];
+    }
+    unsigned long long num2 = MyAtoI(temp2);
+    arr[1].start = Num2Start;
+    arr[1].end = Num2End;
+    arr[1].val = num2;
+
+    return Dfs(num, len, 0, 1, arr);
+}
+
+bool isAdditiveNumber(char *num)
+{
+    int len = strlen(num);
+
+    int Num1Start = 0;
+    int Num1End = 0;
+
+    int Num2Start = 0;
+    int Num2End = 0;
+    for (Num1End = 0; Num1End < (len - 1) / 2 + 1; Num1End++) {
+        Num2Start = Num1End + 1;
+        for (Num2End = Num2Start; Num2End - Num2Start + 1< (len - 1) / 2 + 1; Num2End++) {
+            if (JudgeIsValid(num, len, Num1Start, Num1End, Num2Start, Num2End) == true) {
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+// ---------------------------解法 结束-----------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+int main(int argc, const char *argv[])
+{
+    char nums_1[] = "112358";
+    bool res_1 = isAdditiveNumber(nums_1);
+    assert(res_1 == true);
+
+
+
+
+    char nums_2[] = "199100199";
+    bool res_2 = isAdditiveNumber(nums_2);
+    assert(res_2 == true);
+
+
+
+
+
+    char nums_3[] = "11111111111011111111111";
+    bool res_3 = isAdditiveNumber(nums_3);
+    assert(res_3 == true);
+
+
+    return 0;
+}

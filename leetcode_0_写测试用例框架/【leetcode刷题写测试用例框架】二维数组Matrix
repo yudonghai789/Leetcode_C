@@ -1,0 +1,134 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdbool.h>
+#include <uthash.h>
+// 如需使用华为安全函数，请加上 #include "securec.h"
+#include "securec.h"
+#include <math.h>
+#include <assert.h>
+
+
+/*
+ * 二维int数组结构体IntMatrix定义：
+ * 数据内容保存在 data 中，data是长度为size的数组指针的数组，
+ * 其中每个元素（也是一个数组）的长度存在 colSize 数组中，colSize数组的长度也为size。
+ * typedef struct {
+ *     int size;
+ *     int *colSize;
+ *     int **data;
+ * } IntMatrix;
+ */
+ typedef struct {
+     int size;
+     int *colSize;
+     int **data;
+ } IntMatrix;
+
+
+const int MAX_ROW_SIZE = 200;
+const int MAX_COL_SIZE = 200;
+
+const int INT0 = 0;
+const int INT1 = 1;
+const int INT2 = 2;
+const int INT3 = 3;
+
+typedef struct Position {
+    int rowIndex;
+    int colIndex;
+} Position;
+
+int GetPaintedLineNum(int rows, int cols, IntMatrix *lines, IntMatrix *positions)
+{
+    if ((rows == 0) || (cols == 0)) { return 0; }
+
+    bool perMatrixStatus[MAX_ROW_SIZE][MAX_COL_SIZE];
+    memset_s(perMatrixStatus, sizeof(perMatrixStatus), 0, sizeof(perMatrixStatus));
+    for (int i = 0; i < positions->size; i++) {
+        perMatrixStatus[(positions->data[i][0])][(positions->data[i][1])] = true;
+    }
+
+    int resultCount = 0;
+    for (int i = 0; i < lines->size; i++) {
+        int *lineData = lines->data[i];
+        Position first = { lineData[INT0], lineData[INT1] };
+        Position last = { lineData[INT2], lineData[INT3] };
+        if (perMatrixStatus[first.rowIndex][first.colIndex] == false) { continue; }
+        if (perMatrixStatus[last.rowIndex][last.colIndex] == false) { continue; }
+        int shuiPing = last.rowIndex - first.rowIndex;
+        int cuiZhi = last.colIndex - first.colIndex;
+
+        bool flag = true;
+        int lineCount = 0;
+        Position perLine = { 0 };
+
+        lineCount = fmax(abs(shuiPing) -1, abs(cuiZhi) - 1); // 注意
+        int verXielv = ((shuiPing == 0) ? 0: shuiPing/abs(shuiPing));
+        int herXielv = ((cuiZhi == 0) ? 0: cuiZhi/abs(cuiZhi));
+        for (int i = 1; i < lineCount; i++) {
+            perLine.rowIndex = first.rowIndex + (verXielv * i);
+            perLine.rowIndex = first.colIndex + (herXielv * i);
+            if (perMatrixStatus[perLine.rowIndex][perLine.colIndex] == false) { flag = false; break; }
+        }
+
+        if (flag == true) { resultCount++; }
+    }
+
+    return resultCount;
+}
+
+int main()
+{
+    int row_1 = 3;
+    int col_1 = 4;
+    int linecolSize_1[] = { 4, 4 };
+    int lineData_1[2][4] = { { 1, 1, 1, 2 },
+                             { 2, 1, 0, 3 } };
+    int *lineDataPointer_1[2] = {0};
+    for (int i = 0; i < 2; i++) {
+        lineDataPointer_1[i] = &lineData_1[i][0];
+    }
+    IntMatrix lines_1 = { 2, linecolSize_1, lineDataPointer_1 };
+    int positionscolSize_1[] = { 2, 2, 2 };
+    int positionsData_1[3][2] = {  { 0, 1 },
+                                    { 1, 1 },
+                                    { 1, 2 } };
+    int *positionsPointer_1[3];
+    for (int i = 0; i < 3; i++) {
+        positionsPointer_1[i] = &positionsData_1[i][0];
+    }
+    IntMatrix positions_1 = { 3, positionscolSize_1, positionsPointer_1 };
+    int result_1 = GetPaintedLineNum(row_1, col_1, &lines_1, &positions_1);
+    assert(result_1 == 1);
+
+
+
+
+
+
+
+    int row_2 = 3;
+    int col_2 = 4;
+    int linecolSize_2[] = { 4, 4 };
+    int lineData_2[2][4] = { { 1, 1, 2, 2 },
+                             { 2, 1, 0, 3 } };
+    int *lineDataPointer_2[2] = {0};
+    for (int i = 0; i < 2; i++) {
+        lineDataPointer_2[i] = &lineData_2[i][0];
+    }
+    IntMatrix lines_2 = { 2, linecolSize_2, lineDataPointer_2 };
+    int positionscolSize_2[] = { 2, 2, 2 };
+    int positionsData_2[3][2] = {  { 0, 1 },
+                                    { 1, 1 },
+                                    { 2, 2 } };
+    int *positionsPointer_2[3];
+    for (int i = 0; i < 3; i++) {
+        positionsPointer_2[i] = &positionsData_2[i][0];
+    }
+    IntMatrix positions_2 = { 3, positionscolSize_2, positionsPointer_2 };
+    int result_2 = GetPaintedLineNum(row_2, col_2, &lines_2, &positions_2);
+    assert(result_2 == 1);
+
+    return 0;
+}

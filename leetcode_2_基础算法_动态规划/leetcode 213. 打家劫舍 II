@@ -1,0 +1,154 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <math.h>
+#include <stdbool.h>
+#include <assert.h>
+
+
+
+/* 213. 打家劫舍 II
+ * 这就是一个01背包问题加上相邻不能取的限制,以及不限制数量
+ * 
+ */
+
+// ---------------------------解法一 开始---从下到上求解 dp数组--不需要递归---------------------------------------------------
+// int dpRobRange(int* nums, int numsSize, int start, int end) {
+//     int* mem = (int *)malloc(sizeof(int) * (numsSize + 1));
+//     for (size_t i = 0; i < (numsSize + 1); i++) {
+//         mem[i] = 0x5a5a5a5a;
+//     }
+
+//     mem[0] = 0;
+//     mem[1] = nums[start];
+
+//     for (size_t i = 1; i < numsSize; i++) {
+//         mem[i+1] = fmax(mem[i], mem[i-1] + nums[start + i]);
+//     }
+
+//     int result = mem[numsSize];
+//     free(mem);
+//     return result;
+// }
+
+// int rob(int* nums, int numsSize){
+//     if ((nums == NULL) || (numsSize == 0)) {
+//         return 0;
+//     }
+
+//     if (numsSize == 1) {
+//         return nums[0];
+//     }
+
+//     if (numsSize == 2) {
+//         return  fmax(nums[0], nums[1]);
+//     }
+
+//     int result = fmax(dpRobRange(nums, numsSize - 1, 0, numsSize - 2), dpRobRange(nums, numsSize - 1, 1, numsSize - 1));
+//     return result;
+// }
+// ---------------------------解法一 结束--------------------------------------------------------
+
+
+// ---------------------------解法二 开始---从上到下求解--需要递归- 使用dp数组-----------------------------------------------
+// int dp(int* mem, int* nums, int count, int start, int end) {
+//     if (count == 0) { return 0; }
+//     if (count == 1) { return nums[start]; }
+
+//     if (mem[count] != 0x5a5a5a5a) {
+//         return mem[count];
+//     }
+
+//     mem[count] = fmax(dp(mem, nums, count - 1, start, end), dp(mem, nums, count - 2, start, end) + nums[start + count-1]);
+
+//     return mem[count];
+// }
+
+
+// int dpRobRange(int* nums, int numsSize, int start, int end) {
+//     int* mem = (int *)malloc(sizeof(int) * (numsSize + 1));
+//     for (size_t i = 0; i < (numsSize + 1); i++) {
+//         mem[i] = 0x5a5a5a5a;
+//     }
+
+//     int result = dp(mem, nums, numsSize, start, end);
+//     free(mem);
+//     return result;
+// }
+
+// int rob(int* nums, int numsSize){
+//     if ((nums == NULL) || (numsSize == 0)) {
+//         return 0;
+//     }
+
+//     if (numsSize == 1) {
+//         return nums[0];
+//     }
+
+//     if (numsSize == 2) {
+//         return  fmax(nums[0], nums[1]);
+//     }
+
+//     int result = fmax(dpRobRange(nums, numsSize - 1, 0, numsSize - 2), dpRobRange(nums, numsSize - 1, 1, numsSize - 1));
+//     return result;
+// }
+// ---------------------------解法二 结束--------------------------------------------------------
+
+
+// ---------------------------解法三 开始---从上到下求解--需要递归- 不使用dp数组-----------------------------------------------
+int dp(int* nums, int count, int start, int end) {
+    if (count == 0) { return 0; }
+    if (count == 1) { return nums[start]; }
+
+    return fmax(dp(nums, count - 1, start, end), dp(nums, count - 2, start, end) + nums[start + count-1]);
+}
+
+int dpRobRange(int* nums, int numsSize, int start, int end) {
+
+    int result = dp(nums, numsSize, start, end);
+    return result;
+}
+
+int rob(int* nums, int numsSize){
+    if ((nums == NULL) || (numsSize == 0)) {
+        return 0;
+    }
+
+    if (numsSize == 1) {
+        return nums[0];
+    }
+
+    if (numsSize == 2) {
+        return  fmax(nums[0], nums[1]);
+    }
+
+    int result = fmax(dpRobRange(nums, numsSize - 1, 0, numsSize - 2), dpRobRange(nums, numsSize - 1, 1, numsSize - 1));
+    return result;
+}
+// ---------------------------解法三 结束--------------------------------------------------------
+
+
+
+int main() {
+    int nums_1[] = {2,3,2};
+    int numsSize_1 = sizeof(nums_1)/sizeof(int);
+    int result_1 = rob(nums_1, numsSize_1);
+    assert(result_1 == 3);
+
+    int nums_2[] = {1,2,3,1};
+    int numsSize_2 = sizeof(nums_2)/sizeof(int);
+    int result_2 = rob(nums_2, numsSize_2);
+    assert(result_2 == 4);
+
+    int nums_3[] = {0};
+    int numsSize_3 = sizeof(nums_3)/sizeof(int);
+    int result_3 = rob(nums_3, numsSize_3);
+    assert(result_3 == 0);
+
+    int nums_4[] = {2,3,2,5,6,9,8,7,4};
+    int numsSize_4 = sizeof(nums_4)/sizeof(int);
+    int result_4 = rob(nums_4, numsSize_4);
+    assert(result_4 == 24);
+
+    return 0;
+}

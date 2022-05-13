@@ -1,0 +1,336 @@
+/******************************************************************************
+ * 版权所有 (c)
+ * 功能描述   : leetcode 739. 每日温度. https://leetcode-cn.com/problems/daily-temperatures/
+ * 作    者   :
+ * 生成日期   :
+
+ * 
+      --- 
+ ******************************************************************************/
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdbool.h>
+#include <uthash.h>
+#include <math.h>
+#include <assert.h>
+// 如需使用华为安全函数，请加上 #include "securec.h"
+// #include "securec.h"
+#include "vos_priorityqueue.h"
+
+
+
+
+
+/*
+739. 每日温度
+给定一个整数数组 temperatures ，表示每天的温度，返回一个数组 answer ，其中 answer[i] 是指在第 i 天之后，才会有更高的温度。如果气温在这之后都不会升高，请在该位置用 0 来代替。
+
+ 
+
+示例 1:
+
+输入: temperatures = [73,74,75,71,69,72,76,73]
+输出: [1,1,4,2,1,1,0,0]
+示例 2:
+
+输入: temperatures = [30,40,50,60]
+输出: [1,1,1,0]
+示例 3:
+
+输入: temperatures = [30,60,90]
+输出: [1,1,0]
+ 
+
+提示：
+
+1 <= temperatures.length <= 105
+30 <= temperatures[i] <= 100
+*/
+
+
+
+
+
+// ---------------------------解法 开始-----暴力遍历: -----------------------------------------------------
+
+// ---------------------------解法 结束---------------------------------------------------------------------
+
+
+
+
+
+
+
+// ---------------------------解法 开始-----BFS 递归模板: -----------------------------------------------------
+
+// ---------------------------解法 结束---------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+// ---------------------------解法 开始-----BFS 迭代模板: -----------------------------------------------------
+
+// ---------------------------解法 结束-----------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+// ---------------------------解法 开始-----DFS 递归模板: -----------------------------------------------------
+
+// ---------------------------解法 结束----------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+// ---------------------------解法 开始-----DFS 迭代模板: --------------------------------------------------
+
+// ---------------------------解法 结束----------------------------------------------------------------------
+
+
+
+
+
+
+
+
+// ---------------------------解法 开始-----回溯 迭代模板: --------------------------------------------------
+
+// ---------------------------解法 结束----------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+// ---------------------------解法 开始-----动态规划 记忆化搜索: ---------------------
+
+
+// ---------------------------解法 结束----------------------------------------------------------------------
+
+
+
+
+
+
+
+// ---------------------------解法 开始-----动态规划 按顺序递推-----------------------------------------------------
+
+// ---------------------------解法 结束--------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+// ---------------------------解法 开始-----贪心 --------------------------------------------------------
+
+// ---------------------------解法 结束------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// ---------------------------解法 开始-----------单调栈------------------------------------------------
+#define MAX_STACK_LEN (100001)
+
+typedef struct Elem {
+    int val;
+    int position;
+} Elem;
+
+typedef struct Stack {
+    int top;
+    Elem elems[MAX_STACK_LEN];
+    int size;
+    int capacity;
+} Stack;
+
+Stack *StackInit(int capacity)
+{
+    Stack *stack = (Stack *)malloc(sizeof(Stack));
+    memset(stack, 0, sizeof(Stack));
+    stack->capacity = (capacity == 0) ? MAX_STACK_LEN: capacity;
+    stack->size = 0;
+    stack->top = -1;
+    return stack;
+}
+
+void StackDestory(Stack* stack)
+{
+    free(stack);
+}
+
+bool StackIsEmpty(Stack* stack)
+{
+    return stack->size == 0;
+}
+
+
+bool StackIsFull(Stack* stack)
+{
+    return stack->size == stack->capacity;
+}
+
+int StackSize(Stack* stack)
+{
+    return stack->size;
+}
+
+int Compare(Elem A, Elem B)
+{
+    return (long long)A.val - (long long)B.val;   // 如果B是负数，可能超过int范围
+}
+
+void StackPush(Stack* stack, Elem newElem)
+{
+    if (stack->size >= stack->capacity) {
+        printf("stack full error \n");
+        return;
+    }
+
+    stack->elems[++stack->top] = newElem;
+    stack->size++;
+}
+
+Elem StackPeek(Stack* stack)
+{
+    if (stack->size == 0) {
+        printf("stack empty error \n");
+        Elem ZeroElem = { 0 };
+        return ZeroElem;
+    }
+
+    return stack->elems[stack->top];
+}
+
+
+void StackPop(Stack* stack)
+{
+    if (stack->size == 0) {
+        printf("stack empty error \n");
+        return;
+    }
+
+    Elem ZeroElem = { 0 };
+    stack->elems[stack->top--] = ZeroElem;
+    stack->size--;
+}
+
+
+bool OrderStackPushCheckIsEmpty(Stack* stack, Elem newElem)
+{
+    // 将所有比当前元素小的元素出栈
+    while ((!StackIsEmpty(stack)) && (Compare(newElem, StackPeek(stack)) >= 0)) {
+        StackPop(stack);
+    }
+
+    return StackIsEmpty(stack) ? true: false;
+}
+
+
+
+
+int* dailyTemperatures(int* temperatures, int temperaturesSize, int* returnSize)
+{
+    int *result = (int *)malloc(sizeof(int) * temperaturesSize); 
+    memset(result, 0, sizeof(int) * temperaturesSize);
+    *returnSize = temperaturesSize;
+
+    Stack *stack = StackInit(0);
+    for (int i = temperaturesSize - 1; i >= 0; i--) {
+        Elem newElem = { temperatures[i], i };
+        // 如果栈已经空了
+        bool isEmpty = OrderStackPushCheckIsEmpty(stack, newElem);
+        result[i] = (isEmpty) ? 0 : StackPeek(stack).position - i;
+        StackPush(stack, newElem);
+    }
+
+    StackDestory(stack);
+    return result;
+}
+// ---------------------------解法 结束-----------------------------------------------------------------------
+
+
+
+
+
+// ---------------------------解法 开始-----------单调队列------------------------------------------------
+
+// ---------------------------解法 结束-----------------------------------------------------------------------
+
+
+
+
+// ---------------------------解法 开始-----------优先队列------------------------------------------------
+
+// ---------------------------解法 结束-----------------------------------------------------------------------
+
+
+int main() {
+    int temperatures_1[] = { 73,74,75,71,69,72,76,73 };
+    int temperaturesSize_1 = sizeof(temperatures_1) / sizeof(temperatures_1[0]);
+    int returnSize_1 = -1;
+    int* result_1 = dailyTemperatures(temperatures_1, temperaturesSize_1, &returnSize_1);
+    for (int i = 0; i < returnSize_1; i++) { printf("%d    ", result_1[i]); } printf("\n");
+
+
+
+    int temperatures_2[] = { 30,40,50,60 };
+    int temperaturesSize_2 = sizeof(temperatures_2) / sizeof(temperatures_2[0]);
+    int returnSize_2 = -1;
+    int* result_2 = dailyTemperatures(temperatures_2, temperaturesSize_2, &returnSize_2);
+    for (int i = 0; i < returnSize_2; i++) { printf("%d    ", result_2[i]); } printf("\n");
+
+
+    int temperatures_3[] = { 30,60,90 };
+    int temperaturesSize_3 = sizeof(temperatures_3) / sizeof(temperatures_3[0]);
+    int returnSize_3 = -1;
+    int* result_3 = dailyTemperatures(temperatures_3, temperaturesSize_3, &returnSize_3);
+    for (int i = 0; i < returnSize_3; i++) { printf("%d    ", result_3[i]); } printf("\n");
+
+    return 0;
+}
+

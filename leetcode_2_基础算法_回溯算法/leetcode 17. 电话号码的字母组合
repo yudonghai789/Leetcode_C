@@ -1,0 +1,275 @@
+/******************************************************************************
+ * 版权所有 (c)
+ * 功能描述   : leetcode 17. 电话号码的字母组合   https://leetcode-cn.com/problems/letter-combinations-of-a-phone-number/
+ * 作    者   :
+ * 生成日期   :
+
+ *  
+      --- 
+ ******************************************************************************/
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdbool.h>
+#include <uthash.h>
+#include <math.h>
+#include <assert.h>
+// 如需使用华为安全函数，请加上 #include "securec.h"
+// #include "securec.h"
+
+
+
+
+
+/*
+17. 电话号码的字母组合
+给定一个仅包含数字 2-9 的字符串，返回所有它能表示的字母组合。答案可以按 任意顺序 返回。
+
+给出数字到字母的映射如下（与电话按键相同）。注意 1 不对应任何字母。
+
+
+
+ 
+
+示例 1：
+
+输入：digits = "23"
+输出：["ad","ae","af","bd","be","bf","cd","ce","cf"]
+示例 2：
+
+输入：digits = ""
+输出：[]
+示例 3：
+
+输入：digits = "2"
+输出：["a","b","c"]
+ 
+
+提示：
+
+0 <= digits.length <= 4
+digits[i] 是范围 ['2', '9'] 的一个数字。
+*/
+
+
+
+
+
+// ---------------------------解法 开始-----暴力遍历: -----------------------------------------------------
+
+// ---------------------------解法 结束---------------------------------------------------------------------
+
+
+
+
+
+
+
+// ---------------------------解法 开始-----BFS 递归模板: -----------------------------------------------------
+
+// ---------------------------解法 结束---------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+// ---------------------------解法 开始-----BFS 迭代模板: -----------------------------------------------------
+
+// ---------------------------解法 结束-----------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+// ---------------------------解法 开始-----DFS 递归模板: ---------------------------------------------------
+
+// ---------------------------解法 结束-----------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+// ---------------------------解法 开始-----DFS 迭代模板: --------------------------------------------------
+
+// ---------------------------解法 结束----------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+// ---------------------------解法 开始-----回溯 迭代模板: --------------------------------------------------
+#define MAX_ARRAY_LEN 4
+
+#define MAX_RES_LEN 4 * 4 * 4 * 4
+
+typedef struct Map {
+    char button;
+    struct {
+        int num;
+        char item[4];
+    } charter;
+} Map;
+
+Map g_map[8] = {
+    { '2', { 3, 'a', 'b', 'c' } },
+    { '3', { 3, 'd', 'e', 'f' } },
+    { '4', { 3, 'g', 'h', 'i' } },
+    { '5', { 3, 'j', 'k', 'l' } },
+    { '6', { 3, 'm', 'n', 'o' } },
+    { '7', { 4, 'p', 'q', 'r', 's' } },
+    { '8', { 3, 't', 'u', 'v' } },
+    { '9', { 4, 'w', 'x', 'y', 'z' } }
+};
+
+typedef struct Trace {
+    int cnt;
+    char item[MAX_ARRAY_LEN];
+} Trace;
+
+void Recursive(char * digits, int len, Trace *trace, char** res, int* returnSize)
+{
+    if (trace->cnt == len) {
+        res[(*returnSize)] = (char *)malloc(sizeof(char) * (len + 1));
+        memset(res[(*returnSize)], 0, sizeof(char) * (len + 1));
+        memcpy(res[(*returnSize)], trace->item, len);
+        (*returnSize)++;
+        return;
+    }
+
+    int currentDigIndex = trace->cnt;
+    char currentDig = digits[currentDigIndex];
+    int mapIndex = (currentDig - '2');
+    for (int i = 0; i < g_map[mapIndex].charter.num; i++) {
+        trace->item[trace->cnt++] = g_map[mapIndex].charter.item[i];
+        Recursive(digits, len, trace, res, returnSize);
+        trace->item[--trace->cnt] = 0;
+    }
+}
+
+
+char** letterCombinations(char * digits, int* returnSize)
+{
+    int len = strlen(digits);
+    if ((len == 0) || (digits == NULL)) {
+        printf("digits\n");
+        *returnSize = 0;
+        return NULL;
+    }
+    char** res = (char **)malloc(sizeof(char *) * MAX_RES_LEN);
+    memset(res, 0, sizeof(char *) * MAX_RES_LEN);
+    *returnSize = 0;
+
+    Trace trace = { 0 };
+    Recursive(digits, len, &trace, res, returnSize);
+
+    return res;
+}
+// ---------------------------解法 结束----------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+// ---------------------------解法 开始-----动态规划 记忆化搜索: ----memTable一定要注意表达 可以表达唯一结果的递归路径,维度不够时，不同结果的的递归路径被误当做相同的路径，维度太多时，剪枝效果不大------------------
+
+// ---------------------------解法 结束----------------------------------------------------------------------
+
+
+
+
+
+
+
+// ---------------------------解法 开始-----动态规划 按顺序递推-----------------------------------------------------
+
+// ---------------------------解法 结束--------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+// ---------------------------解法 开始-----贪心 --------------------------------------------------------
+
+// ---------------------------解法 结束-----------------------------------------------------------------------
+
+
+
+
+
+
+
+
+int main(int argc, const char *argv[])
+{
+    char digits_1[] = "23";
+    int returnSize_1 = 456465;
+    char **res_1 = letterCombinations(digits_1, &returnSize_1);
+    for (int i = 0; i < returnSize_1; i++) {
+        printf("%s \n", res_1[i]);
+    }
+    printf("\n");
+
+
+
+    char digits_2[] = "";
+    int returnSize_2 = 456465;
+    char **res_2 = letterCombinations(digits_2, &returnSize_2);
+    for (int i = 0; i < returnSize_2; i++) {
+        printf("%s \n", res_2[i]);
+    }
+    printf("\n");
+
+
+    char digits_3[] = "323";
+    int returnSize_3 = 456465;
+    char **res_3 = letterCombinations(digits_3, &returnSize_3);
+    for (int i = 0; i < returnSize_3; i++) {
+        printf("%s \n", res_3[i]);
+    }
+    printf("\n");
+
+
+    char digits_4[] = "333";
+    int returnSize_4 = 456465;
+    char **res_4 = letterCombinations(digits_4, &returnSize_4);
+    for (int i = 0; i < returnSize_4; i++) {
+        printf("%s \n", res_4[i]);
+    }
+    printf("\n");
+
+    return 0;
+}

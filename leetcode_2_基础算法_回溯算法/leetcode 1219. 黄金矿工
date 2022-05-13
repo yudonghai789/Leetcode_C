@@ -1,0 +1,319 @@
+/******************************************************************************
+ * 版权所有 (c)
+ * 功能描述   : leetcode 1219. 黄金矿工   https://leetcode-cn.com/problems/path-with-maximum-gold/
+ * 作    者   :
+ * 生成日期   :
+
+ *  
+      --- 
+ ******************************************************************************/
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdbool.h>
+#include <uthash.h>
+#include <math.h>
+#include <assert.h>
+// 如需使用华为安全函数，请加上 #include "securec.h"
+// #include "securec.h"
+
+
+
+
+
+/*
+1219. 黄金矿工
+你要开发一座金矿，地质勘测学家已经探明了这座金矿中的资源分布，并用大小为 m * n 的网格 grid 进行了标注。每个单元格中的整数就表示这一单元格中的黄金数量；如果该单元格是空的，那么就是 0。
+
+为了使收益最大化，矿工需要按以下规则来开采黄金：
+
+每当矿工进入一个单元，就会收集该单元格中的所有黄金。
+矿工每次可以从当前位置向上下左右四个方向走。
+每个单元格只能被开采（进入）一次。
+不得开采（进入）黄金数目为 0 的单元格。
+矿工可以从网格中 任意一个 有黄金的单元格出发或者是停止。
+ 
+
+示例 1：
+
+输入：grid = [[0,6,0],[5,8,7],[0,9,0]]
+输出：24
+解释：
+[[0,6,0],
+ [5,8,7],
+ [0,9,0]]
+一种收集最多黄金的路线是：9 -> 8 -> 7。
+示例 2：
+
+输入：grid = [[1,0,7],[2,0,6],[3,4,5],[0,3,0],[9,0,20]]
+输出：28
+解释：
+[[1,0,7],
+ [2,0,6],
+ [3,4,5],
+ [0,3,0],
+ [9,0,20]]
+一种收集最多黄金的路线是：1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7。
+ 
+
+提示：
+
+1 <= grid.length, grid[i].length <= 15
+0 <= grid[i][j] <= 100
+最多 25 个单元格中有黄金。
+*/
+
+
+
+
+
+// ---------------------------解法 开始-----暴力遍历: -----------------------------------------------------
+
+// ---------------------------解法 结束---------------------------------------------------------------------
+
+
+
+
+
+
+
+// ---------------------------解法 开始-----BFS 递归模板: -----------------------------------------------------
+
+// ---------------------------解法 结束---------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+// ---------------------------解法 开始-----BFS 迭代模板: -----------------------------------------------------
+
+// ---------------------------解法 结束-----------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+// ---------------------------解法 开始-----DFS 递归模板: --------------回溯与Dfs的区别-------------------------------------
+// #define MAX_ROW_LEN 16
+// #define MAX_COL_LEN 16
+
+// bool g_visit[MAX_ROW_LEN][MAX_COL_LEN];
+
+// int g_direct[4][2] = {
+//     { 1, 0 },
+//     { -1, 0 },
+//     { 0, 1 },
+//     { 0, -1 }
+// };
+
+// int DfsRecursive(int** grid, int gridSize, int* gridColSize, int row, int col)
+// {
+//     g_visit[row][col] = true;
+//     int res = grid[row][col];
+    
+//     int maxPath = 0;
+//     for (int dir = 0; dir < 4; dir++) {
+//         int nextRow = row + g_direct[dir][0];
+//         int nextCol = col + g_direct[dir][1];
+
+//         if ((nextRow >= 0) && (nextRow < gridSize) &&
+//             (nextCol >= 0) && (nextCol < gridColSize[0]) &&
+//             (g_visit[nextRow][nextCol] == false) && 
+//             (grid[nextRow][nextCol] != 0)) {
+//             maxPath = fmax(maxPath, DfsRecursive(grid, gridSize, gridColSize, nextRow, nextCol));
+//         }
+//     }
+
+//     return res + maxPath;
+// }
+
+
+// int getMaximumGold(int** grid, int gridSize, int* gridColSize)
+// {
+//     int res = 0;
+//     for (int i = 0; i < gridSize; i++) {
+//         for (int j = 0; j < gridColSize[0]; j++) {
+//             if (grid[i][j] != 0) {
+//                 memset(g_visit, 0, sizeof(g_visit));
+//                 res = fmax(res, DfsRecursive(grid, gridSize, gridColSize, i, j));
+//             }
+//         }
+//     }
+
+//     return res;
+// }
+// ---------------------------解法 结束-----------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+// ---------------------------解法 开始-----DFS 迭代模板: --------------------------------------------------
+
+// ---------------------------解法 结束----------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+// ---------------------------解法 开始-----回溯 迭代模板: --------------------------------------------------
+#define MAX_ROW_LEN 16
+#define MAX_COL_LEN 16
+
+bool g_visit[MAX_ROW_LEN][MAX_COL_LEN];
+
+int g_direct[4][2] = {
+    { 1, 0 },
+    { -1, 0 },
+    { 0, 1 },
+    { 0, -1 }
+};
+
+void DfsRecursive(int** grid, int gridSize, int* gridColSize, int row, int col, int *outRes)
+{
+    int res = grid[row][col];
+    
+    int maxPath = 0;
+    for (int dir = 0; dir < 4; dir++) {
+        int nextRow = row + g_direct[dir][0];
+        int nextCol = col + g_direct[dir][1];
+
+        if ((nextRow >= 0) && (nextRow < gridSize) &&
+            (nextCol >= 0) && (nextCol < gridColSize[0]) &&
+            (g_visit[nextRow][nextCol] == false) && 
+            (grid[nextRow][nextCol] != 0)) {
+
+            g_visit[nextRow][nextCol] = true;
+
+            int temp = 0;
+            DfsRecursive(grid, gridSize, gridColSize, nextRow, nextCol, &temp);
+
+            g_visit[nextRow][nextCol] = false;
+            maxPath = fmax(maxPath, temp);
+        }
+    }
+
+    *outRes = res + maxPath;
+}
+
+
+int getMaximumGold(int** grid, int gridSize, int* gridColSize)
+{
+    int res = 0;
+    for (int i = 0; i < gridSize; i++) {
+        for (int j = 0; j < gridColSize[0]; j++) {
+            if (grid[i][j] != 0) {
+                memset(g_visit, 0, sizeof(g_visit));
+                g_visit[i][j] = true;
+                int temp = 0;
+                DfsRecursive(grid, gridSize, gridColSize, i, j, &temp);
+                res = fmax(res, temp);
+            }
+        }
+    }
+
+    return res;
+}
+// ---------------------------解法 结束----------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+// ---------------------------解法 开始-----动态规划 记忆化搜索: ----memTable一定要注意表达 可以表达唯一结果的递归路径,维度不够时，不同结果的的递归路径被误当做相同的路径，维度太多时，剪枝效果不大------------------
+
+// ---------------------------解法 结束----------------------------------------------------------------------
+
+
+
+
+
+
+
+// ---------------------------解法 开始-----动态规划 按顺序递推-----------------------------------------------------
+
+// ---------------------------解法 结束--------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+// ---------------------------解法 开始-----贪心 --------------------------------------------------------
+
+// ---------------------------解法 结束-----------------------------------------------------------------------
+
+
+
+
+
+
+
+#define MAX_LEN 201
+
+typedef struct Matrix {
+    int matrixSize;
+    int matrixColSize[MAX_LEN];
+    int matrix[MAX_LEN][MAX_LEN];
+    int* matrixPoin[MAX_LEN];
+} Matrix;
+
+
+
+
+int main(int argc, const char *argv[])
+{
+
+    Matrix matrix_1 = {
+        5,
+        { 6, 6, 6, 6, 6 },
+        {
+            { 1,0,7,0,0,0 },
+            { 2,0,6,0,1,0 },
+            { 3,5,6,7,4,2 },
+            { 4,3,1,0,2,0 },
+            { 3,0,5,0,20,0 },
+        }
+    };
+    for (int i = 0; i < matrix_1.matrixSize; i++) {
+        matrix_1.matrixPoin[i] = &matrix_1.matrix[i][0];
+    }
+    int res_1 = getMaximumGold(matrix_1.matrixPoin, matrix_1.matrixSize, matrix_1.matrixColSize);
+    assert(res_1 == 4);
+
+
+    return 0;
+}

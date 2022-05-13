@@ -1,0 +1,102 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdbool.h>
+#include <string.h>
+#include <math.h>
+#include <assert.h>
+#include <uthash.h>
+
+
+/* 523. 连续的子数组和
+ * 使用前缀和，空间换时间，hash 表存储前缀和
+ */
+
+
+// ---------------------------解法一 开始---暴力循环-所有的子串可以通过两层循环遍历出来------------------------------------------------
+// int sum(int* nums, int head, int tail) {
+//     int result = 0;
+//     for (int i = tail; i <= head; i++) {
+//         result = result + nums[i];
+//     }
+
+//     return result;
+// }
+
+// bool checkSubarraySum(int* nums, int numsSize, int k)
+// {
+//     int result = false;
+//     for (int subHead = 1; subHead < numsSize; subHead++) {
+//         for (int subTail = 0; subTail < subHead; subTail++) {
+//             if (subHead - subTail >= 1) {
+//                 if (sum(nums, subHead, subTail) % k == 0) {
+//                     result = true;
+//                 };
+//             }
+//         }
+//     }
+
+//     return result;
+// }
+// ---------------------------解法结束--------------------------------------------------
+
+// ---------------------------解法二：哈希集合-------------------------------------------------
+struct MyHashTable {
+    int key; // 不能被
+    int val;
+    UT_hash_handle hh;
+};
+
+bool checkSubarraySum(int* nums, int numsSize, int k) {
+    if (numsSize < 2) { return false; }
+
+    struct MyHashTable* hashTableHead = NULL;
+
+    struct MyHashTable* tmp = (struct MyHashTable*)malloc(sizeof(struct MyHashTable));
+    tmp->key = 0, tmp->val = -1;
+    HASH_ADD_INT(hashTableHead, key, tmp);
+
+    int remainder = 0;
+    for (int i = 0; i < numsSize; i++) {
+        remainder = (remainder + nums[i]) % k;
+        HASH_FIND_INT(hashTableHead, &remainder, tmp);
+        if (tmp != NULL) {
+            int prevIndex = tmp->val;
+            if (i - prevIndex >= 2) {
+                return true;
+            }
+        } else {
+            tmp = (struct MyHashTable*)malloc(sizeof(struct MyHashTable));
+            tmp->key = remainder, tmp->val = i;
+            HASH_ADD_INT(hashTableHead, key, tmp);
+        }
+    }
+    return false;
+}
+// ---------------------------解法结束--------------------------------------------------
+
+
+
+// ---------------------------解法结束--------------------------------------------------
+
+int main(int argc, const char *argv[])
+{
+    int nums_1[] = {23,2,4,6,7};
+    int numsSize_1 = sizeof(nums_1) / sizeof(nums_1[0]);
+    int k_1 = 6;
+    bool result_1 = checkSubarraySum(nums_1, numsSize_1, k_1);
+    assert(result_1 == true);
+
+    int nums_2[] = {23,2,6,4,7};
+    int numsSize_2 = sizeof(nums_2) / sizeof(nums_2[0]);
+    int k_2 = 6;
+    bool result_2 = checkSubarraySum(nums_2, numsSize_2, k_2);
+    assert(result_2 == true);
+
+    int nums_3[] = {23,2,6,4,7};
+    int numsSize_3 = sizeof(nums_3) / sizeof(nums_3[0]);
+    int k_3 = 13;
+    bool result_3 = checkSubarraySum(nums_3, numsSize_3, k_3);
+    assert(result_3 == true);
+
+    return 0;
+}

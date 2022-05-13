@@ -1,0 +1,97 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdbool.h>
+#include <math.h>
+#include <assert.h>
+
+
+
+/* 46. 全排列
+ * 回溯算法
+ */
+
+
+// ---------------------------解法一 开始---从上到下求解 --是使用递归---没有的重复计算的节点，不能用备忘录空间换时间-----------------------------------------------------
+typedef struct BackTrackPointer {
+    int length;
+    int *traceValue;
+} BackTrackPointer;
+
+void backTrack(int* nums, int numsSize, int* returnSize, int** returnColumnSizes, int** result, BackTrackPointer *backTrackPointer) {
+    // 触发结束条件
+    if (backTrackPointer->length == numsSize) {
+        result[(*returnSize)] = (int *)malloc(sizeof(int) * numsSize);
+        memcpy((void*)&result[(*returnSize)][0], (void*)&backTrackPointer->traceValue[0], sizeof(int) * numsSize);
+        (*returnColumnSizes)[(*returnSize)] = backTrackPointer->length;
+        (*returnSize)++;
+        return;
+    }
+
+    for (size_t i = 0; i < numsSize; i++) {
+        // 排除不合法的选择
+        int jumpCo = 0;
+        for (size_t j = 0; j < backTrackPointer->length; j++) {
+            if (backTrackPointer->traceValue[j] == nums[i]) { jumpCo = 1; break;}
+        }
+        if (jumpCo == 1) {continue;}
+
+        // 做选择
+        backTrackPointer->traceValue[backTrackPointer->length] = nums[i];
+        backTrackPointer->length++;
+
+        // 进入下一层决策
+        backTrack(nums, numsSize, returnSize, returnColumnSizes, result, backTrackPointer);
+
+        // 取消选择
+        backTrackPointer->length--;
+        backTrackPointer->traceValue[backTrackPointer->length] = 0;
+    }
+}
+
+int** permute(int* nums, int numsSize, int* returnSize, int** returnColumnSizes){
+    int maxResultSize = numsSize;
+    for (size_t i = 1; i < numsSize; i++) {
+        maxResultSize = maxResultSize * (numsSize  - i);
+    }
+
+    // 其实学过全排列就知道的最多的结果是 n!. 我们这里随便申请一个n!，实际大小通过回溯算法得到。
+    int **result = (int **)malloc(sizeof(int *) * maxResultSize);
+    *returnColumnSizes = (int *)malloc(sizeof(int) * maxResultSize);
+    for (size_t i = 0; i < maxResultSize; i++) {
+        (*returnColumnSizes)[i] = 0; 
+    }
+    (*returnSize) = 0;
+    int backTrackPointerValue[numsSize];
+    memset((void*)backTrackPointerValue, 0, sizeof(int) * numsSize);
+    BackTrackPointer backTrackPointer = {0, backTrackPointerValue};
+    backTrack(nums, numsSize, returnSize, returnColumnSizes, result, &backTrackPointer);
+
+    return result;
+}
+
+// ---------------------------解法一 结束--------------------------------------------------------
+
+int main() {
+    int nums_1[] = {1,2,3};
+    int numsSize_1 = sizeof(nums_1) / sizeof(nums_1[0]);
+    int returnSize_1;
+    int *returnColumnSizes_1 = NULL;
+    int **result_1 = permute(nums_1, numsSize_1, &returnSize_1, &returnColumnSizes_1);
+    for (size_t i = 0; i < returnSize_1; i++) {
+        for (size_t j = 0; j < returnColumnSizes_1[i]; j++) {
+            printf("%d ", result_1[i][j]);
+        }
+        printf("\n");
+    }
+    for (size_t i = 0; i < returnSize_1; i++) { free(result_1[i]);}
+    free(result_1);
+    free(returnColumnSizes_1);
+
+ 
+
+    return 0;
+}
+
+
+

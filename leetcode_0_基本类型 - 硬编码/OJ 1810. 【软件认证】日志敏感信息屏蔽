@@ -1,0 +1,280 @@
+/******************************************************************************
+ * 版权所有 (c)
+ * 功能描述   : OJ 1810. 【软件认证】日志敏感信息屏蔽. https://oj.rnd.huawei.com/problems/1810/details
+ * 作    者   :
+ * 生成日期   :
+
+ * 
+      --- 
+ ******************************************************************************/
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdbool.h>
+#include <uthash.h>
+#include <math.h>
+#include <limits.h>
+#include <assert.h>
+// 如需使用华为安全函数，请加上 #include "securec.h"
+#include "securec.h"
+#include "vos_priorityqueue.h"
+#include "vos_list.h"
+
+
+
+
+
+/*
+题目描述
+现给一个列表words，和一个日志信息的字符串，请对日志信息中的敏感信息进行屏蔽。
+
+日志信息字符串是以 , 分隔的[key:value]格式表示的字符串，value中不会包括字符 ,和:，以key值区分是否为敏感信息。
+敏感信息：其key值有2类，第1类是出现在words中的，第2类是缺省关键字 password, pwd （注：第2类优先）。
+
+敏感信息屏蔽规则：
+1、key为password或pwd的：对应的 value 统一用6个*替代。
+2、key在words中，且以IP（不区分大小写）结尾的：对应value中ip地址中间两段分别用3个* 替代（不用考虑IPv6格式），用例保证IP格式的合法性。
+3、key在words中，且以非IP结尾的：仅需对value中最右侧的长度（L）大于等于4，且连续为数字的子串进行屏蔽，从倒数第L/4+1个数字字符开始（比如L为9，从倒数第3个开始），从右到左对中间的L/2个字符用*替代。
+
+非敏感信息处理规则：原样输出。
+
+注：关键字匹配时不区分大小写，输出时保持大小写不变。
+
+解答要求
+时间限制：1000ms, 内存限制：256MB
+输入
+首行为一个正整数 N，表示敏感信息关键字的个数，取值范围：[0, 50]
+第二行为一个长度为N的一维数组，表示敏感信息关键字列表words，每个关键字的长度范围：[0, 15)。
+第三行为一个字符串，表示待处理的日志信息，字符串长度范围：[1, 200)。
+
+输出
+一个字符串，表示屏蔽后的日志信息。
+
+样例
+输入样例 1 复制
+
+5
+IMSI CellID UserIP CID UID
+Apn:cmnet,Qos:121212121212,CellID:4600175319,Imsi:460019852146201,GWIP:1.1.1.1,UserIp:2.2.2.2,CID:854710-336985-852,UID:1-2-3-4,pwd:huawei7410
+输出样例 1
+
+Apn:cmnet,Qos:121212121212,CellID:460*****19,Imsi:46001*******201,GWIP:1.1.1.1,UserIp:2.***.***.2,CID:854710-33***5-852,UID:1-2-3-4,pwd:******
+提示样例 1
+Apn,QoS不在words列表中无需屏蔽。
+IMSI,CellID 在words列表中, 对应的value按规则3进行屏蔽，以IMSI为例：数字字符串长度为15，从倒数第15/4+1=4个字符开始，对中间的15/2=7个字符用*替代。
+CID 对应的value 按照规则3进行屏蔽。
+pwd 对应的value 按照规则1进行屏蔽。
+
+
+*/
+
+
+
+
+// ---------------------------解法 ----------------------------------------------------------------
+
+#define MAXN 50
+#define KEY_BUF_LEN 16
+#define LOG_BUF_LEN 256
+
+typedef enum RuleId {
+    RULE1 = 1,
+    RULE2 = 2,
+    RULE3 = 3,
+} RuleId;
+
+void StringToLower(char *inString, int len, char *outString)
+{
+    for (int i = 0; i < len; i++) {
+        outString[i] = (inString[i] >= 'A' && inString[i] <= 'Z') ? inString[i] - 'A' + 'a' : inString[i];
+    }
+}
+
+typedef struct UthshCharArray {
+    char key[KEY_BUF_LEN];
+    int ruleId;  // 这道题其实也可以不需要Value
+    UT_hash_handle hh;
+} UthshCharArray;
+
+UthshCharArray* UthshFindByKey(UthshCharArray **UthshHead, char ikey[KEY_BUF_LEN])
+{
+    char changeToLow[KEY_BUF_LEN] = { 0 };
+    StringToLower(ikey, strlen(ikey), changeToLow);
+
+    UthshCharArray *temp = NULL;
+    HASH_FIND_STR(*UthshHead, changeToLow, temp);
+    return temp;
+}
+
+UthshCharArray* UthshAddByKey(UthshCharArray **UthshHead, char ikey[KEY_BUF_LEN], RuleId value)
+{
+    UthshCharArray *temp = UthshFindByKey(UthshHead, ikey);
+    if (temp == NULL) {
+        temp = (UthshCharArray *)malloc(sizeof(UthshCharArray));
+        memset(temp, 0, sizeof(UthshCharArray));
+        char changeToLow[KEY_BUF_LEN] = { 0 };
+        StringToLower(ikey, strlen(ikey), changeToLow);
+        strcpy(temp->key, changeToLow);
+        temp->ruleId = value;
+        HASH_ADD_STR(*UthshHead, key, temp);
+        return temp;
+    } else {
+        return temp;
+    }
+}
+void TuhashDeleteAll(UthshCharArray** hashtableHead) {
+   UthshCharArray *current_user, *tmp;
+
+   HASH_ITER(hh, *hashtableHead, current_user, tmp) {
+       HASH_DEL(*hashtableHead, current_user);  /* delete it (users advances to next) */
+       free(current_user);             /* free it */
+   }
+}
+
+void TuhashFindAll(UthshCharArray** hashtableHead) {
+   UthshCharArray *current_user, *tmp;
+   HASH_ITER(hh, *hashtableHead, current_user, tmp) {
+       printf("key = %s  ->  value = %d \n", current_user->key, current_user->ruleId);
+   }
+   printf("\n");
+}
+
+typedef struct InputInfo {
+    char key[KEY_BUF_LEN];
+    char string[LOG_BUF_LEN];
+} InputInfo;
+
+int SpliateString(char *input, InputInfo inputString[LOG_BUF_LEN])
+{
+    int inputLen = 0;
+    int inputSec = 0;
+    int inputSecindex = 0;
+    for (int i = 0; i < strlen(input); i++) {
+        if (input[i] == ':') {
+            inputSec = 1;
+            inputSecindex = 0;
+        } else if (input[i] == ',') {
+            inputLen++;
+            inputSec = 0;
+            inputSecindex = 0;
+        } else {
+            if (inputSec == 0) {
+                inputString[inputLen].key[inputSecindex++] = input[i];
+            } else {
+                inputString[inputLen].string[inputSecindex++] = input[i];
+            }
+        }
+    }
+
+    return inputLen + 1;
+}
+
+void EncodeString(UthshCharArray *UthshHead, InputInfo* inputString, int inputLen, char *outBuf, int outBufLen)
+{
+    memset_s(outBuf, sizeof(char) * outBufLen, 0, sizeof(char) * outBufLen);
+    int resLen = 0;
+    for (int i = 0; i < inputLen; i++) {
+        UthshCharArray *temp = UthshFindByKey(&UthshHead, inputString[i].key);
+        if (temp == NULL) {
+            resLen += sprintf_s(outBuf + resLen, outBufLen - resLen, "%s:%s,", inputString[i].key, inputString[i].string);
+        } else {
+            if (temp->ruleId == 1) {
+                resLen += sprintf_s(outBuf + resLen, outBufLen - resLen, "%s:******,", inputString[i].key);
+            } else if (temp->ruleId == 2) {
+                resLen += sprintf_s(outBuf + resLen, outBufLen - resLen, "%s:", inputString[i].key);
+                int matchCnt = 0;
+                for (int ruleCode2 = 0; ruleCode2 < strlen(inputString[i].string); ruleCode2++) {
+                    if (inputString[i].string[ruleCode2] == '.') {
+                        matchCnt++;
+                    }
+                    if (matchCnt == 0 || matchCnt == 4) {
+                        resLen += sprintf_s(outBuf + resLen, outBufLen - resLen, "%c", inputString[i].string[ruleCode2]);
+                    } else if (matchCnt == 3) {
+                        resLen += sprintf_s(outBuf + resLen, outBufLen - resLen, ".***.***%c", inputString[i].string[ruleCode2]);
+                        matchCnt++;
+                    }
+                }
+                resLen += sprintf_s(outBuf + resLen, outBufLen - resLen, ",");
+            } else {
+                resLen += sprintf_s(outBuf + resLen, outBufLen - resLen, "%s:", inputString[i].key);
+                int endChar = strlen(inputString[i].string);
+                int numCnt = 0;
+                int endCnt = endChar;
+                int startCnt = 0;
+                for (int ruleCode3 = endChar - 1; ruleCode3 >= 0; ruleCode3--) {
+                    if (inputString[i].string[ruleCode3] >= '0' && inputString[i].string[ruleCode3] <= '9') {
+                        numCnt++;
+                    } else {
+                        if (numCnt >= 4) {
+                            startCnt = ruleCode3;
+                            break;
+                        }
+                        endCnt = ruleCode3;
+                        numCnt = 0;
+                    }
+                }
+                
+                int chageend = endCnt - (numCnt / 4 + 1);
+                int changesrt = chageend + 1 - numCnt / 2;
+                for (int ruleCode3 = 0; ruleCode3 < endChar; ruleCode3++) {
+                    if (ruleCode3 >= changesrt && ruleCode3 <= chageend && numCnt >= 4) {
+                        resLen += sprintf_s(outBuf + resLen, outBufLen - resLen, "*");
+                    } else {
+                        resLen += sprintf_s(outBuf + resLen, outBufLen - resLen, "%c", inputString[i].string[ruleCode3]);
+                    }
+                }
+                resLen += sprintf_s(outBuf + resLen, outBufLen - resLen, ",");
+            }
+        }
+    }
+    outBuf[resLen - 1] = 0;
+}
+
+void LogAnonymize(char *keys[], int keyCnt, char *input, char *outBuf, int outBufLen)
+{
+    UthshCharArray *UthshHead = NULL;
+    char pas[KEY_BUF_LEN] = "password";
+    char pwd[KEY_BUF_LEN] = "pwd";
+    UthshAddByKey(&UthshHead, pas, RULE1);
+    UthshAddByKey(&UthshHead, pwd, RULE1);
+    for (int i = 0; i < keyCnt; i++) {
+        int endChar = strlen(keys[i]) - 1;
+        RuleId rel = RULE3;
+        if ((keys[i][endChar - 1] == 'i' || keys[i][endChar - 1] == 'I') &&
+            (keys[i][endChar] == 'p' || keys[i][endChar] == 'P')) {
+            rel = RULE2;
+        }
+        UthshAddByKey(&UthshHead, keys[i], rel);
+    }
+
+    InputInfo inputString[LOG_BUF_LEN] = { 0 };
+    int inputLen = SpliateString(input, inputString);
+
+    EncodeString(UthshHead, inputString, inputLen, outBuf, outBufLen);
+}
+
+/* 代码仅供参考，注意避免圈复杂度过大 */
+int main(void)
+{
+    int n;
+    if (scanf_s("%d", &n) != 1) { return -1; }
+
+    static char keysBuf[MAXN][KEY_BUF_LEN];
+    static char *keys[MAXN];
+    int i;
+    for (i = 0; i < n; i++) {
+        if (scanf_s("%s", keysBuf[i], KEY_BUF_LEN) != 1) { return -1; }
+        keys[i] = keysBuf[i];
+    }
+
+    static char buf[LOG_BUF_LEN];
+    if (scanf_s("%s", buf, LOG_BUF_LEN) != 1) { return -1; }
+
+    static char outBuf[LOG_BUF_LEN];
+    LogAnonymize(keys, n, buf, outBuf, sizeof(outBuf));
+
+    (void)printf("%s", outBuf);
+    return 0;
+}
+
+// ---------------------------解法 结束---------------------------------------------------------------------

@@ -1,0 +1,209 @@
+/******************************************************************************
+ * 版权所有 (c)
+ * 功能描述   : leetcode 1094. 拼车 . https://leetcode-cn.com/problems/car-pooling/
+ * 作    者   :
+ * 生成日期   :
+
+ * 
+      --- 
+ ******************************************************************************/
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdbool.h>
+// #include <uthash.h>
+#include <math.h>
+#include <assert.h>
+// 如需使用华为安全函数，请加上 #include "securec.h"
+// #include "securec.h"
+// #include "vos_priorityqueue.h"
+
+
+
+
+
+/*
+1094. 拼车
+车上最初有 capacity 个空座位。车 只能 向一个方向行驶（也就是说，不允许掉头或改变方向）
+
+给定整数 capacity 和一个数组 trips ,  trip[i] = [numPassengersi, fromi, toi] 表示第 i 次旅行有 numPassengersi 乘客，接他们和放他们的位置分别是 fromi 和 toi 。这些位置是从汽车的初始位置向东的公里数。
+
+当且仅当你可以在所有给定的行程中接送所有乘客时，返回 true，否则请返回 false。
+
+ 
+
+示例 1：
+
+输入：trips = [[2,1,5],[3,3,7]], capacity = 4
+输出：false
+示例 2：
+
+输入：trips = [[2,1,5],[3,3,7]], capacity = 5
+输出：true
+ 
+
+提示：
+
+1 <= trips.length <= 1000
+trips[i].length == 3
+1 <= numPassengersi <= 100
+0 <= fromi < toi <= 1000
+1 <= capacity <= 105
+*/
+
+
+
+
+
+// ---------------------------解法 开始-----暴力遍历: -----------------------------------------------------
+
+// ---------------------------解法 结束---------------------------------------------------------------------
+
+
+
+
+
+
+// ---------------------------解法 开始-----差分技巧 -----------------------------------------------------
+typedef struct UpdateInfo {
+    int startIndex;
+    int endIndex;
+    int Add;
+} UpdateInfo;
+
+typedef struct DiffArray {
+    int *diff;
+    int size;
+} DiffArray;
+
+DiffArray *DiffArrInit(int *array, int arrayLen)
+{
+    DiffArray *diffArr = (DiffArray *)malloc(sizeof(DiffArray));
+    diffArr->diff = (int *)malloc(sizeof(int) * (arrayLen + 1 ));  // 多出的一个在尾部，是无效的
+    diffArr->diff[0] = array[0];
+    for (int i = 1; i < arrayLen; i++) {
+        diffArr->diff[i] = array[i] - array[i - 1];
+    }
+
+    return diffArr;
+}
+
+void DiffArrDestory(DiffArray *diffArr)
+{
+    free(diffArr->diff);
+    free(diffArr);
+}
+
+void DiffArrUpdate(DiffArray *diffArr, UpdateInfo *updateInfo)
+{
+    diffArr->diff[updateInfo->startIndex] += updateInfo->Add;
+    diffArr->diff[updateInfo->endIndex + 1] -= updateInfo->Add;
+}
+
+void DiffArrReArray(DiffArray *diffArr, int *array, int length)
+{
+    array[0] = diffArr->diff[0];
+    for (int i = 1; i < length; i++) {
+        array[i] += array[i - 1] + diffArr->diff[i];
+    }
+}
+
+
+bool carPooling(int** trips, int tripsSize, int* tripsColSize, int capacity)
+{
+    int *res = (int *)malloc(sizeof(int) * 1010);
+    memset(res, 0, sizeof(int) * 1010);
+
+    DiffArray *diffArr = DiffArrInit(res, 1010);
+    for (int i = 0; i < tripsSize; i++) {
+        UpdateInfo updateInfo = { trips[i][1], trips[i][2] - 1, trips[i][0] };
+        DiffArrUpdate(diffArr, &updateInfo);
+    }
+    DiffArrReArray(diffArr, res, 1010);
+    for (int i = 0; i < 1010; i++) {
+        if (res[i] > capacity) {
+            DiffArrDestory(diffArr);
+            free(res);
+            return false;
+        }
+    }
+
+    DiffArrDestory(diffArr);
+    free(res);
+    return true;
+}
+// ---------------------------解法 结束---------------------------------------------------------------------
+
+
+
+#define MAX_LEN 201
+
+typedef struct Matrix {
+    int matrixSize;
+    int matrixColSize[MAX_LEN];
+    int matrix[MAX_LEN][MAX_LEN];
+    int* matrixPoin[MAX_LEN];
+} Matrix;
+
+
+
+int main()
+{
+    Matrix matrix_1 = {
+        3,
+        { 3, 3 },
+        {
+            { 2,1,5 },
+            { 3,3,7 },
+        }
+    };
+    for (int i = 0; i < matrix_1.matrixSize; i++) {
+        matrix_1.matrixPoin[i] = &matrix_1.matrix[i][0];
+    }
+    int capacity_1 = 4;
+    bool res_1 = carPooling(matrix_1.matrixPoin, matrix_1.matrixSize, matrix_1.matrixColSize, capacity_1);
+    assert(res_1 == false);
+
+
+
+
+
+    Matrix matrix_2 = {
+        3,
+        { 3, 3 },
+        {
+            { 2,1,5 },
+            { 3,3,7 },
+        }
+    };
+    for (int i = 0; i < matrix_2.matrixSize; i++) {
+        matrix_2.matrixPoin[i] = &matrix_2.matrix[i][0];
+    }
+    int capacity_2 = 5;
+    bool res_2 = carPooling(matrix_2.matrixPoin, matrix_2.matrixSize, matrix_2.matrixColSize, capacity_2);
+    assert(res_2 == true);
+
+
+
+
+
+    Matrix matrix_3 = {
+        3,
+        { 3, 3 },
+        {
+            { 2,1,5 },
+            { 3,5,7 },
+        }
+    };
+    for (int i = 0; i < matrix_3.matrixSize; i++) {
+        matrix_3.matrixPoin[i] = &matrix_3.matrix[i][0];
+    }
+    int capacity_3 = 3;
+    bool res_3 = carPooling(matrix_3.matrixPoin, matrix_3.matrixSize, matrix_3.matrixColSize, capacity_3);
+    assert(res_3 == true);
+
+
+
+
+    return 0;
+}

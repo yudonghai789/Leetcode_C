@@ -1,0 +1,389 @@
+/******************************************************************************
+ * 版权所有 (c)
+ * 功能描述   : leetcode 42. 接雨水. https://leetcode-cn.com/problems/trapping-rain-water/
+ * 作    者   :
+ * 生成日期   :
+
+ * 
+      --- 
+ ******************************************************************************/
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdbool.h>
+#include <uthash.h>
+#include <math.h>
+#include <assert.h>
+// 如需使用华为安全函数，请加上 #include "securec.h"
+// #include "securec.h"
+#include "vos_priorityqueue.h"
+
+
+
+
+
+/*
+42. 接雨水
+给定 n 个非负整数表示每个宽度为 1 的柱子的高度图，计算按此排列的柱子，下雨之后能接多少雨水。
+
+ 
+
+示例 1：
+
+
+
+输入：height = [0,1,0,2,1,0,1,3,2,1,2,1]
+输出：6
+解释：上面是由数组 [0,1,0,2,1,0,1,3,2,1,2,1] 表示的高度图，在这种情况下，可以接 6 个单位的雨水（蓝色部分表示雨水）。 
+示例 2：
+
+输入：height = [4,2,0,3,2,5]
+输出：9
+ 
+
+提示：
+
+n == height.length
+1 <= n <= 2 * 104
+0 <= height[i] <= 105
+*/
+
+
+
+
+
+// ---------------------------解法 开始-----暴力遍历: -----------------------------------------------------
+
+// ---------------------------解法 结束---------------------------------------------------------------------
+
+
+
+
+
+
+
+// ---------------------------解法 开始-----BFS 递归模板: -----------------------------------------------------
+
+// ---------------------------解法 结束---------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+// ---------------------------解法 开始-----BFS 迭代模板: -----------------------------------------------------
+
+// ---------------------------解法 结束-----------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+// ---------------------------解法 开始-----DFS 递归模板: -----------------------------------------------------
+
+// ---------------------------解法 结束----------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+// ---------------------------解法 开始-----DFS 迭代模板: --------------------------------------------------
+
+// ---------------------------解法 结束----------------------------------------------------------------------
+
+
+
+
+
+
+
+
+// ---------------------------解法 开始-----回溯 迭代模板: --------------------------------------------------
+
+// ---------------------------解法 结束----------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+// ---------------------------解法 开始-----动态规划 记忆化搜索: ---------------------
+
+
+// ---------------------------解法 结束----------------------------------------------------------------------
+
+
+
+
+
+
+
+// ---------------------------解法 开始-----动态规划 按顺序递推-----------------------------------------------------
+
+// ---------------------------解法 结束--------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+// ---------------------------解法 开始-----贪心 --------------------------------------------------------
+
+// ---------------------------解法 结束------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// ---------------------------解法 开始-----------单调栈------------------------------------------------
+#define MAX_STACK_LEN (20005)
+
+typedef struct Elem {
+    int val;
+    int position;
+    char charter;
+} Elem;
+
+typedef struct Stack {
+    int top;
+    Elem elems[MAX_STACK_LEN];
+    int size;
+    int capacity;
+} Stack;
+
+Stack *StackInit(int capacity)
+{
+    Stack *stack = (Stack *)malloc(sizeof(Stack));
+    memset(stack, 0, sizeof(Stack));
+    stack->capacity = (capacity == 0) ? MAX_STACK_LEN: capacity;
+    stack->size = 0;
+    stack->top = -1;
+    return stack;
+}
+
+void StackDestory(Stack* stack)
+{
+    free(stack);
+}
+
+bool StackIsEmpty(Stack* stack)
+{
+    return stack->size == 0;
+}
+
+
+bool StackIsFull(Stack* stack)
+{
+    return stack->size == stack->capacity;
+}
+
+int StackSize(Stack* stack)
+{
+    return stack->size;
+}
+
+void StackPrint(Stack* stack)
+{
+    for (int i = 0; i < stack->size; i++) {
+        printf("{%c %d %d }-->", stack->elems[i].charter, stack->elems[i].val, stack->elems[i].position);
+    }
+    printf("\n");
+}
+
+int Compare(Elem A, Elem B)
+{
+    return (long long)A.val - (long long)B.val;   // 如果B是负数，可能超过int范围
+}
+
+void StackPush(Stack* stack, Elem newElem)
+{
+    if (stack->size >= stack->capacity) {
+        printf("stack full error \n");
+        return;
+    }
+
+    stack->elems[++stack->top] = newElem;
+    stack->size++;
+}
+
+Elem StackPeek(Stack* stack)
+{
+    if (stack->size == 0) {
+        printf("stack empty error \n");
+        Elem ZeroElem = { 0 };
+        return ZeroElem;
+    }
+
+    return stack->elems[stack->top];
+}
+
+
+void StackPop(Stack* stack)
+{
+    if (stack->size == 0) {
+        printf("stack empty error \n");
+        return;
+    }
+
+    Elem ZeroElem = { 0 };
+    stack->elems[stack->top--] = ZeroElem;
+    stack->size--;
+}
+
+
+// bool OrderStackPushCheckIsEmpty(Stack* stack, Elem newElem)
+// {
+//     // 将所有比当前元素小的元素出栈
+//     while ((!StackIsEmpty(stack)) && (Compare(newElem, StackPeek(stack)) >= 0)) {
+//         StackPop(stack);
+//     }
+
+//     return StackIsEmpty(stack) ? true: false;
+// }
+
+
+
+#define MAX_RES_LEN MAX_STACK_LEN
+
+
+int trap(int* height, int heightSize)
+{
+    int res = 0;
+
+    Stack *stack = StackInit(0);
+    
+    Elem ZeroElem = { 0, -1, 'f' };
+    StackPush(stack, ZeroElem);
+    for (int i = 0; i < heightSize; i++) {
+        Elem newElem = { height[i], i, 'x'};
+        while ((StackSize(stack) > 1) && (Compare(newElem, StackPeek(stack)) > 0)) {
+            int low = StackPeek(stack).val;
+            int lowPosition = newElem.position - 1;
+
+            StackPop(stack);
+
+            int high = fmin(StackPeek(stack).val, newElem.val);
+            int highPosition = StackPeek(stack).position;
+            res = res + fmax((high - low), 0) * (lowPosition - highPosition);
+        }
+
+        StackPush(stack, newElem);
+        // StackPrint(stack);
+    }
+
+    StackDestory(stack);
+    return res;
+}
+
+// ---------------------------解法 结束-----------------------------------------------------------------------
+
+
+
+
+
+// ---------------------------解法 开始-----------单调队列------------------------------------------------
+
+// ---------------------------解法 结束-----------------------------------------------------------------------
+
+
+
+
+// ---------------------------解法 开始-----------优先队列------------------------------------------------
+
+// ---------------------------解法 结束-----------------------------------------------------------------------
+
+
+int main() {
+
+    int height_1[] = { 5,0,2,3,5 };
+    int heightSize_1 = sizeof(height_1) / sizeof (height_1[0]);
+    int res_1 = trap(height_1, heightSize_1); 
+    assert(res_1 == 10);
+
+
+
+    int height_2[] = { 5, 3,2,0,5 };
+    int heightSize_2 = sizeof(height_2) / sizeof (height_2[0]);
+    int res_2 = trap(height_2, heightSize_2); 
+    assert(res_2 == 10);
+
+
+
+    int height_3[] = { 5,1,0,1,1,2 };
+    int heightSize_3 = sizeof(height_3) / sizeof (height_3[0]);
+    int res_3 = trap(height_3, heightSize_3); 
+    assert(res_3 == 5);
+
+
+
+    int height_4[] = { 0,1,0,2,1,0,1,3,2,1,2,1 };
+    int heightSize_4 = sizeof(height_4) / sizeof (height_4[0]);
+    int res_4 = trap(height_4, heightSize_4); 
+    assert(res_4 == 6);
+
+
+
+    int height_5[] = { 4,2,0,3,2,5 };
+    int heightSize_5 = sizeof(height_5) / sizeof (height_5[0]);
+    int res_5 = trap(height_5, heightSize_5); 
+    assert(res_5 == 9);
+
+
+
+    int height_6[] = { 0,1,0,2,1,0,1,3,2,1,2,1 };
+    int heightSize_6 = sizeof(height_6) / sizeof (height_6[0]);
+    int res_6 = trap(height_6, heightSize_6); 
+    assert(res_6 == 6);
+
+
+    int height_7[] = { 0,1,0,2,1,0,1,3,2,1,2,1 };
+    int heightSize_7 = sizeof(height_7) / sizeof (height_7[0]);
+    int res_7 = trap(height_7, heightSize_7); 
+    assert(res_7 == 6);
+
+
+
+
+
+
+    return 0;
+}
+

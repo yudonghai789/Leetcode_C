@@ -1,0 +1,161 @@
+/*
+ * Copyright (c) Huawei Technologies Co., Ltd. 2019-2020. All rights reserved.
+ */
+#include <stdint.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <stdbool.h>
+#include <uthash.h>
+// 如需使用华为安全函数，请加上 #include "securec.h"
+#include "securec.h"
+#include "systemDesgin.h"
+#include <math.h>
+#include <assert.h>
+
+
+
+/* leetcode 207. 课程表  https://leetcode-cn.com/problems/course-schedule/
+ * 有向图(邻接表)的DFS 
+ */
+
+// ---------------------------开始---------------------------------------------------
+typedef struct NeedPre {
+    int allCount;
+    int curCount;
+    int pre[5000];
+} NeedPre;
+
+typedef struct Corse {
+    bool finsed;
+    NeedPre *preCorse;
+} Corse;
+
+Corse LearmMem[10010] = { 0 };  
+
+void Dfs(int numCourses, int** prerequisites, int prerequisitesSize, int* prerequisitesColSize, int step) {
+    if (step > prerequisitesSize) {
+        return;
+    }
+
+    int notFindCnt = 0;
+    for (int i = 0; i < prerequisitesSize; i++) {
+        int needPre = prerequisites[i][0];
+        int pre = prerequisites[i][1];
+        if (LearmMem[needPre].finsed == false) {
+
+            if (LearmMem[pre].finsed == false) {
+                notFindCnt++;
+                continue;
+            }
+
+            for (int i = 0; i < LearmMem[needPre].preCorse->allCount; i++) {
+                if (LearmMem[needPre].preCorse->pre[i] == pre) {
+                    LearmMem[needPre].preCorse->pre[i] = 0x3f3f3f3f;
+                    LearmMem[needPre].preCorse->curCount--;
+                    break;
+                }
+            }
+
+            if (LearmMem[needPre].preCorse->curCount == 0) {
+                LearmMem[needPre].finsed = true;
+                free(LearmMem[needPre].preCorse);
+                LearmMem[needPre].preCorse = NULL;
+            } else {
+                notFindCnt++;
+            }
+        }
+    }
+
+    if (notFindCnt != 0) {
+        Dfs(numCourses, prerequisites, prerequisitesSize, prerequisitesColSize, step + 1);
+    }
+}
+
+bool canFinish(int numCourses, int** prerequisites, int prerequisitesSize, int* prerequisitesColSize)
+{
+    // speciall case  如果没有学习前置的课程，则一定都能学习完
+    if (prerequisitesSize == 0) {
+        return true;
+    }
+
+    memset(LearmMem, 0, sizeof(LearmMem));
+    for (int i = 0; i < numCourses; i++) {
+        LearmMem[i].finsed = true;
+    }
+
+    for (int i = 0; i < prerequisitesSize; i++) {
+         int needPre = prerequisites[i][0];   // 学习这个课程之前需要前置课程
+         LearmMem[needPre].finsed = false;   // 这些课程不能先修
+         int pre = prerequisites[i][1];   // 学习这个课程之前需要前置课程
+
+         if (LearmMem[needPre].preCorse == NULL) {
+            LearmMem[needPre].preCorse = (NeedPre *)malloc(sizeof(NeedPre));
+            LearmMem[needPre].preCorse->allCount = 0;
+            LearmMem[needPre].preCorse->curCount = 0;
+            memset(&LearmMem[needPre].preCorse->pre[0], 0x3f , sizeof(LearmMem[needPre].preCorse->pre));
+         }
+
+         LearmMem[needPre].preCorse->pre[LearmMem[needPre].preCorse->allCount] = pre;
+         LearmMem[needPre].preCorse->allCount++;
+         LearmMem[needPre].preCorse->curCount++;
+    }
+
+    // 需要思考就是  课程3 需要课程2     课程2 需要课程1   课程1需要课程0
+    Dfs(numCourses, prerequisites, prerequisitesSize, prerequisitesColSize, 1);
+    
+    bool result = true;
+    for (int i = 0; i < numCourses; i++) {
+        if (LearmMem[i].finsed == false) {
+            free(LearmMem[i].preCorse);
+            result = false;
+        }
+    }
+
+    return result;
+}
+// ---------------------------结束--------------------------------------------------------
+
+
+// -------------------------- 开始----------------------------------------------
+
+// ---------------------------结束--------------------------------------------------------
+
+
+int main() {
+    int numCourses_1 = 3;
+    int prerequisitese_1[3][2] = {
+        {1, 0},
+        {1, 2},
+        {0, 1}
+    };
+    int prerequisitesSize_1 = sizeof(prerequisitese_1)/ sizeof(prerequisitese_1[0]);
+    int prerequisitesColSize_1 = sizeof(prerequisitese_1[0])/ sizeof(prerequisitese_1[0][0]);
+    int *prerequisitesePoint_1[3] = { 0 };
+    for (int i = 0; i < prerequisitesSize_1; i++) {
+        prerequisitesePoint_1[i] = &prerequisitese_1[i][0];
+    }
+
+    bool result_1 = canFinish(numCourses_1, prerequisitesePoint_1, prerequisitesSize_1, &prerequisitesColSize_1);
+    assert(result_1 == false);
+
+    int numCourses_2 = 4;
+    int prerequisitese_2[3][2] = {
+        {3, 2},
+        {2, 1},
+        {1, 0}
+    };
+    int prerequisitesSize_2 = sizeof(prerequisitese_2)/ sizeof(prerequisitese_2[0]);
+    int prerequisitesColSize_2 = sizeof(prerequisitese_2[0])/ sizeof(prerequisitese_2[0][0]);
+    int *prerequisitesePoint_2[3] = { 0 };
+    for (int i = 0; i < prerequisitesSize_2; i++) {
+        prerequisitesePoint_2[i] = &prerequisitese_2[i][0];
+    }
+
+    bool result_2 = canFinish(numCourses_2, prerequisitesePoint_2, prerequisitesSize_2, &prerequisitesColSize_2);
+    assert(result_2 == true);
+
+
+
+    return 0;
+}

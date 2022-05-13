@@ -1,0 +1,121 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdbool.h>
+#include <string.h>
+#include <math.h>
+#include <assert.h>
+
+
+
+/* 92. 反转链表 II
+ * 单链表的迭代
+ */
+
+
+// ---------------------------解法一 开始---递归-----------------------------------------------
+
+struct ListNode {
+    int val;
+    struct ListNode *next;
+};
+
+
+struct ListNode* recursion(struct ListNode* head, int left, int right) {
+    if (head->next == NULL) {
+        return head;
+    }
+
+    if (left == right) {
+        return head;
+    }
+
+    struct ListNode* lastNode = recursion(head->next, left + 1, right);
+
+    head->next->next = head;
+    head->next = NULL;
+
+    return lastNode;
+}
+
+
+struct ListNode* reverseBetween(struct ListNode* head, int left, int right) {
+    if (head == NULL) {
+        return NULL;
+    }
+
+    struct ListNode* leftNode = NULL;
+    struct ListNode* rightNode = NULL;
+    struct ListNode* Node = head;
+    struct ListNode* temp = head;
+
+    int i = 0;
+    while (Node != NULL) {
+        if (i == left - 2) {
+            leftNode = Node;
+            temp = leftNode->next;
+        }
+
+        if (i == right) {
+            rightNode = Node;
+        }
+
+        Node = Node->next;
+        i = i + 1; 
+    }
+
+    struct ListNode* lastNode = recursion(temp, left, right);
+
+    if (leftNode == NULL) {
+        head = lastNode;
+    } else {
+        leftNode->next = lastNode;
+    }
+    
+    if (rightNode == NULL) {
+
+    } else {
+        temp->next = rightNode;
+    }
+    
+    return head;
+}
+    
+// ---------------------------解法一结束--------------------------------------------------
+
+struct ListNode* arrayToList(int *caseArray, int length, int i) {
+    if (i >= length) {
+        return NULL;
+    }
+
+    struct ListNode* next = arrayToList(caseArray, length, i + 1);
+
+    struct ListNode* node = (struct ListNode *)malloc(sizeof(struct ListNode));
+    node->val = caseArray[i];
+    node->next = next;
+
+    return node;
+}
+
+
+int main() {
+    int case_1[] = {1,2,3,4,5};
+    int left_1 = 2, right_1 = 4;
+    int length_1 = sizeof(case_1) / sizeof(case_1[0]);
+    struct ListNode* head_1 = arrayToList(case_1, length_1, 0);
+    struct ListNode* reverHead_1 = reverseBetween(head_1, left_1, right_1);
+
+
+
+    int case_2[] = {5};
+    int left_2 = 1, right_2 = 1;
+    int length_2 = sizeof(case_2) / sizeof(case_2[0]);
+    struct ListNode* head_2 = arrayToList(case_2, length_2, 0);
+    struct ListNode* reverHead_2 = reverseBetween(head_2, left_2, right_2);
+
+
+
+
+    return 0;
+}
+
+

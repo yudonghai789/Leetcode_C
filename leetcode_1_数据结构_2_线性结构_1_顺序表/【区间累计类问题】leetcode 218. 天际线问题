@@ -1,0 +1,474 @@
+/******************************************************************************
+ * 版权所有 (c)
+ * 功能描述   : leetcode 218. 天际线问题 . https://leetcode-cn.com/problems/the-skyline-problem/
+ * 作    者   :
+ * 生成日期   :
+
+ * 
+      --- 
+ ******************************************************************************/
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdbool.h>
+#include <uthash.h>
+#include <math.h>
+#include <assert.h>
+// 如需使用华为安全函数，请加上 #include "securec.h"
+// #include "securec.h"
+// #include "vos_priorityqueue.h"
+
+
+
+
+
+/*
+218. 天际线问题
+城市的 天际线 是从远处观看该城市中所有建筑物形成的轮廓的外部轮廓。给你所有建筑物的位置和高度，请返回 由这些建筑物形成的 天际线 。
+
+每个建筑物的几何信息由数组 buildings 表示，其中三元组 buildings[i] = [lefti, righti, heighti] 表示：
+
+lefti 是第 i 座建筑物左边缘的 x 坐标。
+righti 是第 i 座建筑物右边缘的 x 坐标。
+heighti 是第 i 座建筑物的高度。
+你可以假设所有的建筑都是完美的长方形，在高度为 0 的绝对平坦的表面上。
+
+天际线 应该表示为由 “关键点” 组成的列表，格式 [[x1,y1],[x2,y2],...] ，并按 x 坐标 进行 排序 。关键点是水平线段的左端点。列表中最后一个点是最右侧建筑物的终点，y 坐标始终为 0 ，仅用于标记天际线的终点。此外，任何两个相邻建筑物之间的地面都应被视为天际线轮廓的一部分。
+
+注意：输出天际线中不得有连续的相同高度的水平线。例如 [...[2 3], [4 5], [7 5], [11 5], [12 7]...] 是不正确的答案；三条高度为 5 的线应该在最终输出中合并为一个：[...[2 3], [4 5], [12 7], ...]
+
+ 
+
+示例 1：
+
+
+输入：buildings = [[2,9,10],[3,7,15],[5,12,12],[15,20,10],[19,24,8]]
+输出：[[2,10],[3,15],[7,12],[12,0],[15,10],[20,8],[24,0]]
+解释：
+图 A 显示输入的所有建筑物的位置和高度，
+图 B 显示由这些建筑物形成的天际线。图 B 中的红点表示输出列表中的关键点。
+示例 2：
+
+输入：buildings = [[0,2,3],[2,5,3]]
+输出：[[0,3],[5,0]]
+ 
+
+提示：
+
+1 <= buildings.length <= 104
+0 <= lefti < righti <= 231 - 1
+1 <= heighti <= 231 - 1
+buildings 按 lefti 非递减排序
+*/
+
+
+
+
+
+// ---------------------------解法 开始-----暴力遍历: -----------------------------------------------------
+
+// ---------------------------解法 结束---------------------------------------------------------------------
+
+
+
+
+
+
+// ---------------------------解法 开始-----差分技巧 -----------------------------------------------------
+
+// ---------------------------解法 结束---------------------------------------------------------------------
+
+
+
+
+
+// ---------------------------解法 ---------------------------------------------------------------------
+// 所有数据点进行离散化处理时，最多有 MAX_TASK_NUM * 2 个时间点，使用哈希表进行离散化映射
+// typedef struct UthashTableInt {
+//     int key;   // position
+//     int val;   // height
+//     int mapping;   // height
+//     UT_hash_handle hh;
+// } UthashTableInt;
+
+// void TuhashFindAll(UthashTableInt** hashtableHead)
+// {
+//     UthashTableInt *currentUser = NULL;
+//     UthashTableInt *tmp = NULL;
+
+//     HASH_ITER(hh, *hashtableHead, currentUser, tmp) {
+//         printf("key = %d  ->  value = %d; \n", currentUser->key, currentUser->val);
+//     }
+
+//     printf("\n");
+// }
+
+// UthashTableInt* TuhashFindByKey(UthashTableInt** hashtableHead, int ikey)
+// {
+//     UthashTableInt* tmp = NULL;
+//     HASH_FIND_INT(*hashtableHead, &ikey, tmp);
+//     return tmp;
+// }
+
+// void TuhashAdd(UthashTableInt** hashtableHead, int ikey, int ival)
+// {
+//     UthashTableInt* it = TuhashFindByKey(hashtableHead, ikey);
+//     if (it == NULL) {
+//         UthashTableInt* tmp = (UthashTableInt*)malloc(sizeof(UthashTableInt));
+//         tmp->key = ikey;
+//         tmp->val = ival;
+//         HASH_ADD_INT(*hashtableHead, key, tmp);
+//     } else {
+//         it->val = ival;
+//     }
+// }
+
+// bool TuhashUpdate(UthashTableInt** hashtableHead, int ikey, int ival)
+// {
+//     UthashTableInt* it = TuhashFindByKey(hashtableHead, ikey);
+//     if (it == NULL) {
+//         return false;
+//     } else {
+//         it->val = fmax(it->val, ival);
+//         return true;
+//     }
+// }
+
+// void TuhashDelete(UthashTableInt** hashtableHead, UthashTableInt* hashtable)
+// {
+//     HASH_DEL(*hashtableHead, hashtable);  /* 从键值表中删除这个键值，但是不刽释放内存 */
+//     free(hashtable);   // 释放这个键值对的内存，删除时的可选操作
+// }
+
+// void TuhashDeleteByKey(UthashTableInt** hashtableHead, int ikey)
+// {
+//     UthashTableInt* it = TuhashFindByKey(hashtableHead, ikey);
+//     if (it != NULL) {
+//         HASH_DEL(*hashtableHead, it);  /* 从键值表中删除这个键值，但是不刽释放内存 */
+//         free(it);   // 释放这个键值对的内存，删除时的可选操作
+//     }
+// }
+
+// void TuhashDeleteAll(UthashTableInt** hashtableHead)
+// {
+//     UthashTableInt *currentUser = NULL;
+//     UthashTableInt *tmp = NULL;
+
+//     HASH_ITER(hh, *hashtableHead, currentUser, tmp) {
+//         HASH_DEL(*hashtableHead, currentUser);  /* delete it (users advances to next) */
+//         free(currentUser);             /* free it */
+//     }
+// }
+
+
+
+// int SortByKey(UthashTableInt* a, UthashTableInt* b)
+// {
+//     return (a->key - b->key);   // 字符串使用 strcmp(a->key, b->key)
+// }
+
+// void TuhashSortByKey(UthashTableInt** hashtableHead)
+// {
+//     HASH_SORT(*hashtableHead, SortByKey);
+// }
+// int SortByValue(UthashTableInt* a, UthashTableInt* b)
+// {
+//     return (a->val - b->val);   // 字符串使用 strcmp(a->val, b->val)
+// }
+
+// void TuhashSortByValue(UthashTableInt** hashtableHead)
+// {
+//     HASH_SORT(*hashtableHead, SortByValue);
+// }
+
+
+// #define MAX_RES_LEN 10000 * 2 + 10
+
+
+
+// int** getSkyline(int** buildings, int buildingsSize, int* buildingsColSize, int* returnSize, int** returnColumnSizes)
+// {
+//     // 只要将原本是 1 ~ 231-1，  离散处理一下，将离散点当做处理的数据点
+//     UthashTableInt* hashtableHead = NULL;
+//     for (int buildId = 0; buildId < buildingsSize; buildId++) {
+//         TuhashAdd(&hashtableHead, buildings[buildId][0], 0);
+//         TuhashAdd(&hashtableHead, buildings[buildId][1], 0);
+//     }
+//     TuhashSortByKey(&hashtableHead);
+
+//     UthashTableInt *currentUser = NULL;
+//     UthashTableInt *tmp = NULL;
+
+//     for (int buildId = 0; buildId < buildingsSize; buildId++) {
+//         HASH_ITER(hh, hashtableHead, currentUser, tmp) {
+//             // printf("key = %d  ->  value = %d; \n", currentUser->key, currentUser->val);
+//             if ((currentUser->key >= buildings[buildId][0]) && (currentUser->key < buildings[buildId][1]) ){
+//                 TuhashUpdate(&hashtableHead, currentUser->key, buildings[buildId][2]);
+//             }
+//             if (currentUser->key >= buildings[buildId][1]) {
+//                 break;
+//             }
+//         }
+//     }
+
+//     int **res = (int **)malloc(sizeof(int*) * MAX_RES_LEN);
+//     memset(res, 0, sizeof(int*) * MAX_RES_LEN);
+//     int resLen = 0;
+
+//     int currheight = -1;
+//     HASH_ITER(hh, hashtableHead, currentUser, tmp) {
+//         // printf("key = %d  ->  value = %d; \n", currentUser->key, currentUser->val);
+    
+//         if (currheight != currentUser->val) {
+//             res[resLen] = (int *)malloc(sizeof(int) * 2);
+//             res[resLen][0] = currentUser->key;
+//             res[resLen][1] = currentUser->val;
+//             currheight = currentUser->val;
+//             resLen++;
+//         }
+//     }
+
+//     *returnSize = resLen;
+//     (*returnColumnSizes) = (int *)malloc(sizeof(int) * resLen);
+//     for (int i = 0; i < resLen; i++) {
+//         (*returnColumnSizes)[i] = 2;
+//     }
+
+//     TuhashDeleteAll(&hashtableHead);
+//     return res;
+// }
+
+
+
+
+
+
+
+
+
+// ---------------------------解法 ------------优化---------------------------------------------------------
+
+// 所有数据点进行离散化处理时，最多有 MAX_TASK_NUM * 2 个时间点，使用哈希表进行离散化映射
+typedef struct UthashTableInt {
+    int key;   // position
+    int val;   // mapping
+    UT_hash_handle hh;
+} UthashTableInt;
+
+void TuhashFindAll(UthashTableInt** hashtableHead)
+{
+    UthashTableInt *currentUser = NULL;
+    UthashTableInt *tmp = NULL;
+
+    HASH_ITER(hh, *hashtableHead, currentUser, tmp) {
+        printf("key = %d  ->  value = %d; \n", currentUser->key, currentUser->val);
+    }
+
+    printf("\n");
+}
+
+UthashTableInt* TuhashFindByKey(UthashTableInt** hashtableHead, int ikey)
+{
+    UthashTableInt* tmp = NULL;
+    HASH_FIND_INT(*hashtableHead, &ikey, tmp);
+    return tmp;
+}
+
+void TuhashAdd(UthashTableInt** hashtableHead, int ikey, int ival)
+{
+    UthashTableInt* it = TuhashFindByKey(hashtableHead, ikey);
+    if (it == NULL) {
+        UthashTableInt* tmp = (UthashTableInt*)malloc(sizeof(UthashTableInt));
+        tmp->key = ikey;
+        tmp->val = ival;
+        HASH_ADD_INT(*hashtableHead, key, tmp);
+    } else {
+        it->val = ival;
+    }
+}
+
+bool TuhashUpdate(UthashTableInt** hashtableHead, int ikey, int ival)
+{
+    UthashTableInt* it = TuhashFindByKey(hashtableHead, ikey);
+    if (it == NULL) {
+        return false;
+    } else {
+        it->val = fmax(it->val, ival);
+        return true;
+    }
+}
+
+void TuhashDelete(UthashTableInt** hashtableHead, UthashTableInt* hashtable)
+{
+    HASH_DEL(*hashtableHead, hashtable);  /* 从键值表中删除这个键值，但是不刽释放内存 */
+    free(hashtable);   // 释放这个键值对的内存，删除时的可选操作
+}
+
+void TuhashDeleteByKey(UthashTableInt** hashtableHead, int ikey)
+{
+    UthashTableInt* it = TuhashFindByKey(hashtableHead, ikey);
+    if (it != NULL) {
+        HASH_DEL(*hashtableHead, it);  /* 从键值表中删除这个键值，但是不刽释放内存 */
+        free(it);   // 释放这个键值对的内存，删除时的可选操作
+    }
+}
+
+void TuhashDeleteAll(UthashTableInt** hashtableHead)
+{
+    UthashTableInt *currentUser = NULL;
+    UthashTableInt *tmp = NULL;
+
+    HASH_ITER(hh, *hashtableHead, currentUser, tmp) {
+        HASH_DEL(*hashtableHead, currentUser);  /* delete it (users advances to next) */
+        free(currentUser);             /* free it */
+    }
+}
+
+
+
+int SortByKey(UthashTableInt* a, UthashTableInt* b)
+{
+    return (a->key - b->key);   // 字符串使用 strcmp(a->key, b->key)
+}
+
+void TuhashSortByKey(UthashTableInt** hashtableHead)
+{
+    HASH_SORT(*hashtableHead, SortByKey);
+}
+int SortByValue(UthashTableInt* a, UthashTableInt* b)
+{
+    return (a->val - b->val);   // 字符串使用 strcmp(a->val, b->val)
+}
+
+void TuhashSortByValue(UthashTableInt** hashtableHead)
+{
+    HASH_SORT(*hashtableHead, SortByValue);
+}
+
+
+#define MAX_RES_LEN 10000 * 2 + 10
+
+typedef struct PointInfo {
+    int position;
+    int height;
+} PointInfo;
+
+PointInfo g_pointInfo[MAX_RES_LEN];
+
+int** getSkyline(int** buildings, int buildingsSize, int* buildingsColSize, int* returnSize, int** returnColumnSizes)
+{
+    // 只要将原本是 1 ~ 231-1，  离散处理一下，将离散点当做处理的数据点
+    UthashTableInt* hashtableHead = NULL;
+    for (int buildId = 0; buildId < buildingsSize; buildId++) {
+        TuhashAdd(&hashtableHead, buildings[buildId][0], 0);
+        TuhashAdd(&hashtableHead, buildings[buildId][1], 0);
+    }
+    TuhashSortByKey(&hashtableHead);
+    TuhashFindAll(&hashtableHead);
+
+
+    memset(g_pointInfo, 0, sizeof(g_pointInfo));
+    int pointNum = 0;
+    UthashTableInt *currentUser = NULL;
+    UthashTableInt *tmp = NULL;
+    HASH_ITER(hh, hashtableHead, currentUser, tmp) {
+        // printf("key = %d  ->  value = %d; \n", currentUser->key, currentUser->val);
+        g_pointInfo[pointNum].position = currentUser->key;
+        currentUser->val = pointNum;
+        pointNum++;
+    }
+    // TuhashFindAll(&hashtableHead);
+
+
+    for (int buildId = 0; buildId < buildingsSize; buildId++) {
+        int start = TuhashFindByKey(&hashtableHead, buildings[buildId][0])->val;
+        int end = TuhashFindByKey(&hashtableHead, buildings[buildId][1])->val;
+        for (; start < end; start++) {
+            g_pointInfo[start].height = fmax(g_pointInfo[start].height, buildings[buildId][2]);
+        }
+    }
+    // TuhashDeleteAll(&hashtableHead);
+
+
+    int **res = (int **)malloc(sizeof(int*) * MAX_RES_LEN);
+    memset(res, 0, sizeof(int*) * MAX_RES_LEN);
+    int resLen = 0;
+
+    int currheight = -1;
+    for (int poin = 0; poin < pointNum; poin++) {
+        if (currheight != g_pointInfo[poin].height) {
+            res[resLen] = (int *)malloc(sizeof(int) * 2);
+            res[resLen][0] = g_pointInfo[poin].position;
+            res[resLen][1] = g_pointInfo[poin].height;
+            currheight = g_pointInfo[poin].height;
+            resLen++;
+        }
+    }
+
+    *returnSize = resLen;
+    (*returnColumnSizes) = (int *)malloc(sizeof(int) * resLen);
+    for (int i = 0; i < resLen; i++) {
+        (*returnColumnSizes)[i] = 2;
+    }
+    
+    return res;
+}
+
+
+// ---------------------------解法 结束---------------------------------------------------------------------
+
+
+
+
+#define MAX_LEN 201
+
+typedef struct Matrix {
+    int matrixSize;
+    int matrixColSize[MAX_LEN];
+    int matrix[MAX_LEN][MAX_LEN];
+    int* matrixPoin[MAX_LEN];
+} Matrix;
+
+
+
+/* 代码仅供参考，注意避免圈复杂度过大 */
+int main(void)
+{
+    Matrix matrix_1 = {
+        5,
+        { 3, 3, 3, 3, 3 },
+        {
+            { 2,9,10 },
+            { 3,7,15 },
+            { 5,12,12 },
+            { 15,20,10 },
+            { 19,24,8 },
+        }
+    };
+    for (int i = 0; i < matrix_1.matrixSize; i++) {
+        matrix_1.matrixPoin[i] = &matrix_1.matrix[i][0];
+    }
+    int returnSize_1 = 45643;
+    int *returnColumnSizes_1 = NULL;
+    int** res_1 = getSkyline(matrix_1.matrixPoin, matrix_1.matrixSize, matrix_1.matrixColSize, &returnSize_1, &returnColumnSizes_1);
+
+
+
+    Matrix matrix_2 = {
+        1,
+        { 3 },
+        {
+            { 0,2147483647,2147483647 },
+        }
+    };
+    for (int i = 0; i < matrix_2.matrixSize; i++) {
+        matrix_2.matrixPoin[i] = &matrix_2.matrix[i][0];
+    }
+    int returnSize_2 = 45643;
+    int *returnColumnSizes_2 = NULL;
+    int** res_2 = getSkyline(matrix_2.matrixPoin, matrix_2.matrixSize, matrix_2.matrixColSize, &returnSize_2, &returnColumnSizes_2);
+
+
+
+    return 0;
+}

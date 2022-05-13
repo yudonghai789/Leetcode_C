@@ -1,0 +1,556 @@
+#include <assert.h>
+#include <math.h>
+#include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+/* 二叉树的遍历，按照遍历顺序分为 前序、中序、后序、层序四种遍历，前中后就是针对根节点而言
+ * 按照遍历写法分为：迭代、递归、Morris解法
+ * 迭代就是隐式的实现了栈、递归就是要显示的将栈实现
+ * http://icejoywoo.github.io/2020/03/31/binary-tree-traversal.html
+ */
+
+
+
+
+
+/* 144. 二叉树的前序遍历
+ * 
+ */
+
+
+/* 145. 二叉树的后序遍历
+ * 
+ */
+
+
+/* 94. 二叉树的中序遍历
+ * 
+ */
+
+
+
+/* 637. Average of Levels in Binary Tree (Easy)
+ * 二叉树的层次遍历
+ */
+
+
+
+/* ---------------------------------------------- *
+ *                -- 结构体定义 --                *
+ * ---------------------------------------------- */
+typedef struct TreeNode {
+    int val;
+    struct TreeNode *left;
+    struct TreeNode *right;
+} TreeNode;
+
+
+struct TreeNodeWapper {
+    int thisValue;
+    int val;
+    struct TreeNodeWapper *left;
+    struct TreeNodeWapper *right;
+};
+
+/* ---------------------------------------------- *
+ *                -- 树相关的辅助函数 --                
+ * ---------------------------------------------- */
+char** stringToStringArray(char* string, const char *delim, int *size) {
+    // 获取返回的字符串数组长度
+    if (string != NULL) { *size = 1; } else {return NULL;}
+    for(int i = 0; i < strlen(string); i++){       
+        if (string[i] == delim[0]) {       
+            (*size)++;
+        }
+    }
+
+    char **retArray = (char **)malloc(sizeof(char*) * (*size));
+
+    /* 获取第一个子字符串 */
+    int i = 0;
+    char* token;
+    token = strtok(string, delim);
+    retArray[i] = (char *)malloc(sizeof(char) * 10);
+    memset((void*)retArray[i], 0, sizeof(char) * 10);
+    memcpy(retArray[i], token, strlen(token));
+   
+    /* 继续获取其他的子字符串 */
+    while((token != NULL) && (i < (*size) - 1)) {
+        printf( "%s\n", token );
+        token = strtok(NULL, delim);
+        retArray[++i] = (char *)malloc(sizeof(char) * 10);
+        memset((void*)retArray[i], 0, sizeof(char) * 10);
+        memcpy(retArray[i], token, strlen(token));
+   }
+    printf( "%s\n", token );
+    return retArray;
+}
+
+// 层序遍历 + 非空判断 添加节点
+struct TreeNode* CharArrayToTree(char** charArray, int count) {
+    if (count == 0) { return NULL; }
+
+    struct TreeNode* treeRoot = (struct TreeNode*)malloc(sizeof(struct TreeNode) * count);
+    memset((void*)treeRoot, 0, sizeof(struct TreeNode) * count);
+
+    for (int i = 0; i < count; i++) {
+        if (strcmp(charArray[i], "null") == 0) {
+            treeRoot[i].val = 0x5a5a5a5a;
+        } else {
+            treeRoot[i].val = atoi(charArray[i]);
+        }
+    }
+
+    int order = 0, useer = 1; 
+    while (order < useer) {
+        if (treeRoot[order].val != 0x5a5a5a5a) {
+            // 添加左节点 
+            if (useer < count) {
+                if (treeRoot[useer].val != 0x5a5a5a5a) {
+                    treeRoot[order].left = &treeRoot[useer];
+                }
+                ++useer;
+            }
+            // 添加右节点 
+            if (useer < count) {
+                if (treeRoot[useer].val != 0x5a5a5a5a) {
+                    treeRoot[order].right = &treeRoot[useer]; 
+                }
+                ++useer;
+            }
+        }
+        order++;
+    }
+
+    return treeRoot;
+}
+
+void freeTreeNode(struct TreeNode* treeRoot) {
+    if(treeRoot == NULL) {return;}
+    
+    freeTreeNode(treeRoot->left);
+    freeTreeNode(treeRoot->right);
+    
+    free(treeRoot);
+}
+
+
+struct TreeNodeWapper* WapperTree(struct TreeNode* root) {
+    if (root == NULL) { return NULL; }
+    struct TreeNodeWapper* treeNodeWapper = (struct TreeNodeWapper*)malloc(sizeof(struct TreeNodeWapper));
+    treeNodeWapper->thisValue = 0;
+    treeNodeWapper->val = root->val;
+    treeNodeWapper->left = WapperTree(root->left);
+    treeNodeWapper->right = WapperTree(root->right);
+    return treeNodeWapper;
+}
+
+
+
+void freeTreeNodeWapper(struct TreeNodeWapper* treeRoot) {
+    if(treeRoot == NULL) {return;}
+    
+    freeTreeNodeWapper(treeRoot->left);
+    freeTreeNodeWapper(treeRoot->right);
+    
+    free(treeRoot);
+}
+
+
+
+
+
+
+
+/* 144. 二叉树的前序遍历
+ * 前序遍历后输出到数组 递归算法
+ */
+/**
+ * Note: The returned array must be malloced, assume caller calls free().
+ */
+void preTraver(struct TreeNode* root, int* returnSize, int *resultArray){
+    if (root == NULL) { return; }
+
+    // 前序遍历，根->左->右
+    resultArray[(*returnSize)] = root->val; 
+    (*returnSize)++;
+    
+    preTraver(root->left, returnSize, resultArray);
+    preTraver(root->right, returnSize, resultArray);
+}
+
+int* preorderTraversal(struct TreeNode* root, int* returnSize){
+    int *resultArray = (int *)malloc(sizeof(int) * 100);
+    memset((void *)resultArray, 0, sizeof(int) * 100);
+    (*returnSize) = 0;
+
+    preTraver(root, returnSize, resultArray);
+
+    return resultArray;
+}
+
+
+/* 144. 二叉树的前序遍历
+ * 前序遍历后输出到数组 迭代算法
+ */
+int* preorderTraversal_2_1(struct TreeNode* root, int* returnSize) {
+    int* res = malloc(sizeof(int) * 2000);
+    *returnSize = 0;
+    if (root == NULL) {
+        return res;
+    }
+
+    // 数组实现栈
+    struct TreeNode* stk[2000];
+    int stk_top = 0;
+
+    // 先将根节点加入到的栈中
+    stk[stk_top++] = root;
+    
+    while (stk_top > 0) {
+        struct TreeNode* node = stk[--stk_top];
+
+        res[(*returnSize)++] = node->val;
+
+        if (node->right != NULL) {
+            stk[stk_top++] = node->right;
+        }
+
+        if (node->left != NULL) {
+            stk[stk_top++] = node->left;
+        }
+
+    }
+    return res;
+}
+
+
+int* preorderTraversal_2_2(struct TreeNode* root, int* returnSize) {
+    int* res = malloc(sizeof(int) * 2000);
+    *returnSize = 0;
+    if (root == NULL) {
+        return res;
+    }
+
+    struct TreeNode* stk[2000];
+    struct TreeNode* node = root;
+    int stk_top = 0;
+    while (stk_top > 0 || node != NULL) {
+        while (node != NULL) {
+            res[(*returnSize)++] = node->val;
+            stk[stk_top++] = node;
+            node = node->left;
+        }
+        node = stk[--stk_top];
+        node = node->right;
+    }
+    return res;
+}
+
+
+
+/* 144. 二叉树的前序遍历
+ * 前序遍历后输出到数组 Morris 遍历
+ */
+int* preorderTraversal3(struct TreeNode* root, int* returnSize) {
+    int* res = malloc(sizeof(int) * 2000);
+    *returnSize = 0;
+    if (root == NULL) {
+        return res;
+    }
+
+    struct TreeNode *p1 = root, *p2 = NULL;
+
+    while (p1 != NULL) {
+        p2 = p1->left;
+        if (p2 != NULL) {
+            while (p2->right != NULL && p2->right != p1) {
+                p2 = p2->right;
+            }
+            if (p2->right == NULL) {
+                res[(*returnSize)++] = p1->val;
+                p2->right = p1;
+                p1 = p1->left;
+                continue;
+            } else {
+                p2->right = NULL;
+            }
+        } else {
+            res[(*returnSize)++] = p1->val;
+        }
+        p1 = p1->right;
+    }
+    return res;
+}
+
+
+
+/* 116. 填充每个节点的下一个右侧节点指针
+ * 前序遍历，但是操作当前节点的子节点间关系
+ */
+struct Node {
+    int val;
+    struct Node *left;
+    struct Node *right;
+    struct Node *next;
+};
+
+// 辅助函数
+void connectTwoNode(struct Node* node1, struct Node* node2) {
+    if (node1 == NULL || node2 == NULL) {
+        return;
+    }
+    /**** 前序遍历位置 ****/
+    // 将传入的两个节点连接
+    node1->next = node2;
+    
+    // 连接相同父节点的两个子节点
+    connectTwoNode(node1->left, node1->right);
+    connectTwoNode(node2->left, node2->right);
+    // 连接跨越父节点的两个子节点
+    connectTwoNode(node1->right, node2->left);
+}
+
+struct Node* connect(struct Node* root) {
+    if (root == NULL) return NULL;
+    connectTwoNode(root->left, root->right);
+    return root;
+}
+
+
+/* 145. 二叉树的后序遍历
+ * 后续遍历，递归算法
+ */
+void postorder(struct TreeNode *root, int *res, int *resSize) {
+    if (root == NULL) {
+        return;
+    }
+    postorder(root->left, res, resSize);
+    postorder(root->right, res, resSize);
+    res[(*resSize)++] = root->val;
+}
+
+int *postorderTraversal(struct TreeNode *root, int *returnSize) {
+    int *res = malloc(sizeof(int) * 2001);
+    *returnSize = 0;
+    postorder(root, res, returnSize);
+    return res;
+}
+
+/* 145. 二叉树的后序遍历
+ * 后续遍历，迭代算法 
+ * 因为需要知道哪些节点是遍历过的，所以改写了原来节点中的值，也可以开辟一个键值表，维护是否遍历过该节点
+ */
+int *postorderTraversal_2_1(struct TreeNode *root, int *returnSize) {
+    int *res = malloc(sizeof(int) * 2001);
+    *returnSize = 0;
+    if (root == NULL) { return NULL; } // 特殊用例，根节点为空
+
+    struct TreeNode *nodeStack[2001];
+    int stack_top_point = 0;
+
+    nodeStack[stack_top_point++] = root;
+    
+    while (stack_top_point > 0) {
+        struct TreeNode *stack_top_node = nodeStack[stack_top_point - 1];
+        
+        if ((stack_top_node->right != NULL) && (stack_top_node->right->val != 0x5a5a5a5a)) {
+            nodeStack[stack_top_point++] = stack_top_node->right;
+        }
+
+        if ((stack_top_node->left != NULL) && (stack_top_node->left->val != 0x5a5a5a5a)) {
+            nodeStack[stack_top_point++] = stack_top_node->left;
+        }
+
+        if (((stack_top_node->right == NULL) || (stack_top_node->right->val == 0x5a5a5a5a)) && ((stack_top_node->left == NULL) || (stack_top_node->left->val == 0x5a5a5a5a))) {
+            res[(*returnSize)++] = stack_top_node->val;
+            stack_top_node->val = 0x5a5a5a5a;
+            --stack_top_point;
+        }
+    }
+
+    return res;
+}
+
+int *postorderTraversal_2_2(struct TreeNode *root, int *returnSize) {
+    int *res = malloc(sizeof(int) * 2001);
+    *returnSize = 0;
+    if (root == NULL) {
+        return res;
+    }
+    struct TreeNode **stk = malloc(sizeof(struct TreeNode *) * 2001);
+    int top = 0;
+    struct TreeNode *prev = NULL;
+    while (root != NULL || top > 0) {
+        while (root != NULL) {
+            stk[top++] = root;
+            root = root->left;
+        }
+        root = stk[--top];
+        if (root->right == NULL || root->right == prev) {
+            res[(*returnSize)++] = root->val;
+            prev = root;
+            root = NULL;
+        } else {
+            stk[top++] = root;
+            root = root->right;
+        }
+    }
+    return res;
+}
+
+
+
+
+
+/* 114. 二叉树展开为链表
+ * 后序遍历，将当前节点的左右节点，与当前节点本身排成链表
+ */
+void flatten(struct TreeNode* root){
+    if (root == NULL) { return;}
+
+    flatten(root->left);
+    flatten(root->right);
+
+    // 操作：先将右节点移动到左节点最后一个的右节点的右节点，再将左节点移动到右节点，再将左节点赋空 
+    // 节点的情况：1）左节点为空，又节点为空 2）左节点有，右节点没有 3）左节点空，右节点有  4）左节点有，右节点有
+    if (root->left != NULL) {
+        struct TreeNode* LiftList = root->left;
+        while(LiftList->right != NULL) {
+                LiftList = LiftList->right;
+        }
+        LiftList->right = root->right;
+        
+        root->right = root->left;
+ 
+        root->left = NULL;
+    }
+}
+
+
+
+
+/* 94. 二叉树的中序遍历
+ * 中序遍历 递归算法
+ */
+void inOrTraver(struct TreeNode* root, int* returnSize, int* result) {
+    if (root == NULL) {return; }
+
+    inOrTraver(root->left, returnSize, result);
+
+    result[(*returnSize)++] = root->val;
+
+    inOrTraver(root->right, returnSize, result);
+}
+
+int* inorderTraversal_1(struct TreeNode* root, int* returnSize){
+    int *result = (int *)malloc(sizeof(int) * 101);
+    (*returnSize) = 0;
+    if (root == NULL) {return result;}
+
+    inOrTraver(root, returnSize, result);
+
+    return result;
+}
+
+
+
+/* 94. 二叉树的中序遍历
+ * 中序遍历 迭代算法
+ */
+int* inorderTraversal_2_1(struct TreeNode* root, int* returnSize){
+    int *res = malloc(sizeof(int) * 101);
+    *returnSize = 0;
+    if (root == NULL) { return NULL; } // 特殊用例，根节点为空
+
+    struct TreeNode *nodeStack[101];
+    int stack_top_point = 0;
+
+    nodeStack[stack_top_point++] = root;
+    
+    while (stack_top_point > 0) {
+        struct TreeNode *stack_top_node = nodeStack[stack_top_point - 1];
+        
+        if ((stack_top_node->right != NULL) && (stack_top_node->right->val != 0x5a5a5a5a)) {
+            nodeStack[stack_top_point++] = stack_top_node->right;
+        }
+
+        nodeStack[stack_top_point++] = stack_top_node;
+
+        if ((stack_top_node->left != NULL) && (stack_top_node->left->val != 0x5a5a5a5a)) {
+            nodeStack[stack_top_point++] = stack_top_node->left;
+        }
+
+        if (((stack_top_node->right == NULL) || (stack_top_node->right->val == 0x5a5a5a5a)) && ((stack_top_node->left == NULL) || (stack_top_node->left->val == 0x5a5a5a5a))) {
+            res[(*returnSize)++] = stack_top_node->val;
+            stack_top_node->val = 0x5a5a5a5a;
+            --stack_top_point;
+
+            stack_top_node = nodeStack[stack_top_point - 1];
+            res[(*returnSize)++] = stack_top_node->val;
+            stack_top_node->val = 0x5a5a5a5a;
+            --stack_top_point;
+        }
+    }
+
+    return res;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* ---------------------------------------------- *
+ *                -- 主函数 --                
+ * ---------------------------------------------- */
+int main() {
+    char case_1_string[] = {"1,null,2,3"};
+    int count_1 = 0;
+    char** case_1_charArray = stringToStringArray(case_1_string, ",", &count_1);
+    struct TreeNode* treeRoot_1 = (struct TreeNode*)CharArrayToTree(case_1_charArray, count_1);
+    int returnSize_1 = 0;
+    int *result_1 = preorderTraversal_2_2(treeRoot_1, &returnSize_1);
+    free(treeRoot_1); // 连续申请的内存
+
+
+    // char case_2_string[] = {"1,2,3,4,5,6,7"};
+    // int count_2 = 0;
+    // char** case_2_charArray = stringToStringArray(case_2_string, ",", &count_2);
+    // struct TreeNode* treeRoot_2 = (struct TreeNode*)CharArrayToTree(case_2_charArray, count_2);
+
+    // struct Node *result_2 = connect(treeRoot_2);
+    // free(treeRoot_2); // 连续申请的内存
+
+    char case_3_string[] = {"1,2,5,3,4,null,6"};
+    int count_3 = 0;
+    char** case_3_charArray = stringToStringArray(case_3_string, ",", &count_3);
+    struct TreeNode* treeRoot_3 = (struct TreeNode*)CharArrayToTree(case_3_charArray, count_3);
+    int returnSize_3 = 0;
+    flatten(treeRoot_3);
+    free(treeRoot_3); // 连续申请的内存
+
+
+    char case_4_string[] = {"1,null,2,3"};
+    int count_4 = 0;
+    char** case_4_charArray = stringToStringArray(case_4_string, ",", &count_4);
+    struct TreeNode* treeRoot_4 = (struct TreeNode*)CharArrayToTree(case_4_charArray, count_4);
+    int returnSize_4 = 0;
+    int *result_4 = inorderTraversal_2_1(treeRoot_4, &returnSize_4);
+    free(treeRoot_4); // 连续申请的内存
+
+
+    return 0;
+}

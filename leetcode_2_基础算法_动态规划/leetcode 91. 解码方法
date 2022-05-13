@@ -1,0 +1,542 @@
+/*
+ * Copyright (c) Huawei Technologies Co., Ltd. 2019-2020. All rights reserved.
+ */
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <stdbool.h>
+#include <uthash.h>
+// 如需使用华为安全函数，请加上 #include "securec.h"
+#include "securec.h"
+#include "systemDesgin.h"
+#include <math.h>
+#include <assert.h>
+
+
+/* leetcode 91. 解码方法  https://leetcode-cn.com/problems/decode-ways/submissions/
+DFS的递归写法（不带备忘录超时、带背完录通过）。 
+DP递推写法
+ */
+
+// ----------------------------写法一 开始----- DFS 超时---------------------------------
+// #define MAX_ARRAY_LEN 100001
+
+// int DFS(char *string, int length, int start)
+// {
+//     // 先用两位去匹配，两位的结果包含了一位的结果
+//     if (length - start <= 0) {
+//         return 1;
+//     } else if (length - start == 1) {
+//         // 距离最后还有一位数字
+//         if (string[start] == '0') {
+//             return 0;
+//         } else {
+//             return 1;
+//         }
+//     } else if (length - start >= 2) {
+//         // 距离最后还有两位数字
+//         if ((string[start] == '0') && (string[start + 1] == '0')) {
+//             return 0;
+//         } else if ((string[start] != '0') && (string[start + 1] == '0')) {
+//             if ((string[start] == '1') || (string[start] == '2') ) {
+//                 return (DFS(string, length, start + 2));  // 10 20 只有一种解法
+//             } else {
+//                 return (0);   // 30 40 50 60 70 80 90 都是无解的
+//             }
+//         } else if ((string[start] == '0') && (string[start + 1] != '0')) {
+//             printf("error 159/n");
+//         } else if ((string[start] != '0') && (string[start + 1] != '0')) {
+//             int index = (string[start] - '0') * 10 + (string[start + 1] - '0');
+//             if (index <= 26) {
+//                 return (DFS(string, length, start + 1)) + (DFS(string, length, start + 2));
+//             } else {
+//                 return (DFS(string, length, start + 1));  // 大于26只有一种解法
+//             }
+//         } 
+//     }
+    
+//     printf("error 172 \n");
+//     return 0;
+// }
+
+// int numDecodings(char * s)
+// {
+//     char stringTmp[MAX_ARRAY_LEN] = {0};
+//     strcpy(stringTmp, s);
+//     int len = strlen(stringTmp);
+
+//     // 特殊情况
+//     if (s[0] == '0') {
+//         return 0;
+//     }
+//     return DFS(stringTmp, len, 0);
+// }
+// ----------------------------写法一 结束----- DFS 超时---------------------------------
+
+
+// ----------------------------开始----- DFS带备忘录---------------------------------
+#define MAX_ARRAY_LEN 100001
+int dp[MAX_ARRAY_LEN] = {0};   // 标识从第几位开始，有多少种解
+
+int GetDp(int index)
+{
+    if (index < 0) return 1;
+    return dp[index];
+}
+
+int DFS(char *string, int length, int start)
+{
+    if (GetDp(start) != 0x3f3f3f3f) {
+        return GetDp(start);
+    }
+
+    // 先用两位去匹配，两位的结果包含了一位的结果
+    if (length - start <= 0) {
+        dp[start] = 1;
+        return 1;
+    } else if (length - start == 1) {
+        // 距离最后还有一位数字
+        if (string[start] == '0') {
+            dp[start] = 0;
+            return 0;
+        } else {
+            dp[start] = 1;
+            return 1;
+        }
+    } else if (length - start >= 2) {
+        // 距离最后还有两位数字
+        if ((string[start] == '0') && (string[start + 1] == '0')) {
+            dp[start] = 0;
+            return 0;
+        } else if ((string[start] != '0') && (string[start + 1] == '0')) {
+            if ((string[start] == '1') || (string[start] == '2') ) {
+               dp[start] = (DFS(string, length, start + 2));  // 10 20 只有一种解法
+               return dp[start];
+            } else {
+                dp[start] = (0);   // 30 40 50 60 70 80 90 都是无解的
+                return dp[start];
+            }
+        } else if ((string[start] == '0') && (string[start + 1] != '0')) {
+            printf("error 159/n");
+        } else if ((string[start] != '0') && (string[start + 1] != '0')) {
+            int index = (string[start] - '0') * 10 + (string[start + 1] - '0');
+            if (index <= 26) {
+                dp[start] = (DFS(string, length, start + 1)) + (DFS(string, length, start + 2));
+                return dp[start];
+            } else {
+                dp[start] = (DFS(string, length, start + 1));  // 大于26只有一种解法
+                return dp[start];
+            }
+        } 
+    }
+    
+    printf("error 172 \n");
+    return 0;
+}
+
+int numDecodings(char * s)
+{
+    char stringTmp[MAX_ARRAY_LEN] = {0};
+    strcpy(stringTmp, s);
+    int len = strlen(stringTmp);
+
+    // 特殊情况
+    if (s[0] == '0') {
+        return 0;
+    }
+
+    memset(dp, 0x3f,sizeof(int) * MAX_ARRAY_LEN);
+    return DFS(stringTmp, len, 0);
+}
+// ----------------------------结束----- ---------------------------------
+
+
+
+
+
+// ----------------------------写法二 开始----- DP非递归写法---------------------------------
+// #define MAX_ARRAY_LEN 100001
+
+// int dp[MAX_ARRAY_LEN] = {0};
+
+// int GetDp(int index)
+// {
+//     if (index < 0) return 1;
+//     return dp[index];
+// }
+
+// int DP(char *string, int length)
+// {
+//     memset(dp, 5,sizeof(int) * MAX_ARRAY_LEN);
+//     dp[0] = 1;
+
+//     for (int i = 0; i < length - 1; i++) {
+//         if ((string[i] == '0') && (string[i + 1] == '0')) {
+//             return 0;
+//         } else if ((string[i] != '0') && (string[i + 1] == '0')) {
+//             if ((string[i] == '1') || (string[i] == '2') ) {
+//                 dp[i + 1] = GetDp(i - 1);   // 10 20 只有一种解法
+//             } else {
+//                 dp[i + 1] = 0;   // 30 40 50 60 70 80 90 00 都是无解的
+//                 return 0;
+//             }
+//         } else if ((string[i] == '0') && (string[i + 1] != '0')) {
+//             // 这种情况，上一次计算过,0必须与前一个数结合，或者就是无解，已经返回了
+//             dp[i + 1] = dp[i];
+//         } else if ((string[i] != '0') && (string[i + 1] != '0')) {
+//             int index = (string[i] - '0') * 10 + (string[i + 1] - '0');
+//             if (index <= 26) {
+//                 dp[i + 1] = dp[i] + GetDp(i - 1);
+//             } else {
+//                 dp[i + 1] = dp[i];  // 大于26只有一种解法
+//             }
+//         } 
+//     }
+
+//     return dp[length - 1];
+// }
+
+
+// int numDecodings(char * s)
+// {
+//     char stringTmp[MAX_ARRAY_LEN] = {0};
+//     strcpy(stringTmp, s);
+//     int len = strlen(stringTmp);
+
+//     // 特殊情况
+//     if (s[0] == '0') {
+//         return 0;
+//     }
+
+//     return DP(stringTmp, len);
+// }
+// ----------------------------写法二 结束----- DP---------------------------------
+
+
+
+// ----------------------------开始----- ---DP非递归写法-------------------------------
+// #define MAX_ARRAY_LEN 100001
+// int dp[MAX_ARRAY_LEN] = {0};
+// int GetDp(int index)
+// {
+//     if (index <= 0) return 1;
+//     return dp[index];
+// }
+// int DP(char *string, int length)
+// {
+//     memset(dp, 5,sizeof(int) * MAX_ARRAY_LEN);
+//     dp[0] = 1;
+//     for (int i = 0; i < length - 1; i++) {
+//         if (string[i + 1] == '0' ) {
+//             if (string[i] == '0') {
+//                 return 0;
+//             } if ((string[i] == '1') || (string[i] == '2') ) {
+//                 dp[i + 1] = GetDp(i - 1);   // 10 20 只有一种解法
+//             } else {
+//                 dp[i + 1] = 0;   // 30 40 50 60 70 80 90 00 都是无解的
+//                 return 0;
+//             }
+//         } else {
+//             if(string[i] == '0') {
+//                 // 这种情况，上一次计算过,0必须与前一个数结合，或者就是无解，已经返回了
+//                 dp[i + 1] = dp[i];
+//             } else {
+//                 int index = (string[i] - '0') * 10 + (string[i + 1] - '0');
+//                     if (index <= 26) {
+//                         dp[i + 1] = dp[i] + GetDp(i - 1);
+//                     } else {
+//                         dp[i + 1] = dp[i];  // 大于26只有一种解法
+//                     }
+//                 } 
+//             }
+//         }
+//     return dp[length - 1];
+// }
+// int numDecodings(char * s)
+// {
+//     char stringTmp[MAX_ARRAY_LEN] = {0};
+//     strcpy(stringTmp, s);
+//     int len = strlen(stringTmp);
+//     // 特殊情况
+//     if (s[0] == '0') {
+//         return 0;
+//     }
+//     return DP(stringTmp, len);
+// }
+// ----------------------------结束----- ---------------------------------
+
+
+
+
+
+// ----------------------------开始----- --------DP非递归写法--------------------------
+// #define MAX_ARRAY_LEN 100001
+
+// int dp[MAX_ARRAY_LEN] = {0};
+
+// int GetDp(int index)
+// {
+//     if (index <= 0) return 1;
+//     return dp[index];
+// }
+
+// int DP(char *string, int length)
+// {
+//     memset(dp, 0,sizeof(int) * MAX_ARRAY_LEN);
+//     dp[0] = 1;
+
+//     for (int i = 0; i < length - 1; i++) {
+//         if (string[i + 1] != '0' ) {
+//             // i+1 位可以独立成一个数字
+//             dp[i + 1] += dp[i];   // 0x dp[i+1]   都属于i+1 位可以独立成一个数字   dp[i + 1] += dp[i];
+//         }
+        
+//         // 2[7~9] dp[i+1]   都也属于i+1 位可以独立成一个数字   dp[i + 1] += dp[i];
+
+//         if (string[i] == '1') { 
+//             // i + 1位能和 i 位组成一个两位数
+//             dp[i + 1] += GetDp(i - 1);                 // 10  1[1~9] 都能满足 
+//         }
+
+//         if ((string[i] == '2') && (string[i + 1] <= '6')){
+//             dp[i + 1] += GetDp(i - 1);                 // 20  2[1~6] 都能满足 
+//         }
+        
+//         // 00 则不满足所有条件
+//     }
+
+//     return dp[length - 1];
+// }
+
+// int numDecodings(char * s)
+// {
+//     char stringTmp[MAX_ARRAY_LEN] = {0};
+//     strcpy(stringTmp, s);
+//     int len = strlen(stringTmp);
+
+//     // 特殊情况
+//     if (s[0] == '0') {
+//         return 0;
+//     }
+
+//     return DP(stringTmp, len);
+// }
+// ----------------------------结束----- ---------------------------------
+
+
+// ----------------------------开始----- ----------DP非递归写法------------------------
+// typedef struct DecodeMap {
+//     int index;
+//     int count;
+//     char decode1[5];
+//     char decode2[5];
+// } DecodeMap;
+
+// // 大于26的两位数字都只有一种的解码
+// DecodeMap g_map[100] = {
+//     { 0, 0,},
+//     { 1, 1, "A"},
+//     { 2, 1, "B",},
+//     { 3, 1, "C",},
+//     { 4, 1, "D",},
+//     { 5, 1, "E",},
+//     { 6, 1, "F",},
+//     { 7, 1, "G",},
+//     { 8, 1, "H",},
+//     { 9, 1, "I",},
+//     { 10, 1, "J",},
+//     { 11, 2, "K","AA"},
+//     { 12, 2, "L","AB"},
+//     { 13, 2, "M","AC"},
+//     { 14, 2, "N","AD"},
+//     { 15, 2, "O","AE"},
+//     { 16, 2, "P","AF"},
+//     { 17, 2, "Q","AG"},
+//     { 18, 2, "R","AH"},
+//     { 19, 2, "S","AI"},
+//     { 20, 1, "T",},
+//     { 21, 2, "U","BA"},
+//     { 22, 2, "V","BB"},
+//     { 23, 2, "W","BC"},
+//     { 24, 2, "X","BD"},
+//     { 25, 2, "Y","BE"},
+//     { 26, 2, "Z","BF"},
+//     { 27, 1, "BG"},
+//     { 28, 1, "BH"},
+//     { 29, 1, "BI"},
+//     { 30, 0, },
+//     { 31, 1, "CA"},
+//     { 32, 1, "CB"},
+//     { 33, 1, "CC"},
+//     { 34, 1, "CD"},
+//     { 35, 1, "CE"},
+//     { 36, 1, "CF"},
+//     { 37, 1, "CG"},
+//     { 38, 1, "CH"},
+//     { 39, 1, "CI"},
+//     { 40, 0, },
+//     { 41, 1, "DA"},
+//     { 42, 1, "DB"},
+//     { 43, 1, "DC"},
+//     { 44, 1, "DD"},
+//     { 45, 1, "DE"},
+//     { 46, 1, "DF"},
+//     { 47, 1, "DG"},
+//     { 48, 1, "DH"},
+//     { 49, 1, "DI"},
+//     { 50, 0, },
+//     { 51, 1, "EA"},
+//     { 52, 1, "EB"},
+//     { 53, 1, "EC"},
+//     { 54, 1, "ED"},
+//     { 55, 1, "EE"},
+//     { 56, 1, "EF"},
+//     { 57, 1, "EG"},
+//     { 58, 1, "EH"},
+//     { 59, 1, "EI"},
+//     { 60, 0, },
+//     { 61, 1, "FA"},
+//     { 62, 1, "FB"},
+//     { 63, 1, "FC"},
+//     { 64, 1, "FD"},
+//     { 65, 1, "FE"},
+//     { 66, 1, "FF"},
+//     { 67, 1, "FG"},
+//     { 68, 1, "FH"},
+//     { 69, 1, "FI"},
+//     { 70, 0, },
+//     { 71, 1, "GA"},
+//     { 72, 1, "GB"},
+//     { 73, 1, "GC"},
+//     { 74, 1, "GD"},
+//     { 75, 1, "GE"},
+//     { 76, 1, "GF"},
+//     { 77, 1, "GG"},
+//     { 78, 1, "GH"},
+//     { 79, 1, "GI"},
+//     { 80, 0, },
+//     { 81, 1, "HA"},
+//     { 82, 1, "HB"},
+//     { 83, 1, "HC"},
+//     { 84, 1, "HD"},
+//     { 85, 1, "HE"},
+//     { 86, 1, "HF"},
+//     { 87, 1, "HG"},
+//     { 88, 1, "HH"},
+//     { 89, 1, "HI"},
+//     { 90, 0, },
+//     { 91, 1, "IA"},
+//     { 92, 1, "IB"},
+//     { 93, 1, "IC"},
+//     { 94, 1, "ID"},
+//     { 95, 1, "IE"},
+//     { 96, 1, "IF"},
+//     { 97, 1, "IG"},
+//     { 98, 1, "IH"},
+//     { 99, 1, "II"},
+// };
+
+// #define MAX_ARRAY_LEN 100001
+
+// int dp[MAX_ARRAY_LEN] = {0};
+
+// int GetDp(int index)
+// {
+//     if (index <= 0) return 1;
+//     return dp[index];
+// }
+
+// int treeDp(char *string, int length)
+// {
+//     memset(dp, 0,sizeof(int) * MAX_ARRAY_LEN);
+//     dp[0] = 1;
+
+//     for (int i = 0; i < length - 1; i++) {
+//         if (string[i] != '0') {
+//             int index = (string[i] - '0') * 10 + (string[i + 1] - '0');
+//             switch (g_map[index].count) {
+//                 case 0:
+//                     return 0;
+//                     break;
+//                 case 1:
+//                     if (string[i + 1] == '0') {
+//                         dp[i + 1] = GetDp(i - 1);
+//                     } else {
+//                         dp[i + 1] = dp[i];
+//                     }
+//                     break;
+//                 case 2:
+//                     dp[i + 1] = dp[i] + GetDp(i - 1);
+//                     break;
+//                 default:
+//                     printf("error 164/n");
+//                     break;
+//             }
+//         } else {
+//             if (string[i + 1] == '0') {
+//                 return 0;
+//             }
+//             dp[i + 1] = dp[i];  // 这里要
+//         }
+//     }
+
+//     return dp[length - 1];
+// }
+
+
+// int numDecodings(char * s)
+// {
+//     char stringTmp[MAX_ARRAY_LEN] = {0};
+//     strcpy(stringTmp, s);
+//     int len = strlen(stringTmp);
+
+//     // 特殊情况
+//     if (s[0] == '0') {
+//         return 0;
+//     }
+
+//     return treeDp(stringTmp, len);
+// }
+// ----------------------------结束----- ---------------------------------
+
+
+
+
+int main(int argc, const char *argv[])
+{
+    char string_1[] = "12";
+    int res_1 = numDecodings(string_1);
+    assert(res_1 == 2);
+
+    char string_2[] = "226";
+    int res_2 = numDecodings(string_2);
+    assert(res_2 == 3);
+
+    char string_3[] = "0";
+    int res_3 = numDecodings(string_3);
+    assert(res_3 == 0);
+
+    char string_4[] = "111";
+    int res_4 = numDecodings(string_4);
+    assert(res_4 == 3);
+
+
+    char string_5[] = "2101";
+    int res_5 = numDecodings(string_5);
+    assert(res_5 == 1);
+
+    char string_6[] = "1201234";
+    int res_6 = numDecodings(string_6);
+    assert(res_6 == 3);
+
+    char string_7[] = "10011";
+    int res_7 = numDecodings(string_7);
+    assert(res_7 == 0);
+
+    char string_100[] = "111111111111111111111111111111111111111111111";
+    int res_100 = numDecodings(string_100);
+    assert(res_100 == 1836311903);
+
+
+    return 0;
+}

@@ -1,0 +1,134 @@
+/******************************************************************************
+ * 版权所有 (c)
+ * 功能描述   : leetcode 18. 四数之和  https://leetcode-cn.com/problems/4sum/
+ * 作    者   :
+ * 生成日期   :
+ ******************************************************************************/
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdbool.h>
+#include <uthash.h>
+#include <math.h>
+#include <assert.h>
+// 如需使用华为安全函数，请加上 #include "securec.h"
+// #include "securec.h"
+
+
+
+
+// ---------------------------开始----回溯算法-----包含重复元素,结果不能包含重复组合的组合问题---------------------------------------------------------
+#define MAX_RES_LEN 200*200
+
+typedef struct BkTPoin {
+    int length;
+    long long sum;
+    int item[4];
+} BkTPoin;
+
+void BackTrace(int* nums, int numsSize, int target, int start, int** res, int* returnSize, BkTPoin *pointer)
+{
+    if (pointer->length == 4) {
+        if (pointer->sum == (long long)target) {
+            res[(*returnSize)] = (int *)malloc(sizeof(int) * 4);
+            memcpy(res[(*returnSize)], pointer->item, sizeof(int) * 4);
+            (*returnSize)++;
+        }
+
+        return;
+    }
+
+    for (int i = start; i + (4 - pointer->length - 1) < numsSize; i++) {
+        if ((i > start) && (nums[i] == nums[i - 1])) {
+            continue;
+        }
+
+        pointer->sum = pointer->sum + (long long)nums[i];
+        pointer->item[pointer->length++] = nums[i];
+        BackTrace(nums, numsSize, target, i + 1, res, returnSize, pointer);
+        pointer->sum = pointer->sum - (long long)nums[i];
+        pointer->item[--pointer->length] = 0;
+    }
+}
+
+int IntCom(const void *a, const void *b)
+{
+    return *(int *)a > *(int *)b;
+}
+
+/**
+ * Return an array of arrays of size *returnSize.
+ * The sizes of the arrays are returned as *returnColumnSizes array.
+ * Note: Both returned array and *columnSizes array must be malloced, assume caller calls free().
+ */
+int** fourSum(int* nums, int numsSize, int target, int* returnSize, int** returnColumnSizes)
+{
+    if (nums == NULL) {
+        return NULL;
+    }
+
+    qsort(nums, numsSize, sizeof(int), IntCom);
+
+    int maxResSize = (numsSize * numsSize * numsSize * numsSize < MAX_RES_LEN) ? (numsSize * numsSize * numsSize * numsSize) : MAX_RES_LEN;
+    *returnSize = 0;
+    int** res = (int **)malloc(sizeof(int *) * maxResSize);
+    memset(res, 0, sizeof(int *) * maxResSize);
+
+    BkTPoin pointer = { 0 };
+    BackTrace(nums, numsSize, target, 0, res, returnSize, &pointer);
+
+    (*returnColumnSizes) = (int *)malloc(sizeof(int) * (*returnSize));
+    for (int i = 0; i < (*returnSize); i++) {
+        (*returnColumnSizes)[i] = 4;
+    }
+
+    return res;
+}
+
+// ---------------------------结束--------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+int main()
+{
+
+    int nums_1[] = {2,2,2,2,2};
+    int numsSize_1 = 5;
+    int target_1 = 8;
+    int returnSize_1 = 454564;
+    int *returnColumnSizes_1 = NULL;
+    int **res_1 = fourSum(nums_1, numsSize_1, target_1, &returnSize_1, &returnColumnSizes_1);
+
+
+
+    int nums_2[] = {1000000000,1000000000,1000000000,1000000000};
+    int numsSize_2 = 4;
+    int target_2 = 8;
+    int returnSize_2 = 454564;
+    int *returnColumnSizes_2 = NULL;
+    int **res_2 = fourSum(nums_2, numsSize_2, target_2, &returnSize_2, &returnColumnSizes_2);
+
+
+    int nums_3[] = {1,-2,-5,-4,-3,3,3,5};
+    int numsSize_3 = 8;
+    int target_3 = -11;
+    int returnSize_3 = 454564;
+    int *returnColumnSizes_3 = NULL;
+    int **res_3 = fourSum(nums_3, numsSize_3, target_3, &returnSize_3, &returnColumnSizes_3);
+
+
+    return 0;
+}

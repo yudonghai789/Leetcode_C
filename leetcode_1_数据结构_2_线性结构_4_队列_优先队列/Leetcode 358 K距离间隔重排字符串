@@ -1,0 +1,117 @@
+#### 题目描述
+给你一个非空的字符串 s 和一个整数 k，你要将这个字符串中的字母进行重新排列，使得重排后的字符串中相同字母的位置间隔距离至少为 k。
+所有输入的字符串都由小写字母组成，如果找不到距离至少为 k 的重排结果，请返回一个空字符串 “”。
+
+示例 1：
+输入: s = “aabbcc”, k = 3
+输出: “abcabc”
+解释: 相同的字母在新的字符串中间隔至少 3 个单位距离。
+
+示例 2:
+输入: s = “aaabc”, k = 3
+输出: “”
+解释: 没有办法找到可能的重排结果。
+
+示例 3:
+
+输入: s = “aaadbbcc”, k = 2
+输出: “abacabcd”
+解释: 相同的字母在新的字符串中间隔至少 2 个单位距离。
+
+
+
+```
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdbool.h>
+#include <string.h>
+#include <math.h>
+#include <assert.h>
+
+
+/* 字符串排序
+ * 贪心 + 优先队列
+ */
+
+typedef struct TaskArray {
+    char taskId;    // 标识 a b c
+    int taskNum;   //  任务个数
+    int lastCount; // 剩余countId
+} TaskArray;
+
+struct TaskArray taskArray[26];
+
+char *CombineChars(char *input, int interval) {
+    char* result  = (char *)malloc(sizeof(char) * (strlen(input) + 1));
+    memset((void *)result, 0, sizeof(char) * (strlen(input) + 1));
+    int resultCount = 0;
+    // 特殊情况直接返回
+    if (input == NULL) { return result;}
+    if (interval == 0) { memcpy(result, input, strlen(input)); return result;}
+
+
+    // 1.先将任务种类归类，得到每种任务的个数
+    for (size_t i = 0; i < strlen(input); i++) {
+        taskArray[(input[i] - 'a')].taskId = input[i];
+        taskArray[(input[i] - 'a')].taskNum++;
+    }
+
+    // 2.从最多的任务的开始排队
+    for (int done = 0; done < strlen(input); done++) {
+        // 每次排完一个字母，都需要找到剩余字母中个数最多的。贪心思想。
+        // 但是，必须满足间隔3个这个要求，如果找不到这样的字母，返回失败
+        int maxTaskId = -1;
+        int temp = -1;
+        for (size_t j = 0; j < 26; j++) {
+            if ((taskArray[j].taskNum > temp) && (taskArray[j].taskNum > 0) && (taskArray[j].lastCount <= 0)) {
+                temp = taskArray[j].taskNum;
+                maxTaskId = j;
+            }
+        }
+
+        if (maxTaskId == -1) {
+            // 如果找不到，返回失败
+            memset((void *)result, 0, sizeof(char) * (strlen(input) + 1));
+            return result;
+        } else {
+            // 如果找到了，
+            taskArray[maxTaskId].taskNum = taskArray[maxTaskId].taskNum - 1;
+            taskArray[maxTaskId].lastCount = interval - 1;
+            result[resultCount] = taskArray[maxTaskId].taskId;
+            resultCount = resultCount + 1;
+            for (size_t i = 0; i < 26; i++) {
+                if ((i != maxTaskId) && (taskArray[i].lastCount > 0)){
+                    taskArray[i].lastCount = taskArray[i].lastCount - 1;
+                }
+            }
+        }
+    }
+
+    return result;
+}
+
+
+
+
+int main() {
+    char input_1[] = "xxyyzz";
+    int interval_1 = 3;
+    char* result_1 = CombineChars(input_1, interval_1);
+    printf("%s \n", result_1);
+
+
+    char input_2[] = "xxxyyz";
+    int interval_2 = 3;
+    char* result_2 = CombineChars(input_2, interval_2);
+    printf("%s \n", result_2);
+
+
+    char input_3[] = "aaazxxyy";
+    int interval_3 = 2;
+    char* result_3 = CombineChars(input_3, interval_3);
+    printf("%s \n", result_3);
+
+
+    return 0;
+}
+```

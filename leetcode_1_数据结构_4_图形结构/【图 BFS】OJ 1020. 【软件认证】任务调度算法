@@ -1,0 +1,207 @@
+/******************************************************************************
+ * 版权所有 (c)
+ * 功能描述   : OJ 1020. 【软件认证】任务调度算法. https://oj.rnd.huawei.com/problems/1020/details
+ * 作    者   :
+ * 生成日期   :
+
+ * 
+      --- 
+ ******************************************************************************/
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdbool.h>
+#include <uthash.h>
+#include <math.h>
+#include <limits.h>
+#include <assert.h>
+// 如需使用华为安全函数，请加上 #include "securec.h"
+#include "securec.h"
+// #include "vos_priorityqueue.h"
+
+
+
+
+
+/*
+题目描述
+某分布式任务调度系统有 taskNum 个任务（编号从 1 到 taskNum）需要调度，调度策略：
+
+任务之间可能存在依赖关系，且无循环依赖，如任务1 依赖任务2，那么要等待任务2执行完才能执行任务1；
+如果任务之间没有依赖关系，则可以并发执行（假设并发所需资源是充足的）。
+现给出任务间的依赖关系，并假设每个任务的执行时间恒为 1 分钟，请计算执行完这 taskNum 个任务所需的最短时间（单位分钟）。
+
+解答要求
+时间限制：2000ms, 内存限制：256MB
+输入
+第一行为任务的数量 taskNum ，其值范围为：[1, 1000]
+第二行为依赖关系的数量 relationsNum ，其值范围：[0, 500000]
+接下来 relationsNum 行，每行描述一个依赖关系，格式为 IDi>IDj，表示任务 i 依赖任务 j ，IDi 和 IDj 值的范围为：[1, taskNum]
+
+输出
+一个整数，代表执行完所有任务的最短时间。
+
+样例
+输入样例 1 复制
+
+3
+1
+1>2
+输出样例 1
+
+2
+提示样例 1
+总共三个任务，任务1依赖任务2，任务2、任务3可以并发执行，最后执行任务1，最短时间为2分钟。
+
+
+
+输入样例 2 复制
+
+9
+6
+1>2
+2>3
+2>4
+4>5
+6>4
+8>7
+输出样例 2
+
+4
+*/
+
+
+
+
+// ---------------------------解法 开始-----广度优先搜索----------------------------------------------------
+
+#define MAX_DEP_CNT 500
+
+#define MAX_TASK_NUM 1000
+#define ONE_TASK_MAX_RELAY MAX_TASK_NUM
+
+
+// 有向图邻接矩阵,但是不好算入度与出度，需要遍历所有
+// #define VERTEX_NUM MAX_TASK_NUM   // 图顶点的最大数量
+// typedef struct MGraph {
+//     int vertextNum;                             // 顶点的数量
+//     int edgeNum;                                // 边的数量.
+//     // int vex[VERTEX_NUM];                     // 顶点的列表.  顶点信息就是顶点索引值 + 1 没什么作用
+//     int edges[VERTEX_NUM][VERTEX_NUM];        // 边的列表（邻接矩阵，大小表示边的权值）. 无权值，有向图
+// } MGraph;
+// MGraph g_mg;
+
+
+
+// 十字邻接链表的思路，方便计算入度与出度
+typedef struct TaskInfo {
+    // taskId就是数组索引 + 1.这里就不显示写出
+    bool done;
+
+    int baseCnt;
+    int base[ONE_TASK_MAX_RELAY];
+
+    int relayCnt;
+    int relay[ONE_TASK_MAX_RELAY];
+} TaskInfo;
+TaskInfo g_task[MAX_TASK_NUM];
+
+
+typedef struct Queue {
+    int head;
+    int tail;
+
+    int queue[MAX_TASK_NUM];
+} Queue;
+Queue g_queue;
+
+/*
+ * 待实现函数，在此函数中填入答题代码
+ * relations 描述依赖关系，relations[i][0] 依赖 relations[i][1]
+ */
+int GetMinTime(int taskNum, int relationsNum, int relations[][2])
+{
+    memset_s(g_task, (size_t)sizeof(g_task), 0, (size_t)sizeof(g_task));
+    for (int i = 0; i < relationsNum; i++) {
+        int taskIndex = relations[i][1] - 1;
+        int relayIndex = relations[i][0] - 1;
+        g_task[taskIndex].relay[g_task[taskIndex].relayCnt++] = relayIndex; // 入度
+        g_task[relayIndex].base[g_task[relayIndex].baseCnt++] = taskIndex; // 出度
+    }
+
+    memset_s(&g_queue, (size_t)sizeof(g_queue), 0, (size_t)sizeof(g_queue));
+    
+    for (int i = 0; i < taskNum; i++) {
+        if (g_task[i].relayCnt == 0) {
+            g_queue.queue[g_queue.head++] = i;
+        }
+    }
+    
+    int resStep = 0;
+    while (g_queue.head > g_queue.tail) {
+        int thisloop = g_queue.tail;
+        int end = g_queue.head;
+        for (thisloop = g_queue.tail; thisloop < end; thisloop++) {
+            // 出队列的同时将判断依赖，将依赖为0的重新添加
+            int done = g_queue.queue[thisloop];
+
+            g_task[done].done = true;
+            for (int i = 0; i < g_task[done].baseCnt; i++) {
+                int base = g_task[done].base[i]; // 依赖这个任务的任务
+                if (--g_task[base].relayCnt == 0) {
+                    g_queue.queue[g_queue.head++] = base;
+                }
+            }
+        }
+
+        g_queue.tail = thisloop;
+        resStep++;
+    }
+
+    return resStep;
+}
+
+int main(void)
+{
+    int taskNum;
+    if (scanf_s("%d", &taskNum) != 1) {
+        return -1;
+    }
+
+    int relationsNum;
+    if (scanf_s("%d", &relationsNum) != 1) {
+        return -1;
+    }
+
+    int relations[MAX_DEP_CNT][2];
+    int i;
+    for (i = 0; i < relationsNum; i++) {
+        int *id1 = &relations[i][0];
+        int *id2 = &relations[i][1];
+        if (scanf_s("%d>%d", id1, id2) != 2) {
+            return -1;
+        }
+    }
+
+    int ret = GetMinTime(taskNum, relationsNum, relations);
+    (void)printf("%d", ret);
+    return 0;
+}
+
+// ---------------------------解法 结束---------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

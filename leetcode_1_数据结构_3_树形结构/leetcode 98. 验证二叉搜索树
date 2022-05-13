@@ -1,0 +1,74 @@
+/******************************************************************************
+ * 版权所有 (c)
+ * 功能描述   : leetcode 98. 验证二叉搜索树   https://leetcode-cn.com/problems/validate-binary-search-tree/
+ * 作    者   :
+ * 生成日期   :
+ * 思路：中序遍历
+ ******************************************************************************/
+#include <corecrt.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdbool.h>
+#include <uthash.h>
+#include <math.h>
+#include <assert.h>
+// 如需使用华为安全函数，请加上 #include "securec.h"
+#include "graph.h"
+
+
+
+
+
+// ---------------------------开始--------------------------------------------------------------------
+
+struct TreeNode {
+    int val;
+    struct TreeNode *left;
+    struct TreeNode *right;
+};
+
+bool DFS(struct TreeNode* root, long long *val)
+{
+    bool hasLeft = (root->left != NULL) ? true : false;
+    bool hasRight = (root->right != NULL) ? true : false;
+
+    if (hasLeft) {
+        bool left = left = DFS(root->left, val);
+        if (left == false) return false; 
+    }
+
+    if (*val >= (long long)root->val) {
+        return false;
+    } else {
+        *val = (long long)root->val;
+    }
+
+    if (hasRight) {
+        bool right = right = DFS(root->right, val);
+        return right;
+    }
+
+    return true;
+}
+
+bool isValidBST(struct TreeNode* root)
+{
+    // 题目保证 root不为空
+    long long var = ((long long)INT_MIN) - 1;
+    
+
+    return DFS(root, &var);
+}
+
+
+// ---------------------------结束--------------------------------------------------------------------
+
+
+int main()
+{
+
+    printf(" %d %d %d",sizeof(int), sizeof(long), sizeof(long long));
+
+    return 0;
+}

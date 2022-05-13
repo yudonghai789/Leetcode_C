@@ -1,0 +1,143 @@
+/*
+ * Copyright (c) Huawei Technologies Co., Ltd. 2019-2020. All rights reserved.
+ */
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <stdbool.h>
+#include <uthash.h>
+// 如需使用华为安全函数，请加上 #include "securec.h"
+#include "systemDesgin.h"
+#include <math.h>
+#include <assert.h>
+
+
+
+/* leetcode 289. 生命游戏  https://leetcode-cn.com/problems/game-of-life/
+ * 
+ */
+
+// ---------------------------解法一 开始-----------
+
+// ---------------------------解法一 结束--------------------------------------------------------
+
+// ---------------------------解法一 结束--------------------------------------------------------
+typedef enum CellStats {
+    DEAD = 0,
+    LIVE = 1
+} CellStats;
+
+bool IsInArrange(int boardSize, int* boardColSize, int cow, int low)
+{
+    if ((cow >= 0) && (cow < boardSize) && (low >= 0) && (low < boardColSize[cow])) {
+        return true;
+    }
+    return false;
+}
+
+void Trans(int** temp, int boardSize, int* boardColSize, int cow, int low, int** board)
+{
+    CellStats CurrStats = (CellStats)temp[cow][low];
+
+    if ((cow < 0) || (cow >= boardSize) || (low < 0) && (low >= boardColSize[cow])) { printf("error 2 \n"); }
+
+    int surrLiveCou = 0;
+    if (IsInArrange(boardSize, boardColSize, cow - 1, low - 1) == true) {
+        surrLiveCou = surrLiveCou + temp[cow - 1][low - 1];
+    }
+    if (IsInArrange(boardSize, boardColSize, cow - 1, low) == true) {
+        surrLiveCou = surrLiveCou + temp[cow - 1][low];
+    }
+    if (IsInArrange(boardSize, boardColSize, cow - 1, low + 1) == true) {
+        surrLiveCou = surrLiveCou + temp[cow - 1][low + 1];
+    }
+    if (IsInArrange(boardSize, boardColSize, cow, low - 1) == true) {
+        surrLiveCou = surrLiveCou + temp[cow][low - 1];
+    }
+    if (IsInArrange(boardSize, boardColSize, cow, low + 1) == true) {
+        surrLiveCou = surrLiveCou + temp[cow][low + 1];
+    }
+    if (IsInArrange(boardSize, boardColSize, cow + 1, low - 1) == true) {
+        surrLiveCou = surrLiveCou + temp[cow + 1][low - 1];
+    }
+    if (IsInArrange(boardSize, boardColSize, cow + 1, low) == true) {
+        surrLiveCou = surrLiveCou + temp[cow + 1][low];
+    }
+    if (IsInArrange(boardSize, boardColSize, cow + 1, low + 1) == true) {
+        surrLiveCou = surrLiveCou + temp[cow + 1][low + 1];
+    }
+
+    if (CurrStats == DEAD) {
+        if (surrLiveCou == 3) {
+            board[cow][low] = LIVE;
+        }
+    } else {
+        if ((surrLiveCou < 2) || (surrLiveCou > 3)) {
+            board[cow][low] = DEAD;
+        } else {
+            board[cow][low] = LIVE;
+        }
+    }
+}
+
+
+void gameOfLife(int** board, int boardSize, int* boardColSize)
+{
+    // 基本校验
+    if ((board == NULL) || (boardSize == 0)) return;
+    
+    // 先保存的原始的矩阵
+    int **temp = (int **)malloc(sizeof(int*) * boardSize);
+    for (int i = 0; i < boardSize; i++) {
+        temp[i] = (int *)malloc(sizeof(int) * boardColSize[i]);
+        memcpy(temp[i], board[i], sizeof(int) * boardColSize[i]);
+    }
+
+    // 状态转移
+    for (int i = 0; i < boardSize; i++) {
+        for (int j = 0; j < boardColSize[i]; j ++) {
+            Trans(temp, boardSize, boardColSize, i, j, board);
+        }
+    }
+
+    for (int i = 0; i < boardSize; i++) {
+        free(temp[i]);
+    }
+    free(temp);
+}
+// ---------------------------解法二 开始-----------
+
+
+// ---------------------------解法二 结束--------------------------------------------------------
+
+
+int main() {
+    int board_1[4][3] = {
+        { 0,1,0 },
+        { 0,0,1 },
+        { 1,1,1 },
+        { 0,0,0 }
+    };
+    int row_1 = 4;
+    int cloum_1 = 3;
+    int *boardPointer_1[row_1];
+    for (int i = 0; i < row_1; i++) {
+        boardPointer_1[i] = &board_1[i][0];
+    }
+    int boardColSize_1[] = { 3,3,3,3 };
+    gameOfLife(boardPointer_1, row_1, boardColSize_1);
+    for (int i = 0; i < row_1; i++) {
+        for (int j = 0; j < boardColSize_1[i]; j ++) {
+            printf("%d", boardPointer_1[i][j]);
+        }
+        printf("\n");
+    }
+    printf("\n");
+
+
+
+    return 0;
+}
+
+
+

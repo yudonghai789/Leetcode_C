@@ -1,0 +1,317 @@
+/******************************************************************************
+* 版权所有 (c) 
+* 功能描述   : 经典排序  -- 结构体
+* 作    者   : 
+* 生成日期   : 
+******************************************************************************/
+#include <corecrt.h>
+#include <stdint.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <stdbool.h>
+#include <uthash.h>
+#include <math.h>
+#include <assert.h>
+// 如需使用华为安全函数，请加上 #include "securec.h"
+#include "securec.h"
+#include "systemDesgin.h"
+
+
+
+
+/* leetcode 452. 用最少数量的箭引爆气球  https://leetcode-cn.com/problems/minimum-number-of-arrows-to-burst-balloons/
+ * 贪心算法   再排序
+ */
+
+// ---------------------------开始-----------暴力解法，每一个位置尝试射出一支箭---------------------------------------------------------------
+
+// ---------------------------结束--------------------------------------------------------
+
+// ---------------------------开始-------------qsort排序要求内存是有规律排布的 ，这个发现测试用例的输入的数组是不连续的，数组间差别是32Byte--------------
+typedef struct Point {
+    int po[2]; // 数值为负的整数采用补码进行表示。而负数的补码书原码的每一位取反后+1.故int32位表示的范围是-2的31次方到2的31次方-1
+} Point;
+
+int IntCompare(const void *a, const void *b)
+{
+    Point *aVal = (Point *)a;
+    Point *bVal = (Point *)b;
+
+    // printf("%p:  %d   %d\n", a, aVal->po[0], aVal->po[1]);
+    // printf("%p: \n", b);
+    // printf("%p:  %d   %d\n", b, bVal->po[0], bVal->po[1]);
+
+    return ((aVal->po[1]) > (bVal->po[1]));   // 已经的靠近整数边界，不用减
+}
+
+int Greedy(int** points, int pointsSize, int* pointsColSize)
+{
+    // 从排序后的队列中最靠前的线段的左端点射出一只箭，
+    int arrNum = 1;
+    int arrIndex = 0;
+    int boom = pointsSize;
+    while (boom > 0) {
+        if (arrIndex < 0) printf("error 48 \n");
+        if (arrIndex >= pointsSize) printf("error 48 \n");
+        int thisArr = points[arrIndex][1];
+        boom--;
+        
+        for (int i = arrIndex + 1; i < pointsSize; i++) {
+            if (arrIndex < 0) printf("error 48 \n");
+            if (arrIndex >= pointsSize) printf("error 48 \n");
+            if (points[i][0] <= thisArr) {
+                boom--;
+            } else {
+                arrIndex = i;
+                arrNum++;
+                break;
+            }
+        }
+    }
+
+    return arrNum;
+}
+
+
+int findMinArrowShots(int** points, int pointsSize, int* pointsColSize)
+{
+    if (pointsSize == 1) {
+        return 1;
+    }
+
+    printf("%p:  %d   %d\n", &points[0][0], points[0][0], points[0][1]);
+    printf("%p:  %d   %d\n", &points[1][0], points[1][0], points[1][1]);
+    printf("%d\n", ((uintptr_t)&points[1][0]) - ((uintptr_t)&points[0][0]));
+
+
+    // 先排序，将线段按照左端点进行排序
+    qsort((void *)&points[0][0], pointsSize, ((uintptr_t)&points[1][0]) - ((uintptr_t)&points[0][0]), IntCompare);  // 数组是不连续的，数组间差别是32Byte
+    return Greedy(points, pointsSize, pointsColSize);
+}
+// ---------------------------结束--------------------------------------------------------
+
+
+
+
+// ---------------------------开始-------------qsort排序要求内存是有规律排布的 ，这个发现测试用例的输入的数组是不连续的--------------
+// typedef struct Point {
+//     int left; // 数值为负的整数采用补码进行表示。而负数的补码书原码的每一位取反后+1.故int32位表示的范围是-2的31次方到2的31次方-1
+//     int right; 
+// } Point;
+
+// Point lines[100000];
+
+// int IntCompare(const void *a, const void *b)
+// {
+//     Point *aVal = (Point *)a;
+//     Point *bVal = (Point *)b;
+
+//     return ((aVal->right) > (bVal->right));
+// }
+
+// int Greedy(int pointsSize)
+// {
+//     // 从排序后的队列中最靠前的线段的左端点射出一只箭，
+//     int arrNum = 1;
+//     int arrIndex = 0;
+//     int boom = pointsSize;
+//     while (boom > 0) {
+//         int thisArr = lines[arrIndex].right;
+//         boom--;
+        
+//         for (int i = arrIndex + 1; i < pointsSize; i++) {
+//             if (lines[i].left <= thisArr) {
+//                 boom--;
+//             } else {
+//                 arrIndex = i;
+//                 arrNum++;
+//                 break;
+//             }
+//         }
+//     }
+
+//     return arrNum;
+// }
+
+// int findMinArrowShots(int** points, int pointsSize, int* pointsColSize)
+// {
+    
+//     for (int i = 0; i < pointsSize; i++) {
+//         lines[i].left = points[i][0];
+//         lines[i].right = points[i][1];
+//     }
+
+//     // 先排序，将线段按照左端点进行排序
+//     qsort(lines, pointsSize, sizeof(Point), IntCompare);
+    
+//     return Greedy(pointsSize);
+// }
+// ---------------------------结束--------------------------------------------------------
+
+// ---------------------------开始------------冒泡排序超时、插入排序超时 快速排序通过--------------
+// void ArrayBubbleSort(int** points, int pointsSize, int* pointsColSize)
+// {
+//     int temp[2] = { 0 };
+//     for (int i = 0; i < pointsSize; i++) {
+//         for (int j = i + 1; j < pointsSize; j++) {
+//             if (points[j][1] < points[i][1]) {
+//                 temp[0] = points[i][0];
+//                 temp[1] = points[i][1];
+
+//                 points[i][0] = points[j][0];
+//                 points[i][1] = points[j][1];
+
+//                 points[j][0] = temp[0];
+//                 points[j][1] = temp[1];
+//             }
+//         }
+//     }
+// }
+
+
+// void insertion_sort(int** points, int pointsSize, int* pointsColSize)
+// {
+//     int i, j;
+//     int key[2];
+//     for (i = 1; i < pointsSize; i++) {
+//         key[0] = points[i][0];
+//         key[1] = points[i][1];
+//         j = i - 1;
+//         while ((j >= 0) && (points[j][1] > key[1])) {
+//             points[j + 1][0] = points[j][0];
+//             points[j + 1][1] = points[j][1];
+//             j--;
+//         }
+//         points[j + 1][0] = key[0];
+//         points[j + 1][1] = key[1];
+//     }
+// }
+
+// void ArrayQuickSort(int** points, int pointsSize, int* pointsColSize, int low, int high)
+// {
+//     if (low >= high) return;
+
+//     // 先取左边作为比较的基数
+//     int pivot[2] = { points[low][0], points[low][1]};
+//     int pivotIndex = low;
+
+//     int left = low;
+//     int right  = high;
+
+//     while (left < right) {
+//         while (left < right) {
+//             if (points[right][1] >= pivot[1]) {
+//                 // 右指针找到一个比基数要小的数为止
+//                 right--;
+//             } else {
+//                 points[pivotIndex][0] = points[right][0];
+//                 points[pivotIndex][1] = points[right][1];
+//                 pivotIndex = right;
+//                 break;
+//             }
+            
+//         } 
+            
+//         while (left < right) {
+//             if (points[left][1] <= pivot[1]) {
+//                 left++;
+//             } else {
+//                 points[pivotIndex][0] = points[left][0];
+//                 points[pivotIndex][1] = points[left][1];
+//                 pivotIndex = left;
+//                 break;
+//             }
+            
+//         }
+//     }
+
+//     if (left == right) {
+//         points[left][0] = pivot[0];
+//         points[left][1] = pivot[1];
+//     }
+
+//     ArrayQuickSort(points, pointsSize, pointsColSize, low, left - 1);
+//     ArrayQuickSort(points, pointsSize, pointsColSize, left + 1, high);
+// }
+
+// int Greedy(int** points, int pointsSize, int* pointsColSize)
+// {
+//     // 从排序后的队列中最靠前的线段的左端点射出一只箭，
+//     int arrNum = 1;
+//     int arrIndex = 0;
+//     int boom = pointsSize;
+//     while (boom > 0) {
+//         if (arrIndex < 0) printf("error 48 \n");
+//         if (arrIndex >= pointsSize) printf("error 48 \n");
+//         int thisArr = points[arrIndex][1];
+//         boom--;
+        
+//         for (int i = arrIndex + 1; i < pointsSize; i++) {
+//             if (arrIndex < 0) printf("error 48 \n");
+//             if (arrIndex >= pointsSize) printf("error 48 \n");
+//             if (points[i][0] <= thisArr) {
+//                 boom--;
+//             } else {
+//                 arrIndex = i;
+//                 arrNum++;
+//                 break;
+//             }
+//         }
+//     }
+
+//     return arrNum;
+// }
+
+
+// int findMinArrowShots(int** points, int pointsSize, int* pointsColSize)
+// {
+//     // 先排序，将线段按照左端点进行排序
+//     ArrayQuickSort(points, pointsSize, pointsColSize, 0, pointsSize - 1);
+    
+//     return Greedy(points, pointsSize, pointsColSize);
+// }
+// ---------------------------结束--------------------------------------------------------
+
+
+
+
+
+
+
+
+
+int main() {
+    int points_1[4][2] = {
+        {10, 16},
+        {2, 8},
+        {1, 6},
+        {7, 12},
+    };
+    int pointsSize_1 = sizeof(points_1)/ sizeof(points_1[0]);
+    int pointsColSize_1 = sizeof(points_1[0])/ sizeof(points_1[0][0]);
+    int *pointsPoint_1[3] = { 0 };
+    for (int i = 0; i < pointsSize_1; i++) {
+        pointsPoint_1[i] = &points_1[i][0];
+    }
+    int result_1 = findMinArrowShots(pointsPoint_1, pointsSize_1, &pointsColSize_1);
+    assert(result_1 == 2);
+
+
+
+
+
+    int points_2[][2] = {
+        {4289383,51220269},{81692777,96329692},{57747793,81986128},{19885386,69645878},{96516649,186158070},{25202362,75692389},{83368690,85888749},{44897763,112411689},{65180540,105563966},{4089172,7544908}
+    };
+    int pointsSize_2 = sizeof(points_2)/ sizeof(points_2[0]);
+    int pointsColSize_2 = sizeof(points_2[0])/ sizeof(points_2[0][0]);
+    int *pointsPoint_2[10] = { 0 };
+    for (int i = 0; i < pointsSize_2; i++) {
+        pointsPoint_2[i] = &points_2[i][0];
+    }
+    int result_2 = findMinArrowShots(pointsPoint_2, pointsSize_2, &pointsColSize_2);
+    assert(result_2 == 4);
+
+    return 0;
+}

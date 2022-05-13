@@ -1,0 +1,119 @@
+// 这道题就是排序的全排列问题
+
+
+
+/*
+ * Copyright (c) Huawei Technologies Co., Ltd. 2019-2020. All rights reserved.
+ */
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <stdbool.h>
+#include <uthash.h>
+// 如需使用华为安全函数，请加上 #include "securec.h"
+#include "systemDesgin.h"
+#include <math.h>
+#include <assert.h>
+
+/*
+ * leetcode 60. 排列序列   https://leetcode-cn.com/problems/permutation-sequence/
+ * 回溯算法 + 剪枝
+ * 
+ */
+
+// ---------------------------解法一 开始--------------------------------------------------------
+#define MAX_RESULT_SIZE 10000
+#define MAX_RESULT_ITEM_LEN 11
+
+typedef enum Status {
+    INIT = 0,
+    REMOVE = INIT,
+    USING = 0x5a5a
+} Status;
+
+typedef struct BackTracePointer {
+    char item[MAX_RESULT_ITEM_LEN];
+    int len;
+    int resultCount;
+    Status usedFlag[MAX_RESULT_ITEM_LEN];
+} BackTracePointer;
+
+int CompareInt(const void * intA, const void * intB)
+{
+    return (*(int *)intA - *(int *)intB);
+}
+
+void BackTrace(int n, int k, BackTracePointer *backTracePointer, char *result)
+{
+    if (backTracePointer->len == n) {
+        backTracePointer->resultCount++;
+        if (backTracePointer->resultCount == k) {
+            memcpy(result, backTracePointer->item, sizeof(char) * n);
+        }
+        return;
+    }
+
+    for (int i = 1; i <= n; i++) {
+        if (backTracePointer->resultCount == k) {
+            return;
+        }
+        if (backTracePointer->usedFlag[i] == USING) {
+            continue;
+        }
+
+        backTracePointer->item[backTracePointer->len] = (char)('0' + i);
+        backTracePointer->usedFlag[i] = USING;
+        backTracePointer->len++;
+        if ((backTracePointer->len < 0) || (backTracePointer->len >= MAX_RESULT_ITEM_LEN)) {
+            printf("error 53");
+        }
+
+        BackTrace(n, k, backTracePointer, result);
+        backTracePointer->len--;
+        backTracePointer->item[backTracePointer->len] = 0;
+        backTracePointer->usedFlag[i] = REMOVE;
+
+        if ((backTracePointer->len < 0) || (backTracePointer->len >= MAX_RESULT_ITEM_LEN)) {
+            printf("error 53");
+        }
+    }
+}
+
+char *getPermutation(int n, int k)
+{
+    // 基本校验
+    
+    BackTracePointer backTracePointer = { 0 };
+    char *result = (char *)malloc(sizeof(char) * MAX_RESULT_SIZE);
+    memset(result, 0, sizeof(char) * MAX_RESULT_SIZE);
+
+    BackTrace(n, k, &backTracePointer, result);
+
+    return result;
+}
+
+
+
+
+// ---------------------------解法一 结束--------------------------------------------------------
+int main() {
+    int n_1 = 3;
+    int k_1 = 3;
+    char* result_1 = getPermutation(n_1, k_1);
+    printf("%s \n", result_1);  // 213
+    free(result_1);
+
+    int n_2 = 4;
+    int k_2 = 9;
+    char* result_2 = getPermutation(n_2, k_2);
+    printf("%s \n", result_2);   // 2314
+    free(result_2);
+
+    int n_3 = 3;
+    int k_3 = 1;
+    char* result_3 = getPermutation(n_3, k_3);
+    printf("%s \n", result_3);  // 123
+    free(result_3);
+
+    return 0;
+}

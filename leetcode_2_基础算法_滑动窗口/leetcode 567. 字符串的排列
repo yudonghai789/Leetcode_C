@@ -1,0 +1,188 @@
+
+/*
+ * Copyright (c) Huawei Technologies Co., Ltd. 2019-2020. All rights reserved.
+ */
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <stdbool.h>
+#include <uthash.h>
+// 如需使用华为安全函数，请加上 #include "securec.h"
+#include "securec.h"
+#include "systemDesgin.h"
+#include <math.h>
+#include <assert.h>
+
+
+
+
+/* leetcode 567. 字符串的排列. https://leetcode-cn.com/problems/permutation-in-string/
+ */
+
+// ----------------------------写法一 --------------------------
+// typedef struct {
+//     bool exit;
+//     int count;
+//     int acc;
+// } CharCountMap;
+
+// typedef struct {
+//     int totalCharNum;
+//     int totalCharAccNum;
+//     int totalToalAccNum;
+//     CharCountMap charCountMap[26];
+// } StringCharCountMap;
+
+// int IndexOfMap(char ch)
+// {
+//     return (ch - 'a');
+// }
+
+// void GenStringCharMap(char * string, int charLen, StringCharCountMap *stringCharCountMap)
+// {
+//     for (int i = 0; i < charLen; i++) {
+//         stringCharCountMap->totalCharNum++;
+//         stringCharCountMap->charCountMap[IndexOfMap(string[i])].count++;
+//         stringCharCountMap->charCountMap[IndexOfMap(string[i])].exit = true;
+//     }
+// }
+
+// bool checkInclusion(char * s1, char * s2)
+// {    
+//     int tLen = strlen(s1);
+//     int sLen = strlen(s2);
+
+//     StringCharCountMap stringCharCountMap = { 0 };
+//     GenStringCharMap(s1, tLen, &stringCharCountMap);
+
+//     int left = 0;
+//     int right = 0;
+//     while (right < sLen) {
+//         if (stringCharCountMap.charCountMap[IndexOfMap(s2[right])].exit == true) {
+//             stringCharCountMap.charCountMap[IndexOfMap(s2[right])].acc++;
+//             if (stringCharCountMap.charCountMap[IndexOfMap(s2[right])].acc <= stringCharCountMap.charCountMap[IndexOfMap(s2[right])].count) { stringCharCountMap.totalCharAccNum++; }
+//         }
+//         stringCharCountMap.totalToalAccNum++;
+
+
+//         while (stringCharCountMap.totalCharAccNum == stringCharCountMap.totalCharNum) {
+//             if (stringCharCountMap.totalCharAccNum == stringCharCountMap.totalToalAccNum) { return true; } 
+//             if (stringCharCountMap.charCountMap[IndexOfMap(s2[left])].exit == true) {
+//                 stringCharCountMap.charCountMap[IndexOfMap(s2[left])].acc--;
+//                 if (stringCharCountMap.charCountMap[IndexOfMap(s2[left])].acc < stringCharCountMap.charCountMap[IndexOfMap(s2[left])].count) { stringCharCountMap.totalCharAccNum--; }
+//             }
+//             stringCharCountMap.totalToalAccNum--;
+//             left++;
+//             // continue;
+//         }
+
+//         right++;
+//         // continue;
+//     }
+
+//     return false;
+// }
+
+// ----------------------------写法一 结束-----------------------------------------------------------
+
+
+// ----------------------------写法二 ，看是否有字符已经存在--------------------------------
+#define BIT_CLR(data, pos) ((data) &= ~(int)(0x1U << (pos)))
+#define BIT_TST(data, pos) (((data) >> (pos)) & 0x1U)
+#define BIT_SET(data, pos) ((data) |= (0x1U << (pos)))
+#define BIT_RVS(data, pos) ((data) ^= (0x1U << (pos)))
+
+int TranAscII(char charter)
+{
+    return (charter - 'a');
+}
+
+typedef struct StrBit {
+    int matchedBit;
+    int count[26];
+} StrCharBit;
+
+void StatusInit(char * s1, int len, char * s2, int len2, StrCharBit *subStrBit)
+{
+    for (int i = 0; i < len; i++) {
+        subStrBit->count[TranAscII(s1[i])]++;
+        BIT_SET(subStrBit->matchedBit, TranAscII(s1[i]));
+    }
+    
+    for (int i = 0; i < len; i++) {
+        subStrBit->count[TranAscII(s2[i])]--;
+        if (subStrBit->count[TranAscII(s2[i])] == 0) {
+            BIT_CLR(subStrBit->matchedBit, TranAscII(s2[i]));
+        } else {
+            BIT_SET(subStrBit->matchedBit, TranAscII(s2[i]));
+        }
+    }
+}
+
+bool SlideWindow(char * s1, int len, char * s2, int len2, StrCharBit *subStrBit)
+{
+    int winLeft = 0;
+    int winRight = len - 1;
+    while (winRight < len2) {
+        if (subStrBit->matchedBit == 0) {
+            return true;
+        }
+        // 窗口右边加入 左边移除
+        if (winRight + 1 >= len2) {
+            return false;
+        }
+        winRight++;
+        subStrBit->count[TranAscII(s2[winRight])]--;   // 加入的做减法
+        subStrBit->count[TranAscII(s2[winLeft])]++;    // 推出去的做加法
+        if (subStrBit->count[TranAscII(s2[winRight])] == 0) {
+            BIT_CLR(subStrBit->matchedBit, TranAscII(s2[winRight]));
+        } else {
+            BIT_SET(subStrBit->matchedBit, TranAscII(s2[winRight]));
+        }
+        if (subStrBit->count[TranAscII(s2[winLeft])] == 0) {
+            BIT_CLR(subStrBit->matchedBit, TranAscII(s2[winLeft]));
+        } else {
+            BIT_SET(subStrBit->matchedBit, TranAscII(s2[winLeft]));
+        }
+        winLeft++;
+    }
+
+    return false;
+}
+
+
+bool checkInclusion(char * s1, char * s2)
+{
+    int len = strlen(s1);
+    int len2 = strlen(s2);
+
+    if (len > len2) {
+        return false;
+    }
+
+    StrCharBit subStrBit = { 0 };
+    StatusInit(s1, len, s2, len2, &subStrBit);
+
+    return SlideWindow(s1, len, s2, len2, &subStrBit);
+}
+// ----------------------------写法二 结束------------------
+
+int main(int argc, const char *argv[])
+{
+    char stringS_1[] = "ab";
+    char stringT_1[] = "eidbaooo";
+    bool res_1 = checkInclusion(stringS_1, stringT_1);
+    assert(res_1 == true);
+
+    char stringS_2[] = "ab";
+    char stringT_2[] = "eidboaoo";
+    bool res_2 = checkInclusion(stringS_2, stringT_2);
+    assert(res_2 == false);
+
+    char stringS_3[] = "hello";
+    char stringT_3[] = "ooolleoooleh";
+    bool res_3 = checkInclusion(stringS_3, stringT_3);
+    assert(res_3 == false);
+
+    return 0;
+}

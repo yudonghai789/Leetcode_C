@@ -1,0 +1,546 @@
+/******************************************************************************
+ * 版权所有 (c)
+ * 功能描述   : OJ 1906. 【软件认证】服务器空闲时段 . https://oj.rnd.huawei.com/problems/1906/details
+ * 作    者   :
+ * 生成日期   :
+
+ * 
+      --- 
+ ******************************************************************************/
+// #include <stdio.h>
+// #include <stdlib.h>
+// #include <string.h>
+#include <stdbool.h>
+#include <uthash.h>
+#include <math.h>
+#include <assert.h>
+// 如需使用华为安全函数，请加上 #include "securec.h"
+#include "securec.h"
+// #include "vos_priorityqueue.h"
+
+
+
+
+
+/*
+题目描述
+现有serverNum台服务器和taskNum项任务，并将任务按时段分配给各服务器，请你统计恰好有且只有一台服务器空闲的时段（注：“空闲”指没有任务在执行）。
+
+最后请输出排序后的空闲时段。说明：
+
+统计范围的最大时刻为当前用例的涉及的最大时刻。
+须合并连续的时段，如：[1,2]和[2,3]合并为[1,3]。
+按照时段的开始时刻的大小升序排序。
+若无满足要求的时段，输出区间-1 -1。
+解答要求
+时间限制：3000ms, 内存限制：512MB
+输入
+第一行一个整数 serverNum，表示服务器个数，取值范围 [1,10^4)
+第二行一个整数 taskNum，表示任务个数，取值范围 [1,10^4)
+接下来 taskNum 行，每行 3 个整数startTime endTime serverId，分别表示一个任务的开始时刻、结束时刻、服务器编号。取值范围：0 < startTime < endTime < 10^9， 1 <= serverId <= serverNum
+
+输出
+每行两个整数，表示一个空闲时段，格式为：startTime endTime。
+
+样例
+输入样例 1 复制
+
+3
+5
+1 2 1
+1 3 1
+5 6 1
+2 3 2
+5 6 3
+输出样例 1
+
+2 3
+5 6
+提示样例 1
+样例 1 解释，如下图所示：
+
+1 号服务器总共分配了 3 项任务，2/3 号服务器各分配了 1 项任务，
+时段 [1, 2]： 1 号服务器在工作，2/3号服务器空闲，
+时段 [2, 3]： 1 号和 2 号服务器在工作，3 号服务器空闲，
+时段 [3, 5]： 3 台服务器都空闲，
+时段 [5, 6]： 1 号和 3 号服务器在工作，2 号服务器空闲，
+故满足要求的时段为 [2, 3] 和 [5, 6]。
+
+
+
+输入样例 2 复制
+
+4
+6
+1 2 1
+1 2 2
+1 2 4
+2 3 1
+2 3 2
+2 3 3
+输出样例 2
+
+1 3
+提示样例 2
+1/2 号服务器各分配了 2 项任务，3/4 号服务器各分配了 1 项任务，
+时段 [1, 2]： 1/2/4 号服务器在工作，3 号服务器空闲，
+时段 [2, 3]： 1/2/3 号服务器在工作，4 号服务器空闲，
+故满足要求的时段为 [1, 2] 和 [2, 3]，合并后为 [1, 3]
+
+
+
+输入样例 3 复制
+
+2
+3
+1 3 1
+1 2 2
+2 3 2
+输出样例 3
+
+-1 -1
+提示样例 3
+1 号服务器分配了 1 项任务，2 号服务器各分配了 2 项任务，
+时段 [1, 2]： 1/2 号服务器在工作，没有服务器空闲，
+时段 [2, 3]： 1/2 号服务器在工作，没有服务器空闲，
+故没有满足要求的时段，输出[-1, -1]。
+*/
+
+
+
+
+
+// ---------------------------解法 开始-----暴力遍历: -----------------------------------------------------
+
+// ---------------------------解法 结束---------------------------------------------------------------------
+
+
+
+
+
+
+// ---------------------------解法 开始-----差分技巧 -----------------------------------------------------
+// typedef struct UpdateInfo {
+//     int startIndex;
+//     int endIndex;
+//     int Add;
+// } UpdateInfo;
+
+// typedef struct DiffArray {
+//     int *diff;
+//     int size;
+// } DiffArray;
+
+// DiffArray *DiffArrInit(int *array, int arrayLen)
+// {
+//     DiffArray *diffArr = (DiffArray *)malloc(sizeof(DiffArray));
+//     diffArr->diff = (int *)malloc(sizeof(int) * (arrayLen + 1 ));  // 多出的一个在尾部，是无效的
+//     diffArr->diff[0] = array[0];
+//     for (int i = 1; i < arrayLen; i++) {
+//         diffArr->diff[i] = array[i] - array[i - 1];
+//     }
+
+//     return diffArr;
+// }
+
+// void DiffArrDestory(DiffArray *diffArr)
+// {
+//     free(diffArr->diff);
+//     free(diffArr);
+// }
+
+// void DiffArrUpdate(DiffArray *diffArr, UpdateInfo *updateInfo)
+// {
+//     diffArr->diff[updateInfo->startIndex] += updateInfo->Add;
+//     diffArr->diff[updateInfo->endIndex + 1] -= updateInfo->Add;
+// }
+
+// void DiffArrReArray(DiffArray *diffArr, int *array, int length)
+// {
+//     array[0] = diffArr->diff[0];
+//     for (int i = 1; i < length; i++) {
+//         array[i] += array[i - 1] + diffArr->diff[i];
+//     }
+// }
+
+
+// bool carPooling(int** trips, int tripsSize, int* tripsColSize, int capacity)
+// {
+//     int *res = (int *)malloc(sizeof(int) * 1010);
+//     memset(res, 0, sizeof(int) * 1010);
+
+//     DiffArray *diffArr = DiffArrInit(res, 1010);
+//     for (int i = 0; i < tripsSize; i++) {
+//         UpdateInfo updateInfo = { trips[i][1] - 1, trips[i][2], trips[i][0] };
+//         DiffArrUpdate(diffArr, &updateInfo);
+//     }
+//     DiffArrReArray(diffArr, res, 1010);
+//     for (int i = 0; i < 1010; i++) {
+//         if (res[i] > capacity) {
+//             DiffArrDestory(diffArr);
+//             free(res);
+//             return false;
+//         }
+//     }
+
+//     DiffArrDestory(diffArr);
+//     free(res);
+//     return true;
+// }
+// ---------------------------解法 结束---------------------------------------------------------------------
+
+
+
+
+
+// ---------------------------解法 ---------------------------------------------------------------------
+// #define MAX_TASK_NUM 10000
+
+// /* 涉及用例足够 */
+// #define OUTBUF_LEN 4096
+
+// typedef struct {
+//     int startTime;
+//     int endTime;
+//     int serverId;
+// } Task;
+
+// /* 待实现函数，在此函数中填入答题代码。输出例如: (void)sprintf_s(outBuf, outBufLen, "2 3\n5 6"); */
+// int compfun(const void *a, const void *b)
+// {
+//     return *(int *)a - *(int *)b;
+// }
+// void GetOneFreeTime(int serverNum, int taskNum, Task *tasks, char *outBuf, int outBufLen)
+// {
+//     int flag = 0;
+//     int res = 0;
+//     int serverMap[MAX_TASK_NUM] = {0};
+//     int allPoint[MAX_TASK_NUM*2] = {0};
+//     int count = 0;
+//     int point = 0;
+//     int useserver = 0;
+//     // 所有区间边界点从小到大排序
+//     for(int j = 0; j < taskNum; j++) {
+//         allPoint[count++] = tasks[j].startTime;
+//         allPoint[count++] = tasks[j].endTime;
+//     }
+//     qsort(allPoint, count, sizeof(int), compfun);
+
+//     // 遍历所有点进行处理
+//     for(int k = 0; k < count; k++) {
+//         point = allPoint[k];
+//         useserver = 0;
+//         for (int j = 0; j < taskNum; j++) {
+//             // 该点在某个任务区间，且该任务对应的服务器未使用
+//             if (point >= tasks[j].startTime && point < tasks[j].endTime && serverMap[tasks[j].serverId] == 0) {
+//                 useserver++;
+//                 serverMap[tasks[j].serverId]++;
+//             }
+//         }
+//         memset(serverMap, 0, MAX_TASK_NUM * sizeof(int));
+//         // 得到满足条件的区间起点
+//         if (serverNum - useserver == 1 && flag == 0) {
+//             flag = 1;
+//             res += sprintf_s(outBuf + res, outBufLen, "%d ", point);
+//         } 
+//         // 得到满足条件的区间终点
+//         if (serverNum - useserver != 1 && flag == 1) {
+//             flag = 0;
+//             res += sprintf_s(outBuf + res, outBufLen, "%d\n", point);
+//         } 
+//     }
+
+//     if (res == 0) {
+//         sprintf_s(outBuf, outBufLen, "-1 -1\n");
+//     } else {
+//         sprintf_s(outBuf+res-1, outBufLen, "\0");
+//     }
+// }
+// ---------------------------解法 结束---------------------------------------------------------------------
+
+
+
+
+
+
+// ---------------------------解法 ---------------------------------------------------------------------
+/*
+1、考虑到服务器的服务时间范围过于庞大（高达1E9），直接开数组会OOM（爆内存），遍历也会T（超时）。但是考虑到服务器Id数量并不大，所以不同的服务时间最多是2xId的数量，因此可以考虑对服务时间离散化（程序中real2fake map），再对离散化后的时间进行差分操作，最后映射回原时间（程序中fake2real map）即可。
+*/
+
+
+
+#define MAX_TASK_NUM 10000
+
+/* 涉及用例足够 */
+#define OUTBUF_LEN 4096
+
+typedef struct {
+    int startTime;
+    int endTime;
+    int serverId;
+} Task;
+
+typedef struct TaskWapper {
+    Task task;
+} TaskWapper;
+
+TaskWapper g_task[MAX_TASK_NUM];
+
+
+
+// 所有数据点进行离散化处理时，最多有 MAX_TASK_NUM * 2 个时间点，使用哈希表进行离散化映射
+typedef struct UthashTableInt {
+    int key;   // time
+    int val;   // val
+    UT_hash_handle hh;
+} UthashTableInt;
+
+void TuhashFindAll(UthashTableInt** hashtableHead)
+{
+    UthashTableInt *currentUser = NULL;
+    UthashTableInt *tmp = NULL;
+
+    HASH_ITER(hh, *hashtableHead, currentUser, tmp) {
+        printf("key = %d  ->  value = %d; \n", currentUser->key, currentUser->val);
+    }
+
+    printf("\n");
+}
+
+UthashTableInt* TuhashFindByKey(UthashTableInt** hashtableHead, int ikey)
+{
+    UthashTableInt* tmp = NULL;
+    HASH_FIND_INT(*hashtableHead, &ikey, tmp);
+    return tmp;
+}
+
+void TuhashAdd(UthashTableInt** hashtableHead, int ikey, int ival)
+{
+    UthashTableInt* it = TuhashFindByKey(hashtableHead, ikey);
+    if (it == NULL) {
+        UthashTableInt* tmp = (UthashTableInt*)malloc(sizeof(UthashTableInt));
+        tmp->key = ikey;
+        tmp->val = ival;
+        HASH_ADD_INT(*hashtableHead, key, tmp);
+    } else {
+        it->val = ival;
+    }
+}
+
+bool TuhashUpdate(UthashTableInt** hashtableHead, int ikey, int ival)
+{
+    UthashTableInt* it = TuhashFindByKey(hashtableHead, ikey);
+    if (it == NULL) {
+        return false;
+    } else {
+        it->val += ival;
+        return true;
+    }
+}
+
+void TuhashDelete(UthashTableInt** hashtableHead, UthashTableInt* hashtable)
+{
+    HASH_DEL(*hashtableHead, hashtable);  /* 从键值表中删除这个键值，但是不刽释放内存 */
+    free(hashtable);   // 释放这个键值对的内存，删除时的可选操作
+}
+
+void TuhashDeleteByKey(UthashTableInt** hashtableHead, int ikey)
+{
+    UthashTableInt* it = TuhashFindByKey(hashtableHead, ikey);
+    if (it != NULL) {
+        HASH_DEL(*hashtableHead, it);  /* 从键值表中删除这个键值，但是不刽释放内存 */
+        free(it);   // 释放这个键值对的内存，删除时的可选操作
+    }
+}
+
+void TuhashDeleteAll(UthashTableInt** hashtableHead)
+{
+    UthashTableInt *currentUser = NULL;
+    UthashTableInt *tmp = NULL;
+
+    HASH_ITER(hh, *hashtableHead, currentUser, tmp) {
+        HASH_DEL(*hashtableHead, currentUser);  /* delete it (users advances to next) */
+        free(currentUser);             /* free it */
+    }
+}
+
+
+
+int SortByKey(UthashTableInt* a, UthashTableInt* b)
+{
+    return (a->key - b->key);   // 字符串使用 strcmp(a->key, b->key)
+}
+
+void TuhashSortByKey(UthashTableInt** hashtableHead)
+{
+    HASH_SORT(*hashtableHead, SortByKey);
+}
+int SortByValue(UthashTableInt* a, UthashTableInt* b)
+{
+    return (a->val - b->val);   // 字符串使用 strcmp(a->val, b->val)
+}
+
+void TuhashSortByValue(UthashTableInt** hashtableHead)
+{
+    HASH_SORT(*hashtableHead, SortByValue);
+}
+
+
+
+typedef struct UpdateInfo {
+    int startIndex;
+    int endIndex;
+} UpdateInfo;
+
+int CompareStructTaskWapper(const void *a, const void *b)
+{
+    TaskWapper *structA = (TaskWapper *)a;
+    TaskWapper *structB = (TaskWapper *)b;
+
+    return (structA->task.serverId - structB->task.serverId != 0) ?
+                structA->task.serverId - structB->task.serverId :
+           (structA->task.startTime - structB->task.startTime != 0) ?
+                structA->task.startTime - structB->task.startTime :
+            structA->task.endTime - structB->task.endTime;
+}
+
+
+void BackUpTask(int taskNum, Task *tasks)
+{
+    memset_s(g_task, sizeof(g_task), 0, sizeof(g_task));
+    for (int i = 0; i < taskNum; i++) {
+        g_task[i].task = tasks[i];
+    }
+    qsort(g_task, (size_t)taskNum, (size_t)sizeof(TaskWapper), CompareStructTaskWapper);
+}
+
+
+/* 待实现函数，在此函数中填入答题代码。输出例如: (void)sprintf_s(outBuf, outBufLen, "2 3\n5 6"); */
+void GetOneFreeTime(int serverNum, int taskNum, Task *tasks, char *outBuf, int outBufLen)
+{
+    BackUpTask(taskNum, tasks);
+
+    /*
+        找到差分数组会操作的所有的点
+        哈希表添加时保证无重复
+    */
+    UthashTableInt* hashtableHead = NULL;
+    for (int taskId = 0; taskId < taskNum; taskId++) {
+        TuhashAdd(&hashtableHead, g_task[taskId].task.startTime, 0);
+        TuhashAdd(&hashtableHead, g_task[taskId].task.endTime, 0);
+    }
+
+    // 每一个服务器处理的区间可能有重复，重复时只能加1，去除重复的区间
+    UpdateInfo oneService[MAX_TASK_NUM] = { 0 };
+    int oneServiceCnt = 0;
+    oneService[oneServiceCnt].startIndex = g_task[0].task.startTime;
+    oneService[oneServiceCnt].endIndex = g_task[0].task.endTime;
+    int currentId = g_task[0].task.serverId;
+    for (int taskId = 1; taskId <= taskNum; taskId++) {
+        if (taskId == taskNum) {
+            // 最后
+            for (int i = 0; i <= oneServiceCnt; i++) {
+                TuhashUpdate(&hashtableHead, oneService[i].startIndex, 1);
+                TuhashUpdate(&hashtableHead, oneService[i].endIndex, -1);
+            }
+
+            break;
+        }
+
+
+        if (g_task[taskId].task.serverId != currentId) {
+            // 新开始的任务,服务器Id发生变化
+            for (int i = 0; i <= oneServiceCnt; i++) {
+                TuhashUpdate(&hashtableHead, oneService[i].startIndex, 1);
+                TuhashUpdate(&hashtableHead, oneService[i].endIndex, -1);
+            }
+
+            memset_s(oneService, sizeof(oneService), 0, sizeof(oneService));
+            oneServiceCnt = 0;
+            oneService[oneServiceCnt].startIndex = g_task[taskId].task.startTime;
+            oneService[oneServiceCnt].endIndex = g_task[taskId].task.endTime;
+            currentId = g_task[taskId].task.serverId;
+        } else {
+            // 与上一个任务的服务器ID一致
+            if (oneService[oneServiceCnt].endIndex >= g_task[taskId].task.startTime) {
+                oneService[oneServiceCnt].endIndex = fmax(oneService[oneServiceCnt].endIndex,
+                                                          g_task[taskId].task.endTime);
+            } else {
+                oneServiceCnt++;
+                oneService[oneServiceCnt].startIndex = g_task[taskId].task.startTime;
+                oneService[oneServiceCnt].endIndex = g_task[taskId].task.endTime;
+            }
+        }
+    }
+
+
+    // 恢复所有区间服务器情况
+    TuhashSortByKey(&hashtableHead);
+    int serviceNum = 0;
+    int flag = 0;
+    int resLen = 0;
+    UthashTableInt *currentUser = NULL;
+    UthashTableInt *tmp = NULL;
+    HASH_ITER(hh, hashtableHead, currentUser, tmp) {
+        int point = currentUser->key;
+        serviceNum += currentUser->val;
+        // 得到满足条件的区间起点
+        if (serverNum - serviceNum == 1 && flag == 0) {
+            flag = 1;
+            resLen += sprintf_s(outBuf + resLen, outBufLen, "%d ", point);
+        }
+        // 得到满足条件的区间终点
+        if (serverNum - serviceNum != 1 && flag == 1) {
+            flag = 0;
+            resLen += sprintf_s(outBuf + resLen, outBufLen, "%d\n", point);
+        }
+    }
+
+
+    if (resLen == 0) {
+        sprintf_s(outBuf, outBufLen, "-1 -1\n");    // 若无满足要求的时段，输出区间-1 -1。
+    } else {
+        sprintf_s(outBuf + resLen - 1, outBufLen, "\0");
+    }
+
+    TuhashDeleteAll(&hashtableHead);
+}
+// ---------------------------解法 结束---------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+#define ERROR (-1)
+#define THREE (3)
+
+
+/* 代码仅供参考，注意避免圈复杂度过大 */
+int main(void)
+{
+    int serverNum;
+    if (scanf_s("%d\n", &serverNum) != 1) { return -1; }
+
+    int taskNum;
+    if (scanf_s("%d\n", &taskNum) != 1) { return -1; }
+
+    static Task tasks[MAX_TASK_NUM];
+    for (int i = 0; i < taskNum; i++) {
+        if (scanf_s("%d %d %d\n",
+            &tasks[i].startTime,
+            &tasks[i].endTime,
+            &tasks[i].serverId) != THREE) {
+            return ERROR;
+        }
+    }
+
+    static char outBuf[OUTBUF_LEN];
+    GetOneFreeTime(serverNum, taskNum, tasks, outBuf, sizeof(outBuf));
+    (void)printf("%s", outBuf);
+    return 0;
+}

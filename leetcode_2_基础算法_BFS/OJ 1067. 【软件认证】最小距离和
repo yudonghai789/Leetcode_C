@@ -1,0 +1,303 @@
+/******************************************************************************
+ * 版权所有 (c)
+ * 功能描述   : OJ 1067. 【软件认证】最小距离和. https://oj.rnd.huawei.com/problems/1067/details
+ * 作    者   :
+ * 生成日期   :
+
+ * 
+      --- 
+ ******************************************************************************/
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdbool.h>
+#include <uthash.h>
+#include <math.h>
+#include <limits.h>
+#include <assert.h>
+// 如需使用华为安全函数，请加上 #include "securec.h"
+#include "securec.h"
+// #include "vos_priorityqueue.h"
+
+
+
+
+
+/*
+题目描述
+终端公司的零售店需要定期去仓库提取货物，假设零售店和仓库在一个矩阵上：相邻点的距离为 1 ；只能通过上下左右走动。
+矩阵元素的值仅为三种：0，表示仓库； -1，表示障碍； 1，表示零售店。 注：障碍无法通过，其它可以通过。
+
+为了将取货效率最大化，需要计算每个零售店走到最近仓库的最小距离，并输出这些最小距离的和：
+
+无法到达仓库的零售店，不参与距离和的计算；
+没有零售店或者没有仓库的话，返回0;
+解答要求
+时间限制：3000ms, 内存限制：256MB
+输入
+第一行为两个数字 m 和 n，表示数组的行数和列数，m和n的范围均为 [1,300) 。
+接下来的 m 行表示一个 m*n 的数组，每行的元素间以空格分割。
+
+输出
+一个整数，表示所计算的最小距离和。
+
+样例
+输入样例 1 复制
+
+3 3
+1 -1 0
+0 1 1
+1 -1 1
+输出样例 1
+
+6
+提示样例 1
+如下图所示，共有5个零售店（绿色），2个仓库（红色），2个障碍（白色），零售店上标注的数字表示到最近仓库的最小距离：
+
+位置[2][2]的零售店，距离[0][2]的仓库为 2，距离[1][0]的仓库为 3，因此到最近仓库的最小距离为 2 ； 其余零售店到最近仓库的最小距离都为 1。所以，所有零售店到仓库的最小距离和为 1 + 1 + 1 + 1 + 2 = 6 。
+
+
+
+输入样例 2 复制
+
+2 3
+0 -1 1
+1 -1 1
+输出样例 2
+
+1
+提示样例 2
+位置[0][2]和[1][2]的零售店无法到达唯一的仓库[0][0]，只有[1][0]的零售店可以到达，且最近距离为 1 。
+*/
+
+
+
+
+// ---------------------------解法 开始-----广度优先搜索----------------------------------------------------
+
+
+#define MAX_MN 300
+
+
+
+
+int g_move[4][2] = {
+    { 1 , 0 },
+    { -1 , 0 },
+    { 0 , 1 },
+    { 0 , -1} ,
+};
+bool g_visit[MAX_MN][MAX_MN];
+int g_mem[MAX_MN][MAX_MN];
+
+typedef struct Position {
+    int row;
+    int col;
+} Position;
+typedef struct Queue {
+    int head;
+    int tail;
+    Position queue[MAX_MN * MAX_MN];
+} Queue;
+Queue g_queue;
+
+
+
+void PrintArray(int m, int n) {
+    for (int i = 0; i < m; i++) {
+        for (int j = 0; j < n; j++) {
+            printf("%-20d", g_mem[i][j]);
+        }
+        printf("\n");
+    }
+    printf("\n");
+}
+
+void Bfs(int **arr, int m, int n) // res 标识当前位置i j 到达最近的仓库的距离
+{
+    int step = 0;
+    while (g_queue.head > g_queue.tail) {
+        step++;
+        int start = g_queue.tail;
+        int end = g_queue.head;
+        for (; start < end; start++) {
+            Position po = g_queue.queue[start];
+            for (int mo = 0; mo < 4; mo++) {
+                int nextRow = po.row + g_move[mo][0];
+                int nextCol = po.col + g_move[mo][1];
+                if (nextRow >= 0 && nextRow < m && nextCol >= 0 && nextCol < n && g_visit[nextRow][nextCol] == false && arr[nextRow][nextCol] != -1) {
+                    g_visit[nextRow][nextCol] = true;
+                    g_mem[nextRow][nextCol] = fmin(g_mem[nextRow][nextCol], step);
+                    Position next = { nextRow, nextCol };
+                    g_queue.queue[g_queue.head++] = next;
+                }
+            }
+            PrintArray(m , n);
+        }
+
+        g_queue.tail = end;
+    }
+
+
+}
+
+// 待实现函数，在此函数中填入答题代码
+int NearestWareHouse(int **arr, int m, int n)
+{
+    int res = 0;
+    memset_s(g_mem, (size_t)sizeof(g_mem), 0x3f, (size_t)sizeof(g_mem));
+    memset_s(&g_queue, (size_t)sizeof(g_queue), 0, (size_t)sizeof(g_queue));
+    memset_s(g_visit, (size_t)sizeof(g_visit), 0, (size_t)sizeof(g_visit));
+    
+    for (int i = 0; i < m; i++) {
+        for (int j = 0; j < n; j++) {
+            if (arr[i][j] == 0) {
+                g_mem[i][j] = 0;
+                g_visit[i][j] = true;
+                Position po = { i, j };
+                g_queue.queue[g_queue.head++] = po;
+            }
+        }
+    }
+
+    Bfs(arr, m, n);
+    for (int i = 0; i < m; i++) {
+        for (int j = 0; j < n; j++) {
+            if (arr[i][j] == 1) {
+                res = res + ((g_mem[i][j] == 0x3f3f3f3f) ? 0: g_mem[i][j]);
+            }
+        }
+    }
+    return res;
+}
+
+/* 代码仅供参考，注意避免圈复杂度过大 */
+int main(void)
+{
+    int m, n;
+    if (scanf_s("%d %d", &m, &n) != 2) { return -1; }
+
+    static int buf[MAX_MN][MAX_MN];
+    static int *arr[MAX_MN];
+    int i, j;
+    for (i = 0; i < m; i++) {
+        for (j = 0; j < n; j++) {
+            if (scanf_s("%d", &buf[i][j]) != 1)  { return -1; }
+        }
+        arr[i] = buf[i];
+    }
+
+    int ret = NearestWareHouse(arr, m, n);
+    (void)printf("%d", ret);
+    return 0;
+}
+
+// ---------------------------解法 结束---------------------------------------------------------------------
+
+
+
+
+
+
+
+// ---------------------------解法 开始-----记忆化搜索------既麻烦也没必要----------------------------------------------
+
+
+// #define MAX_MN 300
+
+
+// int g_move[4][2] = {
+//     { 1 , 0 },
+//     { -1 , 0 },
+//     { 0 , 1 },
+//     { 0 , -1} ,
+// };
+// bool g_visit[MAX_MN][MAX_MN];
+// int g_mem[MAX_MN][MAX_MN];
+
+// void BackTrace(int **arr, int m, int n, int i, int j, int step, int *res) // res 标识当前位置i j 到达最近的仓库的距离
+// {
+//     if (arr[i][j] == 0) {
+//         *res = 0;
+//         g_mem[i][j] = 0;
+//         return;
+//     }
+
+//     if (g_mem[i][j] != 0xf0f0f0f0) {
+//         *res = g_mem[i][j];
+//         return;
+//     }
+
+//     int allDirMin = INT_MAX;
+//     for (int mo = 0; mo < 4; mo++) {
+//         int nextRow = i + g_move[mo][0];
+//         int nextCol = j + g_move[mo][1];
+//         if (nextRow >= 0 && nextRow < m && nextCol >= 0 && nextCol < n && g_visit[nextRow][nextCol] == false && arr[nextRow][nextCol] != -1) {
+//             g_visit[nextRow][nextCol] = true;
+
+//             int thisDir = INT_MAX;
+//             BackTrace(arr, m, n, nextRow, nextCol, step + 1, &thisDir);
+//             if (thisDir != INT_MAX) {
+//                 allDirMin = fmin(allDirMin, thisDir);
+//             }
+//             g_visit[nextRow][nextCol] = false;
+//         }
+//     }
+
+//     if (allDirMin != INT_MAX) {
+//         *res = step + 1 + allDirMin; 
+//         g_mem[i][j] = *res;
+//     }
+// }
+
+// // 待实现函数，在此函数中填入答题代码
+// int NearestWareHouse(int **arr, int m, int n)
+// {
+//     int res = 0;
+//     memset_s(g_mem, (size_t)sizeof(g_mem), 0xf0, (size_t)sizeof(g_mem));
+//     for (int i = 0; i < m; i++) {
+//         for (int j = 0; j < n; j++) {
+//             if (arr[i][j] == 0) {
+//                 memset_s(g_visit, (size_t)sizeof(g_visit), 0, (size_t)sizeof(g_visit));
+//                 int thisStore = 0;
+//                 BackTrace(arr, m, n, i, j, 0, &thisStore);
+//                 res += (thisStore == INT_MAX) ? 0: thisStore;
+//             }
+//         }
+//     }
+//     return res;
+// }
+
+// /* 代码仅供参考，注意避免圈复杂度过大 */
+// int main(void)
+// {
+//     int m, n;
+//     if (scanf_s("%d %d", &m, &n) != 2) { return -1; }
+
+//     static int buf[MAX_MN][MAX_MN];
+//     static int *arr[MAX_MN];
+//     int i, j;
+//     for (i = 0; i < m; i++) {
+//         for (j = 0; j < n; j++) {
+//             if (scanf_s("%d", &buf[i][j]) != 1)  { return -1; }
+//         }
+//         arr[i] = buf[i];
+//     }
+
+//     int ret = NearestWareHouse(arr, m, n);
+//     (void)printf("%d", ret);
+//     return 0;
+// }
+
+// ---------------------------解法 结束---------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+

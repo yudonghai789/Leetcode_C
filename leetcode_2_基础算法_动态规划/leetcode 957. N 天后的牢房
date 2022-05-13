@@ -1,0 +1,103 @@
+/*
+ * Copyright (c) Huawei Technologies Co., Ltd. 2019-2020. All rights reserved.
+ */
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <stdbool.h>
+#include <uthash.h>
+// 如需使用华为安全函数，请加上 #include "securec.h"
+#include "systemDesgin.h"
+#include <math.h>
+#include <assert.h>
+
+
+
+/* leetcode 957. N 天后的牢房  https://leetcode-cn.com/problems/prison-cells-after-n-days/
+ * 
+ */
+
+// ---------------------------解法一 开始-----------
+
+// ---------------------------解法一 结束--------------------------------------------------------
+
+// ---------------------------解法一 结束--------------------------------------------------------
+void TranOneTime(int* cells, int cellsSize, int* result)
+{
+    // 状态转移
+    for (int i = 0; i < cellsSize; i++) {
+        if ((i == 0) || (i == cellsSize - 1)) {
+            result[i] = 0;
+        } else {
+            if (cells[i - 1] == cells[i + 1]) {
+                result[i] = 1;
+            } else {
+                result[i] = 0;
+            }
+        }
+    }
+}
+
+
+int* prisonAfterNDays(int* cells, int cellsSize, int n, int* returnSize)
+{
+    // 基本校验
+    
+    (*returnSize) = cellsSize;
+
+    int *result = (int *)malloc(sizeof(int) * cellsSize);
+    memset(&result[0], 0, sizeof(int) * cellsSize);
+
+    int temp[8] = { 0 };
+    memcpy(&temp[0], &cells[0], sizeof(int) * cellsSize);
+
+    TranOneTime(temp, cellsSize, result);
+    memcpy(&temp[0], &result[0], sizeof(int) * cellsSize);
+
+    for (int i = 0; i < ((n - 1) % 14); i++) {
+        // for (int i = 0; i < cellsSize; i++) {
+        //     printf("%d", temp[i]);
+        // }
+        // printf("\n");
+        TranOneTime(temp, cellsSize, result);
+        memcpy(&temp[0], &result[0], sizeof(int) * cellsSize);
+    }
+
+    return result;
+}
+// ---------------------------解法二 开始-----------
+
+
+// ---------------------------解法二 结束--------------------------------------------------------
+
+
+int main() {
+    int cells_1[8] = { 0,1,0,1,1,0,0,1 };
+    int cellsSize_1 = sizeof(cells_1) / sizeof(cells_1[0]);
+    int n_1 = 7;
+    int returnSize_1 = 45466;
+    int *result_1 = prisonAfterNDays(cells_1, cellsSize_1, n_1, &returnSize_1);
+    for (int i = 0; i < cellsSize_1; i++) {
+        printf("%d", result_1[i]);
+    }
+    printf("\n");
+    free(result_1);
+
+
+    int cells_2[8] = { 1,0,0,1,0,0,1,0 };
+    int cellsSize_2 = sizeof(cells_2) / sizeof(cells_2[0]);
+    int n_2 = 1000000000;
+    int returnSize_2 = 45466;
+    int *result_2 = prisonAfterNDays(cells_2, cellsSize_2, n_2, &returnSize_2);
+    for (int i = 0; i < cellsSize_2; i++) {
+        printf("%d", result_2[i]);
+    }
+    printf("\n");
+    free(result_2);
+
+
+    return 0;
+}
+
+
+

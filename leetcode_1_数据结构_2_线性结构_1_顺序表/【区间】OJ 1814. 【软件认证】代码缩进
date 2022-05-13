@@ -1,0 +1,133 @@
+/******************************************************************************
+ * 版权所有 (c)
+ * 功能描述   : OJ 1814. 【软件认证】代码缩进. https://oj.rnd.huawei.com/problems/1814/details
+ * 作    者   :
+ * 生成日期   :
+
+ * 
+      --- 
+ ******************************************************************************/
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdbool.h>
+#include <uthash.h>
+#include <math.h>
+#include <limits.h>
+#include <assert.h>
+// 如需使用华为安全函数，请加上 #include "securec.h"
+#include "securec.h"
+#include "vos_priorityqueue.h"
+#include "vos_list.h"
+
+
+
+
+
+/*
+题目描述
+请实现一个简易的代码缩进功能：把一段未缩进的代码，通过多次操作，最终实现对每一行的缩进长度要求。
+
+一次操作指：
+
+一次操作是缩进一个TAB长度（如样例1图所示）。注：这里缩进仅指从左往右，不能回退。
+一次操作可选择一行或连续多行同时缩进。
+现给出一段代码的每行缩进长度要求，用一个数字序列表示，请计算至少需要多少次操作才能实现。
+
+解答要求
+时间限制：1000ms, 内存限制：256MB
+输入
+一个整数 n ，表示代码总行数，取值范围：[1, 65535]。
+接下来一行有 n 个整数，依次表示第 1~n 行的最终缩进长度要求，取值范围：[0, 1000000]。
+
+输出
+一个整数，表示所需的最少操作次数。
+
+样例
+输入样例 1 复制
+
+5
+1 2 3 2 1
+输出样例 1
+
+3
+提示样例 1
+最少需三次，第1次操作全选所有行，缩进1个TAB；第2次操作选择2、3、4行，再缩进1个TAB；第3次操作，选择第3行，再缩进1个TAB。 初始5行都未缩进，每次操作后的缩进变化情况如下图所示：
+
+
+
+
+输入样例 2 复制
+
+9
+0 1 2 0 2 4 2 1 0
+输出样例 2
+
+6
+提示样例 2
+第1次操作选择第2、3行，缩进1个TAB；第2次选择第3行缩进1个TAB；第3次选择第5、6、7、8行，缩进1个TAB；第4次选择第5、6、7行，缩进1个TAB；第5次和第6次操作都选择第6行，分别缩进1个TAB。通过6次操作达成目标，因此输出6
+*/
+
+
+
+
+// ---------------------------解法 --------递归---------------------------------------------------------
+#define MAX_LEN 65536
+
+void Recursive(const int* steps, int n, int start, int end, int *origin, int *res)
+{
+    int flag = 0;
+    int nextStart;
+    int nextEnd;
+    int minVal = INT_MAX;
+    for (int i = start; i <= end + 1; i++) {
+        if (i == end + 1 && flag == 1) {
+            flag = 0;
+            nextEnd = end;
+            for (int add = nextStart; add <= nextEnd; add++) {
+                origin[add] += minVal;
+            }
+            (*res) += minVal;
+            Recursive(steps, n, nextStart, nextEnd, origin, res);
+            break;
+        }
+
+        if (steps[i] - origin[i] > 0 && flag == 0) {
+            flag = 1;
+            minVal = fmin(minVal, steps[i] - origin[i]);
+            nextStart = i;
+        } else if (steps[i] - origin[i] > 0 && flag == 1) {
+            minVal = fmin(minVal, steps[i] - origin[i]);
+        } else if (steps[i] - origin[i] == 0 && flag == 1) {
+            flag = 0;
+            nextEnd = i - 1;
+            for (int add = nextStart; add <= nextEnd; add++) {
+                origin[add] += minVal;
+            }
+            (*res) += minVal;
+            Recursive(steps, n, nextStart, nextEnd, origin, res);
+        }
+    }
+
+}
+
+int GetMinStep(const int* steps, int n)      
+{
+    int origin[MAX_LEN] = { 0 };
+    int res = 0;
+    Recursive(steps, n, 0, n - 1, origin, &res);
+    return res;
+}
+int main(void) 
+{ 
+    int n = 0;  
+    if (scanf_s("%d\n", &n) != 1) { return -1; }   
+    int steps[MAX_LEN];
+    for (int i = 0; i < n; i++) {
+        if (scanf_s("%d", &steps[i]) != 1) { return -1; }
+    }
+    int result = GetMinStep(steps, n);
+    (void)printf("%d", result); 
+    return 0;           
+}     
+// ---------------------------解法 结束---------------------------------------------------------------------

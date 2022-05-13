@@ -1,0 +1,114 @@
+
+/*
+279. 完全平方数
+给定正整数 n，找到若干个完全平方数（比如 1, 4, 9, 16, ...）使得它们的和等于 n。你需要让组成和的完全平方数的个数最少。
+给你一个整数 n ，返回和为 n 的完全平方数的 最少数量。
+
+完全平方数 是一个整数，其值等于另一个整数的平方；换句话说，其值等于一个整数自乘的积。例如，1、4、9 和 16 都是完全平方数，而 3 和 11 不是。
+ 
+示例 1：
+输入：n = 12
+输出：3 
+解释：12 = 4 + 4 + 4
+
+示例 2：
+输入：n = 13
+输出：2
+解释：13 = 4 + 9
+ 
+提示：
+1 <= n <= 104
+*/
+
+
+
+/*
+ * Copyright (c) Huawei Technologies Co., Ltd. 2019-2020. All rights reserved.
+ */
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdbool.h>
+#include <uthash.h>
+// 如需使用华为安全函数，请加上 #include "securec.h"
+#include <math.h>
+#include <assert.h>
+
+/* leetcode 279. 完全平方数 https://leetcode-cn.com/problems/perfect-squares/
+ * BFS 或者动态规划
+ */
+
+
+// ------------------解法一 ----BFS 一维数组的BFS------------------------------------------------------
+#define MAX_BFS_QUE_LEN 10000
+
+int GetMaxIndex(int interger)
+{
+    double a = sqrt((double)interger);
+    return (int)a;
+}
+
+
+int numSquares(int n)
+{
+    if (n == 1) { return 1; }  // base case
+
+    // 创建 BFS队列
+    int que[MAX_BFS_QUE_LEN];   // 这里数组的长度是指按照不同路径减下来的剩余值的个数
+    memset(que, 0, sizeof(int) * MAX_BFS_QUE_LEN);
+    int queStart = 0;
+    int queEnd = 0;
+
+    // 每次将剩余值加入队列， 但已经添加的就需要重复计算
+    int dpFalg[MAX_BFS_QUE_LEN];   // 这是数组的长度是指剩余值
+    memset(dpFalg, 0, sizeof(int) * MAX_BFS_QUE_LEN);
+
+    int first = GetMaxIndex(n);
+    int step = 1;
+    for (int i = 1; i <= first; i++) {
+        que[queEnd++] = n - pow(i, 2);
+    }
+    
+    while (queStart < queEnd) {
+        int thisLoopNum = queEnd - queStart;
+        for (int i  = 0; i < thisLoopNum; i++) {
+            // 满足条件时返回结果
+            int thisindex = queStart + i;
+            if (que[thisindex] == 0) {
+                return step;
+            }
+
+            // 不满足条件时  添加需要遍历的节点
+            int thisAdd = GetMaxIndex(que[thisindex]);
+            for (int i = 1; i <= thisAdd; i++) {
+                int remin = que[thisindex] - pow(i, 2);
+                if (dpFalg[remin] == 0) {
+                    que[queEnd++] = remin;
+                    dpFalg[remin] = 1;
+                }
+            }
+        }
+
+        // 这一步的所有节点遍历完
+        queStart += thisLoopNum;
+        step++;
+    }
+
+    return 0;
+}
+// ---------------------------解法结束-------------------------------------------------
+
+
+int main()
+{
+    int target_1 = 12;
+	int result_1 = numSquares(target_1);
+    assert(result_1 == 3);
+
+    int target_2 = 13;
+	int result_2 = numSquares(target_2);
+    assert(result_2 == 2);
+
+
+    return 0;
+}

@@ -1,0 +1,198 @@
+/******************************************************************************
+ * 版权所有 (c)
+ * 功能描述   : OJ 572. 【软件认证】关键字标识. https://oj.rnd.huawei.com/problems/572/details
+ * 作    者   :
+ * 生成日期   :
+
+ * 
+      --- 
+ ******************************************************************************/
+#include <corecrt.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdbool.h>
+#include <uthash.h>
+#include <math.h>
+#include <assert.h>
+// 如需使用华为安全函数，请加上 #include "securec.h"
+#include "securec.h"
+// #include "vos_priorityqueue.h"
+
+
+
+
+
+/*
+题目描述
+给定一个关键词集合 words 和一个字符串 inputStr，要求将 inputStr 中出现的所有关键词用标签标记：
+
+关键词标签的起始为<b>,结束为</b>。
+把可以合并的标签进行合并，即使用最少的标签。合并规则如下：
+关键词相邻则进行合并，如 ab、cd为关键词，且在字符串中相邻，则合并为 <b>abcd</b>
+关键词相交则进行合并，如 zhi、hid为关键词，且在字符串中相交，则合并为 <b>zhid</b>
+解答要求
+时间限制：1000ms, 内存限制：256MB
+输入
+第1行一个整数 count，表示 words 中的关键词的个数，取值范围：[1, 64]
+第2行 count 个字符串，表示关键字词列表 words，每个关键词仅含英文小写字母，长度范围：[1,16]
+第3行一个字符串 inputStr，仅含英文小写字母（无空格），长度范围：[1,512]
+
+输出
+一个用最少关键词标签标记的字符串
+
+样例
+输入样例 1 复制
+
+4
+cd df op qr
+opqracdfg
+输出样例 1
+
+<b>opqr</b>a<b>cdf</b>g
+提示样例 1
+关键词 op qr 出现在字符串中，且在字符串中相邻，因此可合并为 opqr；
+cd df 出现在字符串中，且在字符串中相交，因此可合并为 cdf ；
+其它字符保持不变。
+处理后为 <b>opqr</b>a<b>cdf</b>g，使用了 2 个标签 。
+<b>op</b><b>qr</b>a<b>cd</b><b>df</b>g也是一种标记方式，但关键词未作合并，需要用到 4 个标签，标签个数不是最少的。
+
+
+
+输入样例 2 复制
+
+3
+abbb def bbg
+aabbbgz
+输出样例 2
+
+a<b>abbbg</b>z
+提示样例 2
+关键字abbb和bbg合并为abbbg
+*/
+
+
+
+
+
+// ---------------------------解法 开始-----暴力遍历: -----------------------------------------------------
+
+// ---------------------------解法 结束---------------------------------------------------------------------
+
+
+
+
+
+
+// ---------------------------解法 开始-----差分技巧 -----------------------------------------------------
+
+// ---------------------------解法 结束---------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+#define ARR_MAX_LEN 64
+#define WORD_MAX_LEN 17
+#define INPUT_MAX_LEN 513
+#define OUTPUT_MAX_LEN 1024
+
+
+typedef struct StringWapper {
+    char charter;
+    bool highlight;
+} StringWapper;
+
+StringWapper g_charWaper[INPUT_MAX_LEN];
+
+bool CharterMatch(char *match, int matchCnt, char *string, int stringlen)
+{
+    if (matchCnt > stringlen) {
+        return false;
+    }
+
+    for (int i = 0; i < matchCnt; i++) {
+        if (match[i] != string[i]) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+// 待实现函数，在此函数中填入答题代码
+void GetTaggedString(char **words, int wordsSize, char *inputStr, char *output, int outputSize)
+{
+    memset_s(g_charWaper, (size_t)(sizeof(g_charWaper)), 0, (size_t)(sizeof(g_charWaper)));
+    int stringLen = (int)strlen(inputStr);
+    for (int i = 0; i < stringLen; i++) {
+        g_charWaper[i].charter = inputStr[i];
+        g_charWaper[i].highlight = false;
+    }
+
+
+    for (int i = 0; i < wordsSize; i++) {
+        for (int j = 0; j < stringLen; j++) {
+            int wordsLen = (int)strlen(words[i]);
+            if (CharterMatch(words[i], wordsLen, &inputStr[j], stringLen - j) == true) {
+                for (int k = 0; k < wordsLen; k++) {
+                    g_charWaper[j + k].highlight = true;
+                }
+            }
+        }
+    }
+
+    memset_s(output, (size_t)outputSize, 0, (size_t)outputSize);
+    int resLen = 0;
+    int sectionFalg = 0;  // 0：表示找开始的位置；   1：表示找结束的位置
+    for (int i = 0; i <= stringLen; i++) {
+        if (i == stringLen && sectionFalg == 1) {
+            resLen += sprintf_s(output + resLen, (size_t)(outputSize - resLen), "</b>\n");
+            break;
+        }
+
+        if (g_charWaper[i].highlight == true && sectionFalg == 0) {
+            sectionFalg = 1;
+            resLen += sprintf_s(output + resLen, (size_t)(outputSize - resLen), "<b>%c", g_charWaper[i].charter);
+            continue;
+        }
+        if (g_charWaper[i].highlight == false && sectionFalg == 1) {
+            sectionFalg = 0;
+            resLen += sprintf_s(output + resLen, (size_t)(outputSize - resLen), "</b>%c", g_charWaper[i].charter);
+            continue;
+        }
+
+        resLen += sprintf_s(output + resLen, (size_t)(outputSize - resLen), "%c", g_charWaper[i].charter);
+    }
+
+}
+
+int main(void)
+{
+    int wordsSize = 0;
+    if (scanf_s("%d", &wordsSize) != 1) { return -1; }
+
+    char buf[ARR_MAX_LEN][WORD_MAX_LEN];
+    char *words[ARR_MAX_LEN];
+    for (int i = 0; i < wordsSize; i++) {
+        if (scanf_s("%s", &buf[i], WORD_MAX_LEN) != 1) { return -1; }
+        words[i] = buf[i];
+    }
+
+    char inputStr[INPUT_MAX_LEN];
+    if (scanf_s("%s", &inputStr, INPUT_MAX_LEN) != 1) { return -1; }
+
+    char output[OUTPUT_MAX_LEN] = { 0 };
+
+
+    GetTaggedString(words, wordsSize, inputStr, output, OUTPUT_MAX_LEN);
+    printf("%s", output);
+
+    return 0;
+}

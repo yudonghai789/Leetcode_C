@@ -1,0 +1,132 @@
+/*
+ * Copyright (c) Huawei Technologies Co., Ltd. 2019-2020. All rights reserved.
+ */
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <stdbool.h>
+#include <uthash.h>
+// 如需使用华为安全函数，请加上 #include "securec.h"
+#include "securec.h"
+#include "systemDesgin.h"
+#include <math.h>
+#include <assert.h>
+
+
+
+/* leetcode 300. 最长递增子序列  https://leetcode-cn.com/problems/longest-increasing-subsequence/solution/dong-tai-gui-hua-er-fen-cha-zhao-tan-xin-suan-fa-p/
+ * dp[i] 表示子序列选i 作为最后一个元素的上升子序列长度。
+ * dp[i] 需要跟 dp[0]~dp[i-1]进行比较
+ */
+
+// ---------------------------开始------DFS 剪枝 + 备忘录--------------------------------------------------
+int GetNum(int* nums, int numsSize, int start)
+{
+    if (start < 0) {
+        return INT_MIN;
+    }
+    
+    if (start >= numsSize) {
+        return INT_MAX;
+    }
+
+    return nums[start];
+}
+
+int Dfs(int* nums, int numsSize, int start, int *dpMem)
+{
+    if (start >= numsSize) {
+        return 0;
+    }
+
+    // 要放在校验后面，不然数组越界
+    if ((start != -1) && (dpMem[start] != 0x3f3f3f3f)) {
+        return dpMem[start];
+    }
+
+    if (start == numsSize - 1) {
+        dpMem[start] = 1;
+        return dpMem[start];
+    }
+
+    int thisStep = 0;
+    for (int i = start + 1; i < numsSize; i++) {
+        // 剪枝
+        if (nums[i] <= GetNum(nums, numsSize, start)) {
+            continue;
+        }
+
+        int temp = Dfs(nums, numsSize, i, dpMem);
+        thisStep = fmax(thisStep, temp);
+    }
+
+    if (start == -1) {
+        return thisStep;
+    } else {
+        dpMem[start] = thisStep + 1;
+        return dpMem[start];
+    }
+}
+
+int lengthOfLIS(int* nums, int numsSize)
+{
+    int *dpMem = (int *)malloc(sizeof(int) * (numsSize)+ 1);
+    memset(dpMem, 0x3f, sizeof(int) * numsSize);
+    
+    int result = Dfs(nums, numsSize, -1, dpMem);
+    free(dpMem);
+    return result;
+}
+// ---------------------------结束--------------------------------------------------------
+
+
+// -------------------------- 开始---------------dp-----dp[i] 表示子序列选i 作为最后一个元素的上升子序列长度。   dp[i] 需要跟 dp[0]~dp[i-1]进行比较-----------------------------------
+// int lengthOfLIS(int* nums, int numsSize)
+// {
+//     int *dpMem = (int *)malloc(sizeof(int) * numsSize);
+//     memset(dpMem, 0, sizeof(int) * numsSize);
+
+//     for (int i = 0; i < numsSize; i++) {
+//         dpMem[i] = 1;
+//     }
+
+//     for (int i = 1; i < numsSize; i++) {
+//         for (int j = 0; j < i; j++) {
+//             if (nums[j] < nums[i]) {
+//                 dpMem[i] = fmax(dpMem[i], dpMem[j] + 1);
+//             }
+//         }
+//     }
+
+//     int result = 0;
+//     for (int i = 0; i < numsSize; i++) {
+//         result = fmax(result, dpMem[i]);
+//     }
+
+//     free(dpMem);
+//     return result;
+// }
+// ---------------------------结束--------------------------------------------------------
+
+
+int main() {
+    int nums_1[8] = { 10,9,2,5,3,7,101,18 };
+    int numsSize_1 = sizeof(nums_1) / sizeof(nums_1[0]);
+    int result_1 = lengthOfLIS(nums_1, numsSize_1);
+    assert(result_1 == 4);
+
+
+    int nums_2[8] = { 0,1,0,3,2,3 };
+    int numsSize_2 = sizeof(nums_2) / sizeof(nums_2[0]);
+    int result_2 = lengthOfLIS(nums_2, numsSize_2);
+    assert(result_2 == 4);
+
+    int nums_3[8] = { 7,7,7,7,7,7,7 };
+    int numsSize_3 = sizeof(nums_3) / sizeof(nums_3[0]);
+    int result_3 = lengthOfLIS(nums_3, numsSize_3);
+    assert(result_3 == 1);
+
+
+
+    return 0;
+}

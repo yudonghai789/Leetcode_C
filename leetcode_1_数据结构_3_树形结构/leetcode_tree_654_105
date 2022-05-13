@@ -1,0 +1,238 @@
+#include <assert.h>
+#include <math.h>
+#include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+// 二叉树分治算法 递归写法
+
+
+/* ---------------------------------------------- *
+ *                -- 结构体定义 --                *
+ * ---------------------------------------------- */
+typedef struct TreeNode {
+    int val;
+    struct TreeNode *left;
+    struct TreeNode *right;
+} TreeNode;
+
+
+struct TreeNodeWapper {
+    int thisValue;
+    int val;
+    struct TreeNodeWapper *left;
+    struct TreeNodeWapper *right;
+};
+
+/* ---------------------------------------------- *
+ *                -- 树相关的辅助函数 --                
+ * ---------------------------------------------- */
+char** stringToStringArray(char* string, const char *delim, int *size) {
+    // 获取返回的字符串数组长度
+    if (string != NULL) { *size = 1; } else {return NULL;}
+    for(int i = 0; i < strlen(string); i++){       
+        if (string[i] == delim[0]) {       
+            (*size)++;
+        }
+    }
+
+    char **retArray = (char **)malloc(sizeof(char*) * (*size));
+
+    /* 获取第一个子字符串 */
+    int i = 0;
+    char* token;
+    token = strtok(string, delim);
+    retArray[i] = (char *)malloc(sizeof(char) * 10);
+    memset((void*)retArray[i], 0, sizeof(char) * 10);
+    memcpy(retArray[i], token, strlen(token));
+   
+    /* 继续获取其他的子字符串 */
+    while((token != NULL) && (i < (*size) - 1)) {
+        printf( "%s\n", token );
+        token = strtok(NULL, delim);
+        retArray[++i] = (char *)malloc(sizeof(char) * 10);
+        memset((void*)retArray[i], 0, sizeof(char) * 10);
+        memcpy(retArray[i], token, strlen(token));
+   }
+    printf( "%s\n", token );
+    return retArray;
+}
+
+// 层序遍历 + 非空判断 添加节点
+struct TreeNode* CharArrayToTree(char** charArray, int count) {
+    if (count == 0) { return NULL; }
+
+    struct TreeNode* treeRoot = (struct TreeNode*)malloc(sizeof(struct TreeNode) * count);
+    memset((void*)treeRoot, 0, sizeof(struct TreeNode) * count);
+
+    for (int i = 0; i < count; i++) {
+        if (strcmp(charArray[i], "null") == 0) {
+            treeRoot[i].val = 0x5a5a5a5a;
+        } else {
+            treeRoot[i].val = atoi(charArray[i]);
+        }
+    }
+
+    int order = 0, useer = 1; 
+    while (order < useer) {
+        if (treeRoot[order].val != 0x5a5a5a5a) {
+            // 添加左节点 
+            if (useer < count) {
+                if (treeRoot[useer].val != 0x5a5a5a5a) {
+                    treeRoot[order].left = &treeRoot[useer];
+                }
+                ++useer;
+            }
+            // 添加右节点 
+            if (useer < count) {
+                if (treeRoot[useer].val != 0x5a5a5a5a) {
+                    treeRoot[order].right = &treeRoot[useer]; 
+                }
+                ++useer;
+            }
+        }
+        order++;
+    }
+
+    return treeRoot;
+}
+
+void freeTreeNode(struct TreeNode* treeRoot) {
+    if(treeRoot == NULL) {return;}
+    
+    freeTreeNode(treeRoot->left);
+    freeTreeNode(treeRoot->right);
+    
+    free(treeRoot);
+}
+
+
+struct TreeNodeWapper* WapperTree(struct TreeNode* root) {
+    if (root == NULL) { return NULL; }
+    struct TreeNodeWapper* treeNodeWapper = (struct TreeNodeWapper*)malloc(sizeof(struct TreeNodeWapper));
+    treeNodeWapper->thisValue = 0;
+    treeNodeWapper->val = root->val;
+    treeNodeWapper->left = WapperTree(root->left);
+    treeNodeWapper->right = WapperTree(root->right);
+    return treeNodeWapper;
+}
+
+
+
+void freeTreeNodeWapper(struct TreeNodeWapper* treeRoot) {
+    if(treeRoot == NULL) {return;}
+    
+    freeTreeNodeWapper(treeRoot->left);
+    freeTreeNodeWapper(treeRoot->right);
+    
+    free(treeRoot);
+}
+
+
+/* 654. 最大二叉树
+ * 递归算法  二叉树的前序遍历
+ */
+struct TreeNode* traverHelper(int* nums, int start, int end) {
+    if (start > end) { return NULL; }
+
+    int maxIndex = start;
+    for (int i = start + 1; i <= end; i++) {
+        if (nums[maxIndex] < nums[i]) {
+            maxIndex = i;
+        }
+    }
+
+    struct TreeNode* node = (struct TreeNode *)malloc(sizeof(struct TreeNode) * 1);
+    node->val = nums[maxIndex];
+    node->left = traverHelper(nums, start, maxIndex - 1);
+    node->right = traverHelper(nums, maxIndex + 1, end);
+
+    return node;
+}
+
+struct TreeNode* constructMaximumBinaryTree(int* nums, int numsSize){
+    if (nums == NULL) { return NULL; }
+    
+    struct TreeNode *result = traverHelper(nums, 0, numsSize - 1);
+
+    return result;
+}
+
+
+
+/* 105. 从前序与中序遍历序列构造二叉树
+ * 递归算法  二叉树的前序遍历
+ */
+struct TreeNode* traverHelper(int* preorder, int preorderStart, int preorderEnd, int* inorder, int inorderStart, int inorderEnd) {
+    if (preorderStart > preorderEnd) { return NULL; }
+    if (inorderStart > inorderEnd) { return NULL; }
+
+    int position = 0, maxIndex = inorderStart;
+    for (position = 0; position <= inorderEnd - inorderStart; position++) {
+        if (preorder[preorderStart] == inorder[position + inorderStart]) {
+            maxIndex = position + inorderStart;
+            break;
+        }
+    }
+
+    struct TreeNode* node = (struct TreeNode *)malloc(sizeof(struct TreeNode) * 1);
+    node->val = preorder[preorderStart];
+    node->left = traverHelper(preorder, preorderStart + 1, fmin(preorderStart + position, preorderEnd), inorder, inorderStart, maxIndex - 1);
+    node->right = traverHelper(preorder, preorderStart + 1 + position, preorderEnd, inorder, maxIndex + 1, inorderEnd);
+
+    return node;
+}
+
+struct TreeNode* buildTree(int* preorder, int preorderSize, int* inorder, int inorderSize) {
+    if (preorder == NULL) { return NULL; }
+    
+    struct TreeNode *result = traverHelper(preorder, 0, preorderSize - 1, inorder, 0, inorderSize - 1);
+
+    return result;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* ---------------------------------------------- *
+ *                -- 主函数 --                
+ * ---------------------------------------------- */
+
+
+
+int main() {
+    int nums_1[] = {3,2,1,6,0,5};
+    int numsSize_1 = sizeof(nums_1)/sizeof(nums_1[0]);
+    struct TreeNode *result_1 = constructMaximumBinaryTree(nums_1, numsSize_1);
+    freeTreeNode(result_1);
+
+
+
+    int preorder_1[] = {3,9,20,15,7};
+    int preorderSize_1 = sizeof(preorder_1)/sizeof(preorder_1[0]);
+    int inorder_1[] = {9,3,15,20,7};
+    int inorderSize_1 = sizeof(inorder_1)/sizeof(inorder_1[0]);
+    struct TreeNode *result_1 = buildTree(preorder_1, preorderSize_1, inorder_1, inorderSize_1);
+    freeTreeNode(result_1);
+
+
+    return 0;
+}

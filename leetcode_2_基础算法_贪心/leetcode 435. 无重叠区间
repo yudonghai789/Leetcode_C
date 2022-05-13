@@ -1,0 +1,384 @@
+/******************************************************************************
+ * 版权所有 (c)
+ * 功能描述   : leetcode 435. 无重叠区间 https://leetcode-cn.com/problems/non-overlapping-intervals/
+ * 作    者   :
+ * 生成日期   :
+ ******************************************************************************/
+#include <corecrt.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdbool.h>
+#include <uthash.h>
+#include <math.h>
+#include <assert.h>
+// 如需使用华为安全函数，请加上 #include "securec.h"
+#include "graph.h"
+
+
+// ---------------------------开始-------------自己写快速排序------贪心------------------------------------------
+// int IsProivtForard(int i[2], int proivt[2])
+// {
+//     // 在proivt的左端点更小，或者左端点一样，右端点更大时 位置靠前，返回1
+//     if (proivt[0] < i[0]) {
+//         return 1;
+//     } else if (proivt[0] > i[0]) {
+//         return -1;
+//     } else {
+//         return 0;
+//     }
+// }
+
+// void QuickSortRe(int **intervals, int intervalsSize, int *intervalsColSize, int low, int high)
+// {
+//     if (low >= high) {
+//         return;
+//     }
+
+//     int left = low;
+//     int right = high;
+//     int proivtInx = low;
+//     int proivt[2] = {intervals[proivtInx][0], intervals[proivtInx][1]};
+
+//     while (left < right) {
+//         while (left < right) {
+//             if (IsProivtForard(intervals[right], proivt) == -1) {
+//                 intervals[proivtInx][0] = intervals[right][0];
+//                 intervals[proivtInx][1] = intervals[right][1];
+//                 proivtInx = right;
+//                 break;
+//             } else {
+//                 right--;
+//             }
+//         }
+
+//         while (left < right) {
+//             if (IsProivtForard(intervals[left], proivt) == 1) {
+//                 intervals[proivtInx][0] = intervals[left][0];
+//                 intervals[proivtInx][1] = intervals[left][1];
+//                 proivtInx = left;
+//                 break;
+//             } else {
+//                 left++;
+//             }
+//         }
+//     }
+
+//     if (left == right) {
+//         intervals[proivtInx][0] = proivt[0];
+//         intervals[proivtInx][1] = proivt[1];
+//     } else {
+//         printf("errpr 45\n");
+//     }
+
+//     QuickSortRe(intervals, intervalsSize, intervalsColSize, low, left - 1);
+//     QuickSortRe(intervals, intervalsSize, intervalsColSize, left + 1, high);
+// }
+
+// void QuickSort(int **intervals, int intervalsSize, int *intervalsColSize)
+// {
+//     QuickSortRe(intervals, intervalsSize, intervalsColSize, 0, intervalsSize - 1);
+// }
+
+// int Greedy(int **intervals, int intervalsSize, int *intervalsColSize)
+// {
+//     int res  = 0;
+
+//     int end = intervals[0][1];
+//     for (int i = 1; i < intervalsSize; i++) {
+//         if (end <= intervals[i][0]) {
+//             end = intervals[i][1];   // 没有重叠
+//         } else {
+//             res++;
+//             end = fmin(end, intervals[i][1]);  // 有重叠，选右端点小的
+//         }
+//     }
+
+//     return res;
+// }
+
+
+// int eraseOverlapIntervals(int **intervals, int intervalsSize, int *intervalsColSize)
+// {
+//     QuickSort(intervals, intervalsSize, intervalsColSize);
+
+//     return Greedy(intervals, intervalsSize, intervalsColSize);
+// }
+// ---------------------------结束--------------------------------------------------------------------
+
+
+
+// ---------------------------开始-------------调用qsort-----------------------------------------------
+
+// int ArrayCompare(const void *a, const void *b)
+// {
+//     int *iaVal = (int *)a;
+//     int *ibVal = (int *)b;
+
+//     return (iaVal[0]) > (ibVal[0]);
+// }
+
+// int Greedy(int **intervals, int intervalsSize, int *intervalsColSize)
+// {
+//     int res  = 0;
+
+//     int end = intervals[0][1];
+//     for (int i = 1; i < intervalsSize; i++) {
+//         if (end <= intervals[i][0]) {
+//             end = intervals[i][1];   // 没有重叠
+//         } else {
+//             res++;
+//             end = fmin(end, intervals[i][1]);  // 有重叠，选右端点小的
+//         }
+//     }
+
+//     return res;
+// }
+
+// int eraseOverlapIntervals(int **intervals, int intervalsSize, int *intervalsColSize)
+// {
+//     if (intervalsSize == 1) {
+//         return 0;
+//     }
+//     printf("%p:  %d   %d\n", &intervals[0][0], intervals[0][0], intervals[0][1]);
+//     printf("%p:  %d   %d\n", &intervals[1][0], intervals[1][0], intervals[1][1]);
+//     printf("%d\n", ((uintptr_t)&intervals[1][0]) - ((uintptr_t)&intervals[0][0]));
+//     qsort((void *)&intervals[0][0], intervalsSize, ((uintptr_t)&intervals[1][0]) - ((uintptr_t)&intervals[0][0]), ArrayCompare);  // qsort调用时，一定要注意，传入数据首地址，不是二维数组指针地址，数据是数组，leetcode用例有对齐问题
+
+//     return Greedy(intervals, intervalsSize, intervalsColSize);
+// }
+// ---------------------------结束--------------------------------------------------------------------
+
+// ---------------------------开始 二维数组的排序，直接将一维数组指针排序--------------------------------------------------------
+// int cmp(const void *a, const void *b) {
+//     int** aVal = (int**)a;
+//     int** bVal = (int**)b;
+//     return (*aVal)[1] - (*bVal)[1];
+// }
+
+// int eraseOverlapIntervals(int** intervals, int intervalsSize, int* intervalsColSize) {
+//     if (intervalsSize == 0) {
+//         return 0;
+//     }
+
+//     qsort(intervals, intervalsSize, sizeof(int*), cmp);
+
+//     int right = intervals[0][1];
+//     int ans = 1;
+//     for (int i = 1; i < intervalsSize; ++i) {
+//         if (intervals[i][0] >= right) {
+//             ++ans;
+//             right = intervals[i][1];
+//         }
+//     }
+//     return intervalsSize - ans;
+// }
+
+// ---------------------------结束-----------------------------------------------------------------
+
+
+
+
+// ---------------------------开始---动态规划-------------一维数组的动态规划------------------------------------------
+typedef struct DpMem {
+    int Res;   // dp[i] 是子问题，表示在只有前 i个 线段时，最少可以删除几个达到不重叠
+    int Pos;   // dp[i] 是子问题，表示在只有前 i个 线段时，最少删除的情况下保持不重叠的位置
+} DpMem;
+
+DpMem dp[100000];
+
+int cmp(const void *a, const void *b) {
+    int** aVal = (int**)a;
+    int** bVal = (int**)b;
+    return (*aVal)[1] - (*bVal)[1];
+}
+
+int eraseOverlapIntervals(int** intervals, int intervalsSize, int* intervalsColSize) {
+    if (intervalsSize == 0) {
+        return 0;
+    }
+
+    qsort(intervals, intervalsSize, sizeof(int*), cmp);
+
+    memset(dp, 0, sizeof(dp));
+
+    // dp[i]的求解，与dp[0]~dp[i-1]的值以及线段 i 与线段 0 ~ i-1是否重叠有关. dp[i-1]就表示以i - 1为结尾的线段都是没有重叠的
+    dp[0].Res = 0;
+    dp[0].Pos = intervals[0][1];
+    for (int i = 1; i < intervalsSize; ++i) {
+        if (dp[i - 1].Pos > intervals[i][0]) {  // dp[i-1] 表示 i-1时没有重叠，其中dp[i-1].Res表示最少需要删除的个数， dp[i-1].Pos表示 i-1线段分析完后，
+            // 线段 i  与 0~ i- 1 中的线段 i-1 有重叠  如果这个时候不知道删除哪一个，说明前面的子结果 dp[j]是有后效性的，dp[j]的结果会受到后面值的影响
+            int deleI = dp[i - 1].Res + 1;    // i与j重叠  删除i
+            dp[i].Res = fmax(dp[i].Res, deleI);
+            dp[i].Pos = dp[i - 1].Pos;
+        } else {
+            // 线段 i  与 0~ i- 1 中的线段 j 无重叠
+            dp[i].Res = fmax(dp[i].Res, dp[i - 1].Res);  // dp[j] 如果需要删除 x条，则dp[i]也需要删除的x条，通过循环，dp[i] = max(dp[0] ~ dp[i-1])
+            dp[i].Pos = intervals[i][1];  // dp[j] 如果需要删除 x条，则dp[i]也需要删除的x条，通过循环，dp[i] = max(dp[0] ~ dp[i-1])
+        }
+    }
+    
+    return dp[intervalsSize - 1].Res;
+}
+// ---------------------------结束------------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+// ---------------------------开始-------------无向图-----------------------------------------------
+// typedef struct EdgeNode {
+//     int toLine;
+//     struct EdgeNode* next;
+// } EdgeNode;
+
+// typedef struct VertexNode {
+//     struct {
+//         int position;
+//     } data;
+//     EdgeNode *firstEdge;
+//     int degree;
+// } VertexNode;
+
+// #define MAX_VERTEX_NUM 100000
+
+// typedef struct Graph {
+//     VertexNode verTexAry[MAX_VERTEX_NUM];
+//     int vertexLeft;
+//     int vertexRight;
+// } Graph;
+
+// Graph pG;
+
+// void LinkLast(EdgeNode* list, EdgeNode* node)
+// {
+//     EdgeNode* p = list;
+//     if (p->next != NULL) {
+//         p = p->next;
+//     }
+
+//     p->next = node;
+// }
+
+// typedef struct {
+//     int tail;
+//     int head;
+//     int list[MAX_VERTEX_NUM];
+// } Queue;
+
+// Queue q;
+
+
+// bool IsContain(int lineIndex)
+// {
+//     for (int i = q.head; i < q.tail; i++) {
+//         if (q.list[i] == lineIndex) {
+//             return true;
+//         }   
+//     }
+
+//     return false;
+// }
+
+
+// void AddQ(int lineIndex)
+// {
+//     q.list[q.tail++] = lineIndex;
+// }
+
+// void GenGraph(int **intervals, int intervalsSize, int *intervalsColSize)
+// {
+//     // 初始化顶点，坐标作为顶点
+//     for (int i = 0; i < MAX_VERTEX_NUM; i++) {
+//         pG.verTexAry[i].data.position = i;
+//     }
+
+//     // 初始化边，每条线段映射到坐标的时，这个坐标的的入度加1；                           
+//     for (int i = 0; i < intervalsSize; i++) {
+//         for (int j = intervals[i][0]; j < intervals[i][1]; i++) {
+//             pG.vertexLeft = fmin(pG.vertexLeft, j);  // 定义最最左边的顶点
+//             pG.vertexRight = fmax(pG.vertexRight, j);  // 定义最最右边的顶点
+
+//             EdgeNode *node = (EdgeNode *)malloc(sizeof(EdgeNode));
+//             memset(node, 0, sizeof(EdgeNode));
+//             node->toLine = i;
+//             pG.verTexAry[j].degree++;
+
+//             if (pG.verTexAry[j].firstEdge != NULL) {
+//                  pG.verTexAry[j].firstEdge = node;
+//             } else {
+//                 LinkLast(pG.verTexAry[j].firstEdge, node);
+//             }
+//         }
+//     }
+// }
+
+
+// int Get(int **intervals, int intervalsSize, int *intervalsColSize)
+// {
+//     for (int i = pG.vertexLeft; i < pG.vertexRight; i++) {
+//         if (pG.verTexAry[i].degree > 1) {
+//             EdgeNode *node = pG.verTexAry[i].firstEdge;
+//             while (node != NULL) {
+//                 if (IsContain(node->toLine) == false) {
+//                     AddQ(node->toLine);
+//                 }
+//                 node = node->next;
+//             }
+//          }
+//     }
+
+
+//     for
+
+// }
+
+
+// int eraseOverlapIntervals(int **intervals, int intervalsSize, int *intervalsColSize)
+// {
+//     memset(pG, 0, sizeof(pG));
+//     memset(q, 0, sizeof(q));
+
+//     GenGraph(intervals, intervalsSize, intervalsColSize);
+
+//     Get(intervals, intervalsSize, intervalsColSize);
+// }
+
+
+
+
+// ---------------------------结束--------------------------------------------------------------------
+
+
+int main()
+{
+    int intervals_1[4][2] = {{1, 2}, {2, 3}, {3, 4}, {1, 3}};
+    int intervalsSize_1 = 4;
+    int intervalsColSize_1[4] = {2, 2, 2, 2};
+    int *intervalsPointer_1[4] = {0};
+    for (int i = 0; i < intervalsSize_1; i++) {
+        intervalsPointer_1[i] = &intervals_1[i][0];
+    }
+    int res_1 = eraseOverlapIntervals(intervalsPointer_1, intervalsSize_1, intervalsColSize_1);
+    assert(res_1 == 1);
+
+    int intervals_2[4][2] = {{1, 100}, {11, 22}, {1, 11}, {2, 12}};
+    int intervalsSize_2 = 4;
+    int intervalsColSize_2[4] = {2, 2, 2, 2};
+    int *intervalsPointer_2[4] = {0};
+    for (int i = 0; i < intervalsSize_2; i++) {
+        intervalsPointer_2[i] = &intervals_2[i][0];
+    }
+    int res_2 = eraseOverlapIntervals(intervalsPointer_2, intervalsSize_2, intervalsColSize_2);
+    assert(res_2 == 2);
+
+
+    return 0;
+}

@@ -1,0 +1,39 @@
+#ifndef BIT_CLR
+#define BIT_CLR(data, pos) ((data) &= ~(unsigned int)(0x1U << (pos)))
+#endif
+
+#ifndef BIT_TST
+#define BIT_TST(data, pos) (((data) >> (pos)) & 0x1U)
+#endif
+
+#ifndef BIT_SET
+#define BIT_SET(data, pos) ((data) |= (0x1U << (pos)))
+#endif
+
+// 翻转bit
+#ifndef BIT_RVS
+#define BIT_RVS(data, pos) ((data) ^= (0x1U << (pos)))
+#endif
+
+// #ifndef BIT_CNT
+// #define BIT_CNT(data)                                 \
+//     do {                                              \
+//         int cnt = 0;                                  \
+//         for (int i = 0; i < 32; i++) {                \
+//             if (((data >> i) & 1) == 1) {             \
+//                 cnt++;                                \
+//             }                                         \
+//         }                                             \
+//         return cnt;                                   \
+//     } while (0)
+// #endif
+
+int BitCnt(int Bitmap) {
+    int cnt = 0;
+    for (int i = 0; i < 32; i++) {
+        if (((Bitmap >> i) & 1) == 1) {
+            cnt++;
+        }
+    }
+    return cnt;
+}

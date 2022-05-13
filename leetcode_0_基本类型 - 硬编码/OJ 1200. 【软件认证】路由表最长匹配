@@ -1,0 +1,236 @@
+/******************************************************************************
+ * 版权所有 (c)
+ * 功能描述   : OJ 1200. 【软件认证】路由表最长匹配. https://oj.rnd.huawei.com/problems/1200/details
+ * 作    者   :
+ * 生成日期   :
+
+ * 
+      --- 
+ ******************************************************************************/
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdbool.h>
+#include <uthash.h>
+#include <math.h>
+#include <limits.h>
+#include <assert.h>
+// 如需使用华为安全函数，请加上 #include "securec.h"
+#include "securec.h"
+// #include "vos_priorityqueue.h"
+
+
+
+
+
+/*
+题目描述
+路由表最长匹配是IP(v4) 路由器的最基本的功能之一：当路由器收到一个IP数据包时，会将数据包的目的IP地址与本地路由表进行匹配：
+
+格式：目的IP地址为dstIP，路由表中每条路由为entryIP/掩码长度m，如 10.166.50.0/23。 注：所有IP地址以点分十进制字符串表示。
+匹配规则：
+如果 entryIP 和 dstIP 的二进制表示的前 m 个bit相同，则说明该条路由是匹配的。注：10.166.50.0的二进制表示如下：
+0.0.0.0/0是默认路由，它与任何目的IP地址都是匹配的，m 值为 0 。
+所有匹配的路由中，m 最大的即为“最长匹配”。
+现给出目的IP地址和本地路由表，请输出最长匹配的路由；如果有多条，则按给出的先后顺序输出最先的；如果没有匹配的，输出字符串empty。
+
+解答要求
+时间限制：1000ms, 内存限制：256MB
+输入
+第一行是目的IP地址，点分十进制表示的字符串。
+第二行一个整数 n，表示路由表中的路由数量，取值范围为 [1, 10000]。
+接下来 n 行表示 n 条路由，其中掩码长度 m 的取值范围为[0, 32]，m 值为 0 仅存在于路由 0.0.0.0/0 。
+
+输出
+最长匹配的路由，格式同输入；如果没有则输出字符串empty。
+
+样例
+输入样例 1 复制
+
+192.168.0.3
+6
+10.166.50.0/23
+192.0.0.0/8
+10.255.255.255/32
+192.168.0.1/24
+127.0.0.0/8
+192.168.0.0/24
+输出样例 1
+
+192.168.0.1/24
+提示样例 1
+匹配的路由如下图所示，先按匹配的长度，再按输入先后顺序，结果为192.168.0.1/24
+
+
+
+
+输入样例 2 复制
+
+202.96.96.68
+1
+200.18.24.0/24
+输出样例 2
+
+empty
+提示样例 2
+
+
+输入样例 3 复制
+
+10.110.32.77
+2
+127.0.0.1/8
+0.0.0.0/0
+输出样例 3
+
+0.0.0.0/0
+提示样例 3
+127.0.0.1/8 不匹配； 0.0.0.0/0 是默认路由，是匹配的，且是唯一匹配的。
+
+
+
+提示
+注：可以用十进制数掩码长度来简单表示一个子网掩码，掩码长度指的是二进制子网掩码中连续1的个数，例如掩码长度 24 表示子网掩码的二进制形式为11111111.11111111.11111111.00000000(十进制形式为：255.255.255.0； 长度24不包括分隔符点），掩码长度 27 表示子网掩码的二进制形式为11111111.11111111.11111111.11100000（十进制形式为255.255.255.224）
+*/
+
+
+
+
+// ---------------------------解法 开始---带权值有向图的 非负权有向图的单源最短路径问题-----------------------------------------------------
+
+#define MAX_N 10001
+#define BUF_LEN 32
+
+typedef struct IpInfo {
+    int ipIndex;
+    char ipChar[BUF_LEN];
+
+    char ip[4][BUF_LEN];
+    int ipVal[4];
+    unsigned long long ipinterger;
+
+    bool bit[BUF_LEN];
+    int m;
+} IpInfo;
+
+IpInfo g_table[MAX_N];
+
+void IpTableSplite(char **ipTable, int ipTableCnt)
+{
+    memset_s(g_table, sizeof(g_table), 0, sizeof(g_table));
+    int tableIndex = 0;
+    for (int i = 0; i < ipTableCnt; i++) {
+        g_table[tableIndex].ipIndex = tableIndex;
+        strcpy_s(g_table[tableIndex].ipChar, sizeof(g_table[tableIndex].ipChar), ipTable[i]);
+        int len = strlen(ipTable[i]);
+        int ipSec = 0;
+        int secIndex = 0;
+        for (int j = 0; j < len; j++) {
+            if (ipTable[i][j] == '/') {
+                char mask[10] = { 0 };
+                strcpy(mask, &ipTable[i][j + 1]);
+                g_table[tableIndex].m = atoi(mask);
+                break;
+            }
+
+            if (ipTable[i][j] == '.') {
+                ipSec++;
+                secIndex = 0;
+                continue;
+            }
+            g_table[tableIndex].ip[ipSec][secIndex++] = ipTable[i][j];
+        }
+
+        for (int sec = 0; sec < 4; sec++) {
+            int ipIntVal = atoi(g_table[tableIndex].ip[sec]);
+            g_table[tableIndex].ipVal[sec] = ipIntVal;
+            int end = sec * 8;
+            int start = sec * 8 + 7;
+            
+            g_table[tableIndex].bit[start--] = ipIntVal % 2;
+            while (ipIntVal / 2 != 0) {
+                ipIntVal = ipIntVal / 2;
+                g_table[tableIndex].bit[start--] = ipIntVal % 2;
+            }
+        }
+        g_table[tableIndex].ipinterger = (unsigned long long)g_table[tableIndex].ipVal[0] * 0b100000000000000000000000 +
+                                         (unsigned long long)g_table[tableIndex].ipVal[1] * 0b1000000000000000 +
+                                         (unsigned long long)g_table[tableIndex].ipVal[2] * 0b10000000 +
+                                         (unsigned long long)g_table[tableIndex].ipVal[3];
+
+        // g_table[tableIndex].ipinterger = (unsigned long long)g_table[tableIndex].ipVal[0] * 1000000000 +
+        //                                  (unsigned long long)g_table[tableIndex].ipVal[1] * 1000000 +
+        //                                  (unsigned long long)g_table[tableIndex].ipVal[2] * 1000 +
+        //                                  (unsigned long long)g_table[tableIndex].ipVal[3];
+
+        tableIndex++;
+    }
+}
+
+
+int CompareStruct(const void *a, const void *b)
+{
+    IpInfo *structA = (IpInfo *)a;
+    IpInfo *structB = (IpInfo *)b;
+
+    return (structB->m - structA->m != 0)?
+            structB->m - structA->m :
+                structA->ipIndex - structB->ipIndex;
+}
+
+
+// 待实现函数，请在此填入答题代码。
+// 生成的信息存于outBuf中，maxOutBufLen是最大数组长度。
+static void RouterSearch(char *dstIp, char **ipTable, int ipTableCnt, char* outBuf, int maxOutBufLen)
+{
+    ipTable[ipTableCnt++] = dstIp; // 目的IP就在最后一个
+    IpTableSplite(ipTable, ipTableCnt);
+    IpInfo dst = g_table[--ipTableCnt];
+    // g_table[ipTableCnt] = { 0, { 0 }, { 0 }, { 0 }, 0 };
+
+    memset_s(outBuf, sizeof(char) * maxOutBufLen, 0, sizeof(char) * maxOutBufLen);
+    int resLen = 0;
+
+    qsort(g_table, ipTableCnt, sizeof(IpInfo), CompareStruct);
+    int currMaxBit = g_table[0].m;
+    bool maxLock = false;
+    for (int i = 0; i < ipTableCnt; i++) {
+        // if (maxLock == true && g_table[i].m < currMaxBit) {
+        //     break;
+        // }
+        unsigned long long v = pow(2, 32 - g_table[i].m);
+        if ((unsigned long long)dst.ipinterger / v == (unsigned long long)g_table[i].ipinterger / v) {
+            maxLock = true;
+            strcpy_s(outBuf, sizeof(char) * maxOutBufLen, g_table[i].ipChar);
+            return;
+        }
+    }
+    
+    if (maxLock == false) {
+         strcpy_s(outBuf, sizeof(char) * maxOutBufLen, "empty");
+    }
+}
+
+int main(void)
+{
+    static char dstIp[BUF_LEN];
+    if (gets_s(dstIp, sizeof(dstIp)) == NULL) { return -1; }
+
+    int n;
+    if (scanf_s("%d\n", &n) != 1) { return -1; }
+
+    static char ipTableBuf[MAX_N][BUF_LEN];
+    static char *ipTable[MAX_N];
+    for (int i = 0; i < n; i++) {
+        if (gets_s(ipTableBuf[i], sizeof(ipTableBuf[i])) == NULL) { return -1; }
+        ipTable[i] = ipTableBuf[i];
+    }
+
+    char outBuf[BUF_LEN] = { 0 };
+    RouterSearch(dstIp, ipTable, n, outBuf, BUF_LEN);
+    (void)printf("%s", outBuf);
+    return 0;
+}
+
+// ---------------------------解法 结束---------------------------------------------------------------------
+
