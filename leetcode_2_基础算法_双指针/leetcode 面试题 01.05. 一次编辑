@@ -1,0 +1,83 @@
+/******************************************************************************
+* 版权所有 (c) 
+* 功能描述   : leetcode 面试题 01.05. 一次编辑 https://leetcode.cn/problems/one-away-lcci/
+* 作    者   : 
+* 生成日期   : 
+******************************************************************************/
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdbool.h>
+#include <uthash.h>
+#include <math.h>
+#include <assert.h>
+// 如需使用华为安全函数，请加上 #include "securec.h"
+// #include "securec.h"
+
+
+// ---------------------------解法 开始---分类分析-双指针-----------------------------------------------
+bool ChangeOne(char* first, int fLen, char* second, int sLen)
+{
+    int DiffCnt = 0;
+    for (int i = 0; i < fLen; i++) {
+        if (first[i] != second[i]) {
+            DiffCnt++;
+            if (DiffCnt > 1) {
+                return false;
+            }
+        }
+    }
+
+    return true;
+}
+
+
+bool DelFisrtOne(char* first, int fLen, char* second, int sLen)
+{
+    int delCnt = 0;
+    int i = 0;
+    int j = 0;
+    for (; i < fLen; i++, j++) {
+        if (first[i] != second[j]) {
+            if (delCnt == 0) {
+                delCnt++;
+                j = j - 1;
+            } else {
+                return false;
+            }
+        }
+    }
+
+    return true;
+}
+
+
+bool oneEditAway(char* first, char* second){
+    int fLen = strlen(first);
+    int sLen = strlen(second);
+
+    switch (fLen - sLen) {
+        case 0:
+            return ChangeOne(first, fLen, second, sLen);
+        case 1:
+            return DelFisrtOne(first, fLen, second, sLen);
+        case -1:
+            return DelFisrtOne(second, sLen, first, fLen);
+        default:
+            return false;
+    }
+}
+// ---------------------------解法 结束---------------------------------------------------------------------
+
+
+
+
+int main(void)
+{
+
+    
+
+    return 0;
+}
+
+
