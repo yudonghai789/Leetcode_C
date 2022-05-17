@@ -1,0 +1,101 @@
+/******************************************************************************
+ * 版权所有 (c)
+ * 功能描述   : leetcode 953. 验证外星语词典. https://leetcode.cn/problems/verifying-an-alien-dictionary/
+ * 作    者   :
+ * 生成日期   :
+
+ * 动态规划 
+      --- 
+ ******************************************************************************/
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdbool.h>
+#include <uthash.h>
+#include <math.h>
+#include <assert.h>
+// 如需使用华为安全函数，请加上 #include "securec.h"
+// #include "securec.h"
+
+
+
+
+
+/*
+
+*/
+
+// ---------------------------解法 开始-----排序 ----------------------------------------------------------
+#define LITTER_NUM 26
+int g_orVal[LITTER_NUM];
+int GetIdx(char charter)
+{
+    if (charter >= 'a' && charter <= 'z') {
+        return g_orVal[charter - 'a'];
+    } else {
+        return -1;
+    }
+}
+
+void SetIdx(char charter, int index)
+{
+    if (charter >= 'a' && charter <= 'z') {
+        g_orVal[charter - 'a'] = index;
+    }
+}
+
+int Compare(char *word1, char *word2)
+{
+    int word1Len = strlen(word1);
+    int word2Len = strlen(word2);
+    int Len2 = strlen(word2);
+    int len[3] = { word1Len, word2Len, Len2 };
+
+    int minIndex = (word1Len < word2Len) ? 0 : ((word1Len > word2Len) ? 1 : 2);
+    for (int i = 0; i < len[minIndex]; i++) {
+        if (GetIdx(word1[i]) == GetIdx(word2[i])) {
+            continue;
+        } else {
+            return GetIdx(word1[i]) - GetIdx(word2[i]);
+        }
+    }
+
+    return (minIndex == 0) ? -1 : ((minIndex == 1) ? 1 : 0);
+}
+
+bool isAlienSorted(char ** words, int wordsSize, char * order)
+{
+    int orderLen = strlen(order);
+    for (int i = 0; i < orderLen; i++) {
+        SetIdx(order[i], i);
+    }
+
+    for (int i = 1; i < wordsSize; i++) {
+        if (Compare(words[i - 1], words[i]) > 0) {
+            return false;
+        }
+    }
+
+    return true;
+}
+// ---------------------------解法 结束---------------------------------------------------------------------
+
+
+
+
+int main(int argc, const char *argv[])
+{
+	char *words_1[] = {
+		"word",
+  		"world",
+  		"row"
+	};
+	int wordsSize_1 = 3;
+	int cloum_2 = 10;
+    char order_1[] ="worldabcefghijkmnpqstuvxyz";
+    bool res = isAlienSorted(words_1, wordsSize_1, order_1);
+
+
+
+    return 0;
+}
