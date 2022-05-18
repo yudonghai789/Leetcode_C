@@ -1,127 +1,197 @@
+/******************************************************************************
+ * 版权所有 (c)
+ * 功能描述   : leetcode 695. 岛屿的最大面积. https://leetcode.cn/problems/max-area-of-island/
+ * 作    者   :
+ * 生成日期   :
+
+ * 动态规划 
+      --- 
+ ******************************************************************************/
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdbool.h>
 #include <string.h>
+#include <stdbool.h>
+#include <uthash.h>
 #include <math.h>
 #include <assert.h>
-
-/* 695. 岛屿的最大面积
- * 二维数组的遍历，深度优先和广度优先都行。 但是广度优先算法需要再提供一个队列
- *
+// 如需使用华为安全函数，请加上 #include "securec.h"
+// #include "securec.h"
 
 
 
-给定一个包含了一些 0 和 1 的非空二维数组 grid 。
-一个 岛屿 是由一些相邻的 1 (代表土地) 构成的组合，这里的「相邻」要求两个 1 必须在水平或者竖直方向上相邻。你可以假设 grid 的四个边缘都被 0（代表水）包围着。
-找到给定的二维数组中最大的岛屿面积。(如果没有岛屿，则返回面积为 0 。)
-
- 
-
-示例 1:
-
-[[0,0,1,0,0,0,0,1,0,0,0,0,0],
- [0,0,0,0,0,0,0,1,1,1,0,0,0],
- [0,1,1,0,1,0,0,0,0,0,0,0,0],
- [0,1,0,0,1,1,0,0,1,0,1,0,0],
- [0,1,0,0,1,1,0,0,1,1,1,0,0],
- [0,0,0,0,0,0,0,0,0,0,1,0,0],
- [0,0,0,0,0,0,0,1,1,1,0,0,0],
- [0,0,0,0,0,0,0,1,1,0,0,0,0]]
-对于上面这个给定矩阵应返回 6。注意答案不应该是 11 ，因为岛屿只能包含水平或垂直的四个方向的 1 。
-
-示例 2:
-
-[[0,0,0,0,0,0,0,0]]
-对于上面这个给定的矩阵, 返回 0。
-
-来源：力扣（LeetCode）
-链接：https://leetcode-cn.com/problems/max-area-of-island
-著作权归领扣网络所有。商业转载请联系官方授权，非商业转载请注明出处。
-
- */
 
 
-// ---------------------------解法一 开始-------------------------------------------------
-#define SEARCHFALG 5
+/*
 
-void printGrid(int** grid, int gridSize, int* gridColSize)
+*/
+
+// ---------------------------解法 开始-----深度优先遍历-------------------------------------------------------
+
+#define MAX_ROW_LEN 50
+#define MAX_COL_LEN 50
+typedef enum DIRECTION {
+    DOWN = 0,
+    UP = 1,
+    RIGHT = 2,
+    LEFT = 3,
+    DIR_BUTT = 4
+} DIRECTION;
+
+
+bool g_visit[MAX_ROW_LEN][MAX_COL_LEN];
+void printfVisitPath(int n, int m)
 {
-	for (int i = 0; i < gridSize; i++) {
-		for (int j = 0; j < (*gridColSize); j++) {
-			printf("%d", grid[i][j]);
-		}
-		printf("\n");
-	}
-	printf("------------------------\n");
+    for (int i  = 0; i < n; i++) {
+        for (int j  = 0; j < m; j++) {
+            printf("%-3d", g_visit[i][j]);
+        }
+        printf("\n");
+    }
+    printf("\n");
 }
 
-int dfs(int **grid, int i, int j, int row, int col)
+
+int g_direct[DIR_BUTT][2] = {
+    { 1, 0 },
+    { -1, 0 },
+    { 0, 1 },
+    { 0, -1 }
+};
+
+void DfsRecursive(int** grid, int gridSize, int* gridColSize, int row, int col, int *outRes)
 {
-	if (i < 0 || i > row - 1 || j < 0 || j > col - 1 || grid[i][j] == 0 || grid[i][j] == SEARCHFALG) {
-		return 0;
-	}
-	grid[i][j] = SEARCHFALG;
-	return 1 + dfs(grid, i + 1, j, row, col) + dfs(grid, i - 1, j, row, col) + dfs(grid, i, j + 1, row, col) + dfs(grid, i, j - 1, row, col);
+    int sumPath = 0;
+    for (int dir = 0; dir < 4; dir++) {
+        int nextRow = row + g_direct[dir][0];
+        int nextCol = col + g_direct[dir][1];
+
+        if ((nextRow >= 0) && (nextRow < gridSize) &&
+            (nextCol >= 0) && (nextCol < gridColSize[0]) &&
+            (g_visit[nextRow][nextCol] == false) && 
+            (grid[nextRow][nextCol] != 0)) {
+
+            g_visit[nextRow][nextCol] = true;
+
+            int temp = 1;
+            DfsRecursive(grid, gridSize, gridColSize, nextRow, nextCol, &temp);
+            sumPath += temp;
+        }
+    }
+
+    (*outRes) += sumPath;
 }
+
 
 
 int maxAreaOfIsland(int** grid, int gridSize, int* gridColSize)
 {
-	int result = 0;
-	int temp = 0;
-	for (int i = 0; i < gridSize; i++) {
-		for (int j = 0; j < (*gridColSize); j++) {
-			if (grid[i][j] == 1) {
-				temp = dfs(grid, i, j, gridSize, *gridColSize);
-				result = (result > temp)? result: temp;
-				printGrid(grid, gridSize, gridColSize);
-			}
-		}
-	}
-	
-	return result;
+    memset(g_visit, 0, (size_t)sizeof(g_visit));
+    int res = 0;
+    for (int i = 0; i < gridSize; i++) {
+        for (int j = 0; j < gridColSize[0]; j++) {
+            if (grid[i][j] != 0 && g_visit[i][j] == false) {
+                g_visit[i][j] = true;
+                int temp = 1;
+                DfsRecursive(grid, gridSize, gridColSize, i, j, &temp);
+                res = fmax(res, temp);
+                printfVisitPath(gridSize, gridColSize[0]);
+            }
+        }
+    }
+
+    return res;
 }
-// ---------------------------解法结束-------------------------------------------------
+// ---------------------------解法 结束---------------------------------------------------------------------
 
+#define MAX_LEN 201
 
+typedef struct Matrix {
+    int matrixSize;
+    int matrixColSize[MAX_LEN];
+    int matrix[MAX_LEN][MAX_LEN];
+    int* matrixPoin[MAX_LEN];
+} Matrix;
 
-int main() {
-	int gradCharData_1[8][13] = {
-		{0,0,1,0,0,0,0,1,0,0,0,0,0},
-		{0,0,0,0,0,0,0,1,1,1,0,0,0},
-		{0,1,1,0,1,0,0,0,0,0,0,0,0},
-		{0,1,0,0,1,1,0,0,1,0,1,0,0},
-		{0,1,0,0,1,1,0,0,1,1,1,0,0},
-		{0,0,0,0,0,0,0,0,0,0,1,0,0},
-		{0,0,0,0,0,0,0,1,1,1,0,0,0},
-		{0,0,0,0,0,0,0,1,1,0,0,0,0}
-	};
-	int row_1 = 8;
-	int cloum_1 = 13;
-	int *gradRowPointer_1[row_1];
-    for (int i = 0; i < row_1; i++) {
-		gradRowPointer_1[i] = &gradCharData_1[i][0];
-	}
-	int result_1 = maxAreaOfIsland(gradRowPointer_1, row_1, &cloum_1);
-    assert(result_1 == 6);
-
-
-	// 整数数组不能这样创建，只能这样创建字符串
-	// int *gradRowPointer_2[] = {
-	// 	{0,0,1,0,0,0,0,1,0,0,0,0,0},
-	// 	{0,0,0,0,0,0,0,1,1,1,0,0,0},
-	// 	{0,1,1,0,1,0,0,0,0,0,0,0,0},
-	// 	{0,1,0,0,1,1,0,0,1,0,1,0,0},
-	// 	{0,1,0,0,1,1,0,0,1,1,1,0,0},
-	// 	{0,0,0,0,0,0,0,0,0,0,1,0,0},
-	// 	{0,0,0,0,0,0,0,1,1,1,0,0,0},
-	// 	{0,0,0,0,0,0,0,1,1,0,0,0,0}
-	// };
-	// int row_2 = 8;
-	// int cloum_2 = 13;
-	// int result_2 = maxAreaOfIsland(gradRowPointer_2, row_2, &cloum_2);
-    // assert(result_2 == 6);
-
-
-	return 0;
+void printfMatrix(int a[][MAX_LEN], int n, int m)
+{
+    for (int i  = 0; i < n; i++) {
+        for (int j  = 0; j < m; j++) {
+            printf("%-10d", a[i][j]);
+        }
+        printf("\n");
+    }
+    printf("\n");
 }
+
+
+int main(int argc, const char *argv[])
+{
+    Matrix matrix_1 = {
+        8,
+        { 13, 13, 13, 13, 13, 13, 13, 13 },
+        {
+            { 0,0,1,0,0,0,0,1,0,0,0,0,0 },
+            { 0,0,0,0,0,0,0,1,1,1,0,0,0 },
+            { 0,1,1,0,1,0,0,0,0,0,0,0,0 },
+            { 0,1,0,0,1,1,0,0,1,0,1,0,0 },
+            { 0,1,0,0,1,1,0,0,1,1,1,0,0 },
+            { 0,0,0,0,0,0,0,0,0,0,1,0,0 },
+            { 0,0,0,0,0,0,0,1,1,1,0,0,0 },
+            { 0,0,0,0,0,0,0,1,1,0,0,0,0 },
+
+        }
+    };
+    for (int i = 0; i < matrix_1.matrixSize; i++) {
+        matrix_1.matrixPoin[i] = &matrix_1.matrix[i][0];
+    }
+    printfMatrix(matrix_1.matrix, matrix_1.matrixSize, matrix_1.matrixColSize[0]);
+    int res_1 = maxAreaOfIsland(matrix_1.matrixPoin, matrix_1.matrixSize, matrix_1.matrixColSize);
+    assert(res_1 == 6);
+
+
+    return 0;
+}
+
+
+
+
+// int main() {
+// 	int gradCharData_1[8][13] = {
+// 		{0,0,1,0,0,0,0,1,0,0,0,0,0},
+// 		{0,0,0,0,0,0,0,1,1,1,0,0,0},
+// 		{0,1,1,0,1,0,0,0,0,0,0,0,0},
+// 		{0,1,0,0,1,1,0,0,1,0,1,0,0},
+// 		{0,1,0,0,1,1,0,0,1,1,1,0,0},
+// 		{0,0,0,0,0,0,0,0,0,0,1,0,0},
+// 		{0,0,0,0,0,0,0,1,1,1,0,0,0},
+// 		{0,0,0,0,0,0,0,1,1,0,0,0,0}
+// 	};
+// 	int row_1 = 8;
+// 	int cloum_1 = 13;
+// 	int *gradRowPointer_1[row_1];
+//     for (int i = 0; i < row_1; i++) {
+// 		gradRowPointer_1[i] = &gradCharData_1[i][0];
+// 	}
+// 	int result_1 = maxAreaOfIsland(gradRowPointer_1, row_1, &cloum_1);
+//     assert(result_1 == 6);
+
+
+// 	// 整数数组不能这样创建，只能这样创建字符串
+// 	// int *gradRowPointer_2[] = {
+// 	// 	{0,0,1,0,0,0,0,1,0,0,0,0,0},
+// 	// 	{0,0,0,0,0,0,0,1,1,1,0,0,0},
+// 	// 	{0,1,1,0,1,0,0,0,0,0,0,0,0},
+// 	// 	{0,1,0,0,1,1,0,0,1,0,1,0,0},
+// 	// 	{0,1,0,0,1,1,0,0,1,1,1,0,0},
+// 	// 	{0,0,0,0,0,0,0,0,0,0,1,0,0},
+// 	// 	{0,0,0,0,0,0,0,1,1,1,0,0,0},
+// 	// 	{0,0,0,0,0,0,0,1,1,0,0,0,0}
+// 	// };
+// 	// int row_2 = 8;
+// 	// int cloum_2 = 13;
+// 	// int result_2 = maxAreaOfIsland(gradRowPointer_2, row_2, &cloum_2);
+//     // assert(result_2 == 6);
+
+
+// 	return 0;
+// }
