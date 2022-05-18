@@ -1,0 +1,252 @@
+/******************************************************************************
+ * 版权所有 (c)
+ * 功能描述   : leetcode 332. 重新安排行程. https://leetcode.cn/problems/reconstruct-itinerary/
+ * 作    者   :
+ * 生成日期   :
+
+ * 动态规划 
+      --- 
+ ******************************************************************************/
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdbool.h>
+#include <uthash.h>
+#include <math.h>
+#include <assert.h>
+// 如需使用华为安全函数，请加上 #include "securec.h"
+// #include "securec.h"
+
+
+
+
+
+/*
+
+*/
+
+// ---------------------------解法 开始-----深度优先遍历---------------------------------------------------------
+#define CHAR_ARRAY_LEN 5
+typedef struct Ticket {
+    char destination[CHAR_ARRAY_LEN];
+    int desVal;
+    int ticketIdx;
+} Ticket;
+#define DES_ARRAY 300
+typedef struct Tickets {
+    int desCnt;
+    Ticket desArr[DES_ARRAY];
+} Tickets;
+
+int CompareTicket(const void *a, const void *b)
+{
+    Ticket *structA = (Ticket *)a;
+    Ticket *structB = (Ticket *)b;
+
+    return structA->desVal - structB->desVal;
+}
+
+
+typedef struct UthshCharArray {
+    char src[CHAR_ARRAY_LEN];
+    int srcVal;
+
+    Tickets val;
+    UT_hash_handle hh;
+} UthshCharArray;
+void TuhashFindAll(UthshCharArray** hashtableHead) {
+    UthshCharArray *current_user, *tmp;
+
+    HASH_ITER(hh, *hashtableHead, current_user, tmp) {
+        printf("key = %s  ->  value = %d ;", current_user->src, current_user->val.desCnt);
+    }
+
+    printf("\n");
+}
+UthshCharArray* UthshFindByKey(UthshCharArray **UthshHead, char *ikey)
+{
+    UthshCharArray *temp = NULL;
+    HASH_FIND_STR(*UthshHead, ikey, temp);
+    return temp;
+}
+UthshCharArray* UthshAddByKey(UthshCharArray **UthshHead, char *src, int srcVal, char *purpuse, int purPuseVal, int ticketIdx)
+{
+    UthshCharArray *temp = UthshFindByKey(UthshHead, src);
+    if (temp == NULL) {
+        temp = (UthshCharArray *)malloc(sizeof(UthshCharArray));
+        memset(temp, 0, sizeof(UthshCharArray));
+        strcpy(temp->src, src);
+        temp->srcVal = srcVal;
+        strcpy(temp->val.desArr[0].destination, purpuse);
+        temp->val.desArr[0].desVal = purPuseVal;
+        temp->val.desArr[0].ticketIdx = ticketIdx;
+        temp->val.desCnt = 1;
+        HASH_ADD_STR(*UthshHead, src, temp);
+        return temp;
+    } else {
+        strcpy(temp->val.desArr[temp->val.desCnt].destination, purpuse);
+        temp->val.desArr[temp->val.desCnt].desVal = purPuseVal;
+        temp->val.desArr[temp->val.desCnt].ticketIdx = ticketIdx;
+        temp->val.desCnt++;
+        return temp;
+    }
+}
+void TuhashDeleteAll(UthshCharArray** hashtableHead) {
+    UthshCharArray *current_user, *tmp;
+
+    HASH_ITER(hh, *hashtableHead, current_user, tmp) {
+        HASH_DEL(*hashtableHead, current_user);  /* delete it (users advances to next) */
+        free(current_user);             /* free it */
+    }
+}
+
+
+
+
+
+int CalTikVal(char *ticket)
+{
+    int val = 0;
+    for (int i = 0; i <= 2; i++) {
+        val = val * 26 + (ticket[i] - 'A');
+    }
+
+    return val;
+}
+
+void Dfs(int ticketsSize, UthshCharArray *head, char src[CHAR_ARRAY_LEN], char **res, int resLen, int *resVal, bool *visit, bool *first)
+{
+    if (resLen == ticketsSize + 1 && (*first) == false) {
+        *first = true;
+        return;
+    }
+
+    UthshCharArray *srcPo = UthshFindByKey(&head, src);
+    if (srcPo == NULL) {
+        return;
+    }
+
+    int startCnt = srcPo->val.desCnt;
+    for (int i = 0; i < startCnt; i++) {
+        if ((*first) == true) {
+            return;
+        }
+        if (visit[srcPo->val.desArr[i].ticketIdx] == true) {
+            continue;
+        }
+        visit[srcPo->val.desArr[i].ticketIdx] = true;
+        strcpy(res[resLen], srcPo->val.desArr[i].destination);
+        resVal[resLen] = srcPo->val.desArr[i].desVal;
+        Dfs(ticketsSize, head, srcPo->val.desArr[i].destination, res, resLen + 1, resVal, visit, first);
+        visit[srcPo->val.desArr[i].ticketIdx] = false;
+    }
+}
+
+
+char **findItinerary(char *** tickets, int ticketsSize, int* ticketsColSize, int* returnSize)
+{
+    UthshCharArray *head = NULL;
+    for (int i = 0; i < ticketsSize; i++) {
+        UthshAddByKey(&head, tickets[i][0], CalTikVal(tickets[i][0]), tickets[i][1], CalTikVal(tickets[i][1]), i);
+    }
+
+    UthshCharArray *current_user, *tmp;
+    HASH_ITER(hh, head, current_user, tmp) {
+        // printf("key = %s  ->  value = %d ;", current_user->src, current_user->val.desCnt);
+        qsort(current_user->val.desArr, current_user->val.desCnt, sizeof(Ticket), CompareTicket);
+    }
+
+    *returnSize = ticketsSize + 1;
+    char **res = (char **)malloc(sizeof(char*) * ticketsSize * 2);
+    memset(res, 0, sizeof(char*) * ticketsSize * 2);
+    for (int i = 0; i < ticketsSize * 2; i++) {
+        res[i] = (char *)malloc(sizeof(char) * CHAR_ARRAY_LEN);
+        memset(res[i], 0, sizeof(char) * CHAR_ARRAY_LEN);
+    }
+    int resVal[ticketsSize * 2];
+    memset(resVal, 0, sizeof(int) * ticketsSize * 2);
+    int resLen = 0;
+
+    char startSrc[] = "JFK";
+    UthshCharArray *srcPo = UthshFindByKey(&head, startSrc);
+    if (srcPo == NULL) {
+        return NULL;
+    }
+    int startCnt = srcPo->val.desCnt;
+    strcpy(res[resLen], srcPo->src);
+    resVal[resLen] = srcPo->srcVal;
+    resLen = 1;
+    bool first = false;
+    for (int i = 0; i < startCnt; i++) {
+        bool visit[ticketsSize];
+        memset(visit, 0, sizeof(bool) * ticketsSize);
+        visit[srcPo->val.desArr[i].ticketIdx] = true;
+        strcpy(res[resLen], srcPo->val.desArr[i].destination);
+        resVal[resLen] = srcPo->val.desArr[i].desVal;
+        Dfs(ticketsSize, head, srcPo->val.desArr[i].destination, res, 2, resVal, visit, &first);
+        if (first == true) {
+            TuhashDeleteAll(&head);
+            return res;
+        }
+    }
+
+    TuhashDeleteAll(&head);
+    return NULL;
+}
+// ---------------------------解法 结束---------------------------------------------------------------------
+
+
+
+
+int main(int argc, const char *argv[])
+{
+	char *tickets_1[][2] = {{"MUC","LHR"},{"JFK","MUC"},{"SFO","SJC"},{"LHR","SFO"}};
+	int ticketsSize_1 = 4;
+    char **ticketsPo_1[ticketsSize_1];
+    for (int i = 0; i < ticketsSize_1; i++) {
+        ticketsPo_1[i] = tickets_1[i];
+    }
+	int ticketsColSize_1[] = { 2,2,2,2,2,2 };
+    int returnSize_1 = 4564646;
+    char** res_1 = findItinerary(ticketsPo_1, ticketsSize_1, ticketsColSize_1, &returnSize_1);
+    for (int i = 0; i < returnSize_1; i++) {
+        printf("%s->", res_1[i]);
+    }
+    printf("\n");
+
+
+
+
+	char *tickets_2[][2] = {{"JFK","SFO"},{"JFK","ATL"},{"SFO","ATL"},{"ATL","JFK"}, {"ATL","SFO"}};
+	int ticketsSize_2 = 5;
+    char **ticketsPo_2[ticketsSize_2];
+    for (int i = 0; i < ticketsSize_2; i++) {
+        ticketsPo_2[i] = tickets_2[i];
+    }
+	int ticketsColSize_2[] = { 2,2,2,2,2,2 };
+    int returnSize_2 = 4564646;
+    char** res_2 = findItinerary(ticketsPo_2, ticketsSize_2, ticketsColSize_2, &returnSize_2);
+    for (int i = 0; i < returnSize_2; i++) {
+        printf("%s->", res_2[i]);
+    }
+    printf("\n");
+
+
+
+	char *tickets_3[][2] = {{"EZE","AXA"},{"TIA","ANU"},{"ANU","JFK"},{"JFK","ANU"},{"ANU","EZE"},{"TIA","ANU"},{"AXA","TIA"},{"TIA","JFK"},{"ANU","TIA"},{"JFK","TIA"}};
+	int ticketsSize_3 = 10;
+    char **ticketsPo_3[ticketsSize_3];
+    for (int i = 0; i < ticketsSize_3; i++) {
+        ticketsPo_3[i] = tickets_3[i];
+    }
+	int ticketsColSize_3[] = { 2,2,2,2,2,2 };
+    int returnSize_3 = 4564646;
+    char** res_3 = findItinerary(ticketsPo_3, ticketsSize_3, ticketsColSize_3, &returnSize_3);
+    for (int i = 0; i < returnSize_3; i++) {
+        printf("%s->", res_3[i]);
+    }
+    printf("\n");
+
+
+    return 0;
+}
