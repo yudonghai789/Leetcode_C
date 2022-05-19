@@ -1,0 +1,175 @@
+/******************************************************************************
+ * 版权所有 (c)
+ * 功能描述   : OJ 1811. 【软件认证】素数行李箱密码. https://oj.rnd.huawei.com/problems/1811/details
+ * 作    者   :
+ * 生成日期   :
+
+ * 动态规划 
+      --- 
+ ******************************************************************************/
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdbool.h>
+#include <uthash.h>
+#include <math.h>
+#include <assert.h>
+// 如需使用华为安全函数，请加上 #include "securec.h"
+#include "securec.h"
+
+
+// -----埃氏筛求素数-----------------
+#define MAXNUM 10001
+bool g_isPrim[MAXNUM] = { 0 };
+void GenPreme() 
+{
+    int n = 10000;
+    for (int i = 2; i < n; i++) {
+        g_isPrim[i] = true;
+    }
+
+    // 从 2 开始枚举到 sqrt(n)。
+    for (int i = 2; i * i < n; i++) {
+        // 如果当前是素数 4不是素数，4的倍数也已经被2筛选了，6也一样
+        if (g_isPrim[i]) {
+            // 就把从 i*i 开始，i 的所有倍数都设置为 false。 因为   2 * i、3 *i、（i-1）*i在 遍历2 ~ i-1时已经分析过了 
+            for (int j = i * i; j < n; j += i) {
+                g_isPrim[j] = false;
+            }
+        }
+    }
+}
+
+void PrinfPreme()
+{
+    for (int i = 2; i < 10000; i++) {
+        if (g_isPrim[i]) {
+            printf("%d \n", i);
+        }
+    }
+}
+
+__attribute((constructor)) void BeforeMain()
+{
+    GenPreme();
+    // PrinfPreme();
+    // printf("BeforeMain\n");
+}
+
+bool CheckPreme(char *input)
+{
+    int digit = atoi(input);
+    if (digit == 1 || digit == 0) {
+        printf("error");
+        return false;
+    }
+
+    return g_isPrim[digit];
+}
+// ------埃氏筛求素数------------
+
+
+
+
+
+
+#define DIGIT_LEN 4
+#define MAX_ONE_STEP 10000
+
+int Unlock(const char *initState, const char *dstState)
+{
+    int begin = atoi(initState);
+    int res = atoi(dstState);
+    bool g_inIsVisit[MAXNUM] = { 0 }; // 表示没有访问过， 
+    bool g_ouTIsVisit[MAXNUM] = { 0 }; // 表示没有访问过，
+
+    int inQueue[MAX_ONE_STEP] = { 0 };
+    int inHead = 0;
+    int inTail = 0;
+    inQueue[inHead++] = begin;
+    g_inIsVisit[begin] = true;
+
+    int outQueue[MAX_ONE_STEP] = { 0 };
+    int outHead = 0;
+    int outTail = 0;
+    outQueue[outHead++] = res;
+    g_ouTIsVisit[res] = true;
+
+    int step = 0;
+    while (inHead > inTail && outHead > outTail) {  //  step < 10 判断无解时，应该就是没有数可以再添加了
+        int inQueLen = inHead - inTail;
+        int outQueLen = outHead - outTail;
+
+        if (inQueLen <= outQueLen) {
+            int start = inTail;
+            int end = inHead;
+            for (; start < end; start++) {
+                int passWord = inQueue[start];
+                if (g_ouTIsVisit[passWord] == true) {
+                    return step;
+                }
+                double add = (double)(1.0 / 10);
+                for (int i = 0; i < 4; i++) {
+                    add = add * 10;
+                    for (int j = 1; j <= 9; j++) {
+                        int next = passWord + add * j;
+                        int reverse = (int)(10 * add);
+                        next = ((next / reverse - passWord / reverse) > 0) ? next - reverse : next;
+                        if (g_inIsVisit[next] == false && g_isPrim[next] == true) {
+                            inQueue[inHead++] = next;
+                            g_inIsVisit[next] = true;
+                        }
+                    }
+                }
+            }
+
+            step++;
+            inTail = start;
+        } else {
+            int start = outTail;
+            int end = outHead;
+            for (; start < end; start++) {
+                int passWord = outQueue[start];
+                if (g_inIsVisit[passWord] == true) {
+                    return step;
+                }
+
+                double add = (double)(1.0 / 10);
+                for (int i = 0; i < 4; i++) {
+                    add = add * 10;
+                    for (int j = 1; j <= 9; j++) {
+                        int next = passWord + add * j;
+                        int reverse = (int)(10 * add);
+                        next = ((next / reverse - passWord / reverse) > 0) ? next - reverse : next;
+                        if (g_ouTIsVisit[next] == false && g_isPrim[next] == true) {
+                            outQueue[outHead++] = next;
+                            g_ouTIsVisit[next] = true;
+                        }
+                    }
+                }
+            }
+
+            step++;
+            outTail = start;
+        }
+
+
+    }
+
+    return -1;
+}
+// ---------------------------解法 结束---------------------------------------------------------------------
+
+/* 代码仅供参考，注意避免圈复杂度过大 */
+int main(void)
+{
+    static char initState[DIGIT_LEN + 1];
+    static char dstState[DIGIT_LEN + 1];
+    if (scanf_s("%s", initState, sizeof(initState)) != 1) { return -1; }
+    if (scanf_s("%s", dstState, sizeof(dstState)) != 1) { return -1; }
+    int ret = Unlock(initState, dstState);
+    (void)printf("%d", ret);
+    return 0;
+}
+
+
