@@ -1,0 +1,389 @@
+/******************************************************************************
+ * 版权所有 (c)
+ * 功能描述   : leetcode 378. 有序矩阵中第 K 小的元素. hhttps://leetcode.cn/problems/kth-smallest-element-in-a-sorted-matrix/
+ * 作    者   :
+ * 生成日期   :
+
+ * 动态规划 
+      --- 
+ ******************************************************************************/
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdbool.h>
+#include <uthash.h>
+#include <math.h>
+#include <assert.h>
+// 如需使用华为安全函数，请加上 #include "securec.h"
+// #include "securec.h"
+
+
+
+
+
+
+// ---------------------------解法 开始-----二维数组的二分搜索-------------------------------------------------------
+// int getSmallerCount(int **matrix, int row, int col, int val)
+// {
+//     int i = row - 1, j = 0, count = 0; // 左下角开始
+//     while (i >= 0) {
+//         while (j < col && matrix[i][j] <= val) {
+//             j++;
+//         }
+//         count += j;
+//         i--;
+//     }
+//     return count;
+// }
+
+// int kthSmallest(int** matrix, int matrixSize, int* matrixColSize, int k)
+// {
+//     int row = matrixSize, col = matrixColSize[0];
+//     int left = matrix[0][0], right = matrix[row - 1][col - 1];
+
+//     while (left < right) {
+//         int mid = left + ((right - mid) >> 1);
+//         if (getSmallerCount(matrix, row, col, mid) < k)
+//             left = mid + 1;
+//         else
+//             right = mid;
+//     }
+//     return left;
+// }
+// ---------------------------解法 结束---------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// ---------------------------解法 开始----优先队列-------------------------------------------------------
+#define MINPQSize (1)
+// #define MAXPQSize (1000)    // 做题的时候就不用动态申请，直接写死最大值就好了
+
+#define MinDATA (-32767)
+
+typedef struct EelememtType {
+    int intVal;
+    int lineIdx;
+} EelememtType;
+
+typedef struct HeapStruct {
+    int capacity;
+    int size;
+    EelememtType *elems;   // 做题的时候就不用动态申请，直接写死最大值就好了
+} HeapStruct, PriorityQueue;
+void Swap(PriorityQueue* H, int IndexA, int indexB)
+{
+    EelememtType tmp = H->elems[IndexA];
+    H->elems[IndexA] = H->elems[indexB];
+    H->elems[indexB] = tmp;
+}
+int Compare(PriorityQueue* H, int IndexA, int indexB)
+{
+    return H->elems[IndexA].intVal > H->elems[indexB].intVal;
+}
+int get_parent_index(int index)
+{
+    return (index) / 2;
+}
+
+// 计算下标为index的节点的左孩子下标
+int get_left_child_index(int root)
+{
+    return 2 * root;
+}
+
+// 计算下标为index的节点的右孩子下标
+int get_right_child_index(int root)
+{
+    return 2 * root + 1;
+}
+PriorityQueue* Initialize(int initMaxElem)
+{
+    if (initMaxElem < MINPQSize) {
+        printf("size error \n");
+    }
+
+    PriorityQueue* H = (PriorityQueue *)malloc(sizeof(PriorityQueue));
+    if (H == NULL) {
+        printf("maloc error \n");
+    }
+    memset(H, 0, sizeof(PriorityQueue));
+
+
+    H->elems = (EelememtType *)malloc(sizeof(EelememtType) * (initMaxElem + 1));
+    if (H->elems == NULL) {
+        printf("maloc error \n");
+    }
+    memset(H->elems, 0, sizeof(EelememtType) * (initMaxElem + 1));
+
+    H->capacity = initMaxElem;
+    H->size = 0;
+    H->elems[0].intVal = MinDATA;
+
+    return H;
+}
+void Swim(PriorityQueue* H, int IndexK)
+{
+    // indexK >1 判断是否已经到了顶，
+    while ((IndexK > 1) && Compare(H, get_parent_index(IndexK), IndexK)) {
+        Swap(H, get_parent_index(IndexK), IndexK);
+        IndexK = get_parent_index(IndexK);
+    }
+}
+void Sink(PriorityQueue* H, int IndexK)
+{
+    // 如果已经沉到了堆低，就沉不下去了
+    while (get_left_child_index(IndexK) <= H->size) {
+
+        // 先比左右节点,假设左子节点大
+        int order = get_left_child_index(IndexK);
+        if (get_right_child_index(IndexK) <= H->size && Compare(H, order, get_right_child_index(IndexK))) { // 如果右子节点存在且右子节点比左子节点大
+            order = get_right_child_index(IndexK);
+        }
+
+        if (Compare(H, order, IndexK)) { // 左右子节点都没有当前节点大
+            break;
+        }
+
+        Swap(H, IndexK, order);
+        IndexK = order;
+    }
+}
+bool IsEmpty(PriorityQueue* H)
+{
+    return H->size == 0;
+}
+
+bool IsFull(PriorityQueue* H)
+{
+    return H->size == H->capacity;
+}
+
+void Destroy(PriorityQueue* H)
+{
+    free(H->elems);
+    free(H);
+}
+
+
+void MakeEmpty(PriorityQueue* H) {
+    H->size = 0;
+
+    memset(H->elems, 0, sizeof(EelememtType) * (H->capacity + 1));
+}
+
+
+void PrintfQue(PriorityQueue* H)
+{
+    // 依次出队
+    printf("riority_queue: ");
+    for (int i = 1; i <= H->size; i++) {
+        printf("{ %d, %d} --> ", H->elems[i].intVal, H->elems[i].lineIdx);
+    }
+    printf("\n");
+}
+void EnQueue(PriorityQueue* H, EelememtType elem)
+{
+    if (IsFull(H)) {
+        printf("full \n");
+        return;
+    }
+
+    H->elems[++H->size] = elem;
+
+    Swim(H, H->size);
+}
+EelememtType DeQueue(PriorityQueue* H)
+{
+    if (IsEmpty(H)) {
+        printf("empty \n");
+        return H->elems[0];
+    }
+
+    EelememtType max = H->elems[1];
+    Swap(H, 1, H->size);
+
+    H->elems[H->size].intVal = 0;
+    H->elems[H->size].lineIdx = 0;
+    H->size--;
+
+
+    Sink(H, 1);
+    return max;
+}
+EelememtType FindTop(PriorityQueue* H)
+{
+    if (IsEmpty(H) == false) {
+        return H->elems[1];
+    } 
+
+    printf("enpty \n ");
+
+    return H->elems[0];
+}
+
+
+
+int kthSmallest(int** matrix, int matrixSize, int* matrixColSize, int k)
+{
+    PriorityQueue* H = Initialize(matrixSize * 2);
+
+    int index[matrixSize];
+    memset(index, 0, sizeof(int) * matrixSize);
+    for (int i = 0; i < matrixSize; i++) {
+        EelememtType newAdd = { matrix[i][0] , i};
+        EnQueue(H , newAdd);
+        index[i] = 1;
+    }
+
+    int res[k];
+    for (int i = i; i < k; i++) {
+        EelememtType out = DeQueue(H);
+        int line = out.lineIdx;
+        res[i] = out.intVal;
+        if (index[line] <= matrixColSize[0] - 1) {
+            EelememtType newAdd = { matrix[line][index[line]] , line};
+            EnQueue(H , newAdd);
+            index[line]++;
+        }
+    }
+
+    Destroy(H);
+
+    return res[k - 1];
+}
+// ---------------------------解法 结束---------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// ---------------------------解法 开始-----归并排序后取下标-------------------------------------------------------
+
+
+
+
+// ---------------------------解法 结束---------------------------------------------------------------------
+
+
+
+
+
+
+#define MAX_LEN 201
+
+typedef struct Matrix {
+    int matrixSize;
+    int matrixColSize[MAX_LEN];
+    int matrix[MAX_LEN][MAX_LEN];
+    int* matrixPoin[MAX_LEN];
+} Matrix;
+
+void printfMatrix(int a[][MAX_LEN], int n, int m)
+{
+    for (int i  = 0; i < n; i++) {
+        for (int j  = 0; j < m; j++) {
+            printf("%-10d", a[i][j]);
+        }
+        printf("\n");
+    }
+    printf("\n");
+}
+
+
+int main(int argc, const char *argv[])
+{
+    Matrix matrix_1 = {
+        3,
+        { 3, 3, 3 },
+        {
+            { 1,5,9 },
+            { 10,11,13 },
+            { 12,13,15 }
+
+        }
+    };
+    for (int i = 0; i < matrix_1.matrixSize; i++) {
+        matrix_1.matrixPoin[i] = &matrix_1.matrix[i][0];
+    }
+    printfMatrix(matrix_1.matrix, matrix_1.matrixSize, matrix_1.matrixColSize[0]);
+    int K_1 = 8;
+    int res_1 = kthSmallest(matrix_1.matrixPoin, matrix_1.matrixSize, matrix_1.matrixColSize, K_1);
+    assert(res_1 == 13);
+
+
+    return 0;
+}
+
+
+
+
+// int main() {
+// 	int gradCharData_1[8][13] = {
+// 		{0,0,1,0,0,0,0,1,0,0,0,0,0},
+// 		{0,0,0,0,0,0,0,1,1,1,0,0,0},
+// 		{0,1,1,0,1,0,0,0,0,0,0,0,0},
+// 		{0,1,0,0,1,1,0,0,1,0,1,0,0},
+// 		{0,1,0,0,1,1,0,0,1,1,1,0,0},
+// 		{0,0,0,0,0,0,0,0,0,0,1,0,0},
+// 		{0,0,0,0,0,0,0,1,1,1,0,0,0},
+// 		{0,0,0,0,0,0,0,1,1,0,0,0,0}
+// 	};
+// 	int row_1 = 8;
+// 	int cloum_1 = 13;
+// 	int *gradRowPointer_1[row_1];
+//     for (int i = 0; i < row_1; i++) {
+// 		gradRowPointer_1[i] = &gradCharData_1[i][0];
+// 	}
+// 	int result_1 = maxAreaOfIsland(gradRowPointer_1, row_1, &cloum_1);
+//     assert(result_1 == 6);
+
+
+// 	// 整数数组不能这样创建，只能这样创建字符串
+// 	// int *gradRowPointer_2[] = {
+// 	// 	{0,0,1,0,0,0,0,1,0,0,0,0,0},
+// 	// 	{0,0,0,0,0,0,0,1,1,1,0,0,0},
+// 	// 	{0,1,1,0,1,0,0,0,0,0,0,0,0},
+// 	// 	{0,1,0,0,1,1,0,0,1,0,1,0,0},
+// 	// 	{0,1,0,0,1,1,0,0,1,1,1,0,0},
+// 	// 	{0,0,0,0,0,0,0,0,0,0,1,0,0},
+// 	// 	{0,0,0,0,0,0,0,1,1,1,0,0,0},
+// 	// 	{0,0,0,0,0,0,0,1,1,0,0,0,0}
+// 	// };
+// 	// int row_2 = 8;
+// 	// int cloum_2 = 13;
+// 	// int result_2 = maxAreaOfIsland(gradRowPointer_2, row_2, &cloum_2);
+//     // assert(result_2 == 6);
+
+
+// 	return 0;
+// }
