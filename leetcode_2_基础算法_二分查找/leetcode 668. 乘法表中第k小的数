@@ -1,0 +1,312 @@
+/******************************************************************************
+ * 版权所有 (c)
+ * 功能描述   : leetcode 668. 乘法表中第k小的数. https://leetcode.cn/problems/kth-smallest-number-in-multiplication-table/
+ * 作    者   :
+ * 生成日期   :
+
+ * 动态规划 
+      --- 
+ ******************************************************************************/
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdbool.h>
+#include <uthash.h>
+#include <math.h>
+#include <assert.h>
+// 如需使用华为安全函数，请加上 #include "securec.h"
+#include "securec.h"
+
+
+
+
+
+
+
+
+
+
+// ---------------------------解法 开始------二分-利用乘法表规律直接计算每一行比mid小的数--------------------------------------------------------------
+int getSmallerCount(int m, int n, int k, int mid)
+{
+    int count = mid / n * n; // 上面部分的行 都会笑   36  小于41
+    for (int i = mid / n + 1; i <= m; ++i) {
+        count += mid / i;
+    }
+
+    return count;
+}
+
+
+int findKthNumber(int m, int n, int k)
+{
+    int left = 1, right = m * n;
+    while (left < right) {
+        int mid = left + (right - left) / 2;
+
+        if (getSmallerCount(m, n, k, mid) >= k) {
+            right = mid;
+        } else {
+            left = mid + 1;
+        }
+    }
+    return left;
+}
+// ---------------------------解法 结束---------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+// --------------------------解法-开始---优先队列--超时------------------------------------------------------------------
+// #define MINPQSize (1)
+// // #define MAXPQSize (1000)    // 做题的时候就不用动态申请，直接写死最大值就好了
+
+// #define MinDATA (-32767)
+
+// typedef struct EelememtType {
+//     int intVal;
+//     int lineIdx;
+// } EelememtType;
+
+// typedef struct HeapStruct {
+//     int capacity;
+//     int size;
+//     EelememtType *elems;   // 做题的时候就不用动态申请，直接写死最大值就好了
+// } HeapStruct, PriorityQueue;
+// void Swap(PriorityQueue* H, int IndexA, int indexB)
+// {
+//     EelememtType tmp = H->elems[IndexA];
+//     H->elems[IndexA] = H->elems[indexB];
+//     H->elems[indexB] = tmp;
+// }
+// int Compare(PriorityQueue* H, int IndexA, int indexB)
+// {
+//     return H->elems[IndexA].intVal > H->elems[indexB].intVal;
+// }
+// int get_parent_index(int index)
+// {
+//     return (index) / 2;
+// }
+
+// // 计算下标为index的节点的左孩子下标
+// int get_left_child_index(int root)
+// {
+//     return 2 * root;
+// }
+
+// // 计算下标为index的节点的右孩子下标
+// int get_right_child_index(int root)
+// {
+//     return 2 * root + 1;
+// }
+// PriorityQueue* Initialize(int initMaxElem)
+// {
+//     if (initMaxElem < MINPQSize) {
+//         printf("size error \n");
+//     }
+
+//     PriorityQueue* H = (PriorityQueue *)malloc(sizeof(PriorityQueue));
+//     if (H == NULL) {
+//         printf("maloc error \n");
+//     }
+//     memset(H, 0, sizeof(PriorityQueue));
+
+
+//     H->elems = (EelememtType *)malloc(sizeof(EelememtType) * (initMaxElem + 1));
+//     if (H->elems == NULL) {
+//         printf("maloc error \n");
+//     }
+//     memset(H->elems, 0, sizeof(EelememtType) * (initMaxElem + 1));
+
+//     H->capacity = initMaxElem;
+//     H->size = 0;
+//     H->elems[0].intVal = MinDATA;
+
+//     return H;
+// }
+// void Swim(PriorityQueue* H, int IndexK)
+// {
+//     // indexK >1 判断是否已经到了顶，
+//     while ((IndexK > 1) && Compare(H, get_parent_index(IndexK), IndexK)) {
+//         Swap(H, get_parent_index(IndexK), IndexK);
+//         IndexK = get_parent_index(IndexK);
+//     }
+// }
+// void Sink(PriorityQueue* H, int IndexK)
+// {
+//     // 如果已经沉到了堆低，就沉不下去了
+//     while (get_left_child_index(IndexK) <= H->size) {
+
+//         // 先比左右节点,假设左子节点大
+//         int order = get_left_child_index(IndexK);
+//         if (get_right_child_index(IndexK) <= H->size && Compare(H, order, get_right_child_index(IndexK))) { // 如果右子节点存在且右子节点比左子节点大
+//             order = get_right_child_index(IndexK);
+//         }
+
+//         if (Compare(H, order, IndexK)) { // 左右子节点都没有当前节点大
+//             break;
+//         }
+
+//         Swap(H, IndexK, order);
+//         IndexK = order;
+//     }
+// }
+// bool IsEmpty(PriorityQueue* H)
+// {
+//     return H->size == 0;
+// }
+
+// bool IsFull(PriorityQueue* H)
+// {
+//     return H->size == H->capacity;
+// }
+
+// void Destroy(PriorityQueue* H)
+// {
+//     free(H->elems);
+//     free(H);
+// }
+
+
+// void MakeEmpty(PriorityQueue* H) {
+//     H->size = 0;
+
+//     memset(H->elems, 0, sizeof(EelememtType) * (H->capacity + 1));
+// }
+
+
+// void PrintfQue(PriorityQueue* H)
+// {
+//     // 依次出队
+//     printf("riority_queue: ");
+//     for (int i = 1; i <= H->size; i++) {
+//         printf("{ %d, %d} --> ", H->elems[i].intVal, H->elems[i].lineIdx);
+//     }
+//     printf("\n");
+// }
+// void EnQueue(PriorityQueue* H, EelememtType elem)
+// {
+//     if (IsFull(H)) {
+//         printf("full \n");
+//         return;
+//     }
+
+//     H->elems[++H->size] = elem;
+
+//     Swim(H, H->size);
+// }
+// EelememtType DeQueue(PriorityQueue* H)
+// {
+//     if (IsEmpty(H)) {
+//         printf("empty \n");
+//         return H->elems[0];
+//     }
+
+//     EelememtType max = H->elems[1];
+//     Swap(H, 1, H->size);
+
+//     H->elems[H->size].intVal = 0;
+//     H->elems[H->size].lineIdx = 0;
+//     H->size--;
+
+
+//     Sink(H, 1);
+//     return max;
+// }
+// EelememtType FindTop(PriorityQueue* H)
+// {
+//     if (IsEmpty(H) == false) {
+//         return H->elems[1];
+//     } 
+
+//     printf("enpty \n ");
+
+//     return H->elems[0];
+// }
+
+
+
+// int findKthNumber(int m, int n, int k){
+//     PriorityQueue* H = Initialize(m * 2);
+
+//     int index[m + 1];
+//     memset(index, 0, sizeof(int) * (m + 1));
+//     for (int i = 1; i <= m; i++) {
+//         EelememtType newAdd = { i * 1 , i};
+//         EnQueue(H , newAdd);
+//         index[i] = 2;
+//     }
+
+//     int res;
+//     for (int i = 0; i < k; i++) {
+//         EelememtType out = DeQueue(H);
+//         int line = out.lineIdx;
+//         res = out.intVal;
+//         printf("%d, %d  %d\n", line, res, index[line]);
+//         if (index[line] <= n) {
+//             EelememtType newAdd = { line * index[line] , line};
+//             EnQueue(H , newAdd);
+//             index[line]++;
+//         }
+//     }
+
+//     Destroy(H);
+//     return res;
+// }
+
+// ---------------------------解法 结束---------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+void Gen()
+{
+    for (int i = 1; i <= 9; i++) {
+        for (int j = 1; j <= 9; j++) {
+            printf("%-3d", i * j);
+        }
+        printf("\n");
+    }
+    printf("\n");
+}
+
+
+__attribute((constructor)) void BeforeMain()
+{
+    printf("before \n");
+    Gen();
+}
+
+__attribute((destructor)) void AfterMain()
+{
+    printf("After \n");
+}
+
+
+
+
+
+
+
+/* 代码仅供参考，注意避免圈复杂度过大 */
+int main(void)
+{
+    findKthNumber(9,9,15);
+    return 0;
+}
