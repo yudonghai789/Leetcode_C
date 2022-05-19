@@ -27,6 +27,148 @@
 
 // ---------------------------解法 开始-----深度优先遍历-------------------------------------------------------
 
+// #define MAX_ROW_LEN 500
+// #define MAX_COL_LEN 500
+// typedef enum DIRECTION {
+//     DOWN = 0,
+//     UP = 1,
+//     RIGHT = 2,
+//     LEFT = 3,
+//     DIR_BUTT = 4
+// } DIRECTION;
+
+
+// int visit[MAX_ROW_LEN][MAX_COL_LEN];
+// void printfVisitPath(int n, int m)
+// {
+//     for (int i  = 0; i < n; i++) {
+//         for (int j  = 0; j < m; j++) {
+//             printf("%-3d", visit[i][j]);
+//         }
+//         printf("\n");
+//     }
+//     printf("\n");
+// }
+// int board[MAX_ROW_LEN][MAX_COL_LEN];
+// void printfBoard(int n, int m)
+// {
+//     for (int i  = 0; i < n; i++) {
+//         for (int j  = 0; j < m; j++) {
+//             printf("%-3d", board[i][j]);
+//         }
+//         printf("\n");
+//     }
+//     printf("\n");
+// }
+
+
+
+// int g_direct[DIR_BUTT][2] = {
+//     { 1, 0 },
+//     { -1, 0 },
+//     { 0, 1 },
+//     { 0, -1 }
+// };
+
+
+// typedef struct VisitAndVal {
+//     int visit;
+//     int val;
+// } VisitAndVal;
+// VisitAndVal visVal[MAX_ROW_LEN * MAX_ROW_LEN];
+// bool valAdded[MAX_ROW_LEN * MAX_ROW_LEN];
+
+// void DfsRecursive(int** grid, int gridSize, int* gridColSize, int vis, int row, int col, int *outRes)
+// {
+//     int sumPath = 0;
+//     for (int dir = 0; dir < 4; dir++) {
+//         int nextRow = row + g_direct[dir][0];
+//         int nextCol = col + g_direct[dir][1];
+
+//         if (nextRow >= 0 && nextRow < gridSize && nextCol >= 0 && nextCol < gridColSize[0]) {
+//             if (grid[nextRow][nextCol] != 0 && visit[nextRow][nextCol] == 0) {
+//                 visit[nextRow][nextCol] = vis;
+//                 int temp = 1;
+//                 DfsRecursive(grid, gridSize, gridColSize, vis, nextRow, nextCol, &temp);
+//                 sumPath += temp;
+//             } else if (grid[nextRow][nextCol] == 0) {
+//                 board[nextRow][nextCol] = 1;
+//             }
+//         }
+//     }
+
+//     (*outRes) += sumPath;
+// }
+
+// int DfsVal(int** grid, int gridSize, int* gridColSize, int row, int col)
+// {
+//     int res = 1;
+//     int connect[4] = { -1, -1, -1, -1};
+//     memset(valAdded, 0, (size_t)sizeof(valAdded));
+//     for (int dir = 0; dir < 4; dir++) {
+//         int nextRow = row + g_direct[dir][0];
+//         int nextCol = col + g_direct[dir][1];
+
+//         if (nextRow >= 0 && nextRow < gridSize && nextCol >= 0 && nextCol < gridColSize[0] && visit[nextRow][nextCol] != 0 && grid[nextRow][nextCol] != 0) {
+//             connect[dir] = visit[nextRow][nextCol];
+//             res += ((valAdded[connect[dir]] == 1) ? 0: visVal[connect[dir]].val);
+//             valAdded[connect[dir]] = 1;
+//         }
+//     }
+//     return res;
+// }
+
+// int largestIsland(int** grid, int gridSize, int* gridColSize)
+// {
+//     memset(visit, 0, (size_t)sizeof(visit));
+//     memset(board, 0, (size_t)sizeof(board));
+//     memset(visVal, 0, (size_t)sizeof(visVal));
+//     int visCnt = 1;
+
+//     int res = 0;
+//     for (int i = 0; i < gridSize; i++) {
+//         for (int j = 0; j < gridColSize[0]; j++) {
+//             if (grid[i][j] != 0 && visit[i][j] == 0) {
+//                 visit[i][j] = visCnt;
+//                 int temp = 1;
+//                 DfsRecursive(grid, gridSize, gridColSize, visCnt, i, j, &temp);
+//                 res = fmax(res, temp);
+//                 visVal[visCnt].val = temp;
+//                 visVal[visCnt].visit = visCnt;
+//                 printfVisitPath(gridSize, gridColSize[0]);
+//                 printfBoard(gridSize, gridColSize[0]);
+//                 visCnt++;
+//             }
+//         }
+//     }
+
+
+//     for (int i = 0; i < gridSize; i++) {
+//         for (int j = 0; j < gridColSize[0]; j++) {
+//             if (board[i][j] == 1) {
+//                 // 将 边界变为1
+//                 int temp = DfsVal(grid, gridSize, gridColSize, i, j);
+//                 res = fmax(res, temp);
+//             }
+//         }
+//     }
+
+//     return res;
+// }
+// ---------------------------解法 结束---------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+// ---------------------------解法 开始-----深度优先遍历-------------------------------------------------------
 #define MAX_ROW_LEN 500
 #define MAX_COL_LEN 500
 typedef enum DIRECTION {
@@ -36,30 +178,6 @@ typedef enum DIRECTION {
     LEFT = 3,
     DIR_BUTT = 4
 } DIRECTION;
-
-
-int g_visit[MAX_ROW_LEN][MAX_COL_LEN];
-void printfVisitPath(int n, int m)
-{
-    for (int i  = 0; i < n; i++) {
-        for (int j  = 0; j < m; j++) {
-            printf("%-3d", g_visit[i][j]);
-        }
-        printf("\n");
-    }
-    printf("\n");
-}
-int g_board[MAX_ROW_LEN][MAX_COL_LEN];
-void printfBoard(int n, int m)
-{
-    for (int i  = 0; i < n; i++) {
-        for (int j  = 0; j < m; j++) {
-            printf("%-3d", g_board[i][j]);
-        }
-        printf("\n");
-    }
-    printf("\n");
-}
 
 
 
@@ -75,8 +193,31 @@ typedef struct VisitAndVal {
     int visit;
     int val;
 } VisitAndVal;
-VisitAndVal g_val[MAX_ROW_LEN * MAX_ROW_LEN];
-bool valAdded[MAX_ROW_LEN * MAX_ROW_LEN];
+
+int *visit;
+int *board;
+VisitAndVal *visVal;
+bool *valAdded;
+void printfVisitPath(int n, int m)
+{
+    for (int i  = 0; i < n; i++) {
+        for (int j  = 0; j < m; j++) {
+            printf("%-3d", visit[i * m + j]);
+        }
+        printf("\n");
+    }
+    printf("\n");
+}
+void printfBoard(int n, int m)
+{
+    for (int i  = 0; i < n; i++) {
+        for (int j  = 0; j < m; j++) {
+            printf("%-3d", board[i * m + j]);
+        }
+        printf("\n");
+    }
+    printf("\n");
+}
 
 void DfsRecursive(int** grid, int gridSize, int* gridColSize, int vis, int row, int col, int *outRes)
 {
@@ -86,13 +227,13 @@ void DfsRecursive(int** grid, int gridSize, int* gridColSize, int vis, int row, 
         int nextCol = col + g_direct[dir][1];
 
         if (nextRow >= 0 && nextRow < gridSize && nextCol >= 0 && nextCol < gridColSize[0]) {
-            if (grid[nextRow][nextCol] != 0 && g_visit[nextRow][nextCol] == 0) {
-                g_visit[nextRow][nextCol] = vis;
+            if (grid[nextRow][nextCol] != 0 && visit[nextRow * gridColSize[0] + nextCol] == 0) {
+                visit[nextRow * gridColSize[0] + nextCol] = vis;
                 int temp = 1;
                 DfsRecursive(grid, gridSize, gridColSize, vis, nextRow, nextCol, &temp);
                 sumPath += temp;
             } else if (grid[nextRow][nextCol] == 0) {
-                g_board[nextRow][nextCol] = 1;
+                board[nextRow * gridColSize[0] + nextCol] = 1;
             }
         }
     }
@@ -104,14 +245,14 @@ int DfsVal(int** grid, int gridSize, int* gridColSize, int row, int col)
 {
     int res = 1;
     int connect[4] = { -1, -1, -1, -1};
-    memset(valAdded, 0, (size_t)sizeof(valAdded));
+    memset(valAdded, 0, (size_t)sizeof(bool) * (gridSize * gridColSize[0] + 1));
     for (int dir = 0; dir < 4; dir++) {
         int nextRow = row + g_direct[dir][0];
         int nextCol = col + g_direct[dir][1];
 
-        if (nextRow >= 0 && nextRow < gridSize && nextCol >= 0 && nextCol < gridColSize[0] && g_visit[nextRow][nextCol] != 0 && grid[nextRow][nextCol] != 0) {
-            connect[dir] = g_visit[nextRow][nextCol];
-            res += ((valAdded[connect[dir]] == 1) ? 0: g_val[connect[dir]].val);
+        if (nextRow >= 0 && nextRow < gridSize && nextCol >= 0 && nextCol < gridColSize[0] && visit[nextRow * gridColSize[0] + nextCol] != 0 && grid[nextRow][nextCol] != 0) {
+            connect[dir] = visit[nextRow * gridColSize[0] + nextCol];
+            res += ((valAdded[connect[dir]] == 1) ? 0: visVal[connect[dir]].val);
             valAdded[connect[dir]] = 1;
         }
     }
@@ -120,24 +261,36 @@ int DfsVal(int** grid, int gridSize, int* gridColSize, int row, int col)
 
 int largestIsland(int** grid, int gridSize, int* gridColSize)
 {
-    memset(g_visit, 0, (size_t)sizeof(g_visit));
-    memset(g_board, 0, (size_t)sizeof(g_board));
-    memset(g_val, 0, (size_t)sizeof(g_val));
+    int size = gridSize * gridColSize[0];
+
+    visit = (int *)malloc(sizeof(int) * size);
+    memset(visit, 0, (size_t)sizeof(int) * size);
+
+    board = (int *)malloc(sizeof(int) * size);
+    memset(board, 0, (size_t)sizeof(int) * size);
+
+    visVal = (VisitAndVal *)malloc(sizeof(VisitAndVal) * (size + 1));
+    memset(visVal, 0, (size_t)sizeof(VisitAndVal) * (size + 1));
+
+    valAdded = (bool *)malloc(sizeof(bool) * (size + 1));
+
+
     int visCnt = 1;
 
-    int res = 0;
+    int res = 1;
     for (int i = 0; i < gridSize; i++) {
         for (int j = 0; j < gridColSize[0]; j++) {
-            if (grid[i][j] != 0 && g_visit[i][j] == 0) {
-                g_visit[i][j] = visCnt;
+            if (grid[i][j] != 0 && visit[i * gridColSize[0] + j] == 0) {
+                visit[i * gridColSize[0] + j] = visCnt;
                 int temp = 1;
                 DfsRecursive(grid, gridSize, gridColSize, visCnt, i, j, &temp);
                 res = fmax(res, temp);
-                g_val[visCnt].val = temp;
-                g_val[visCnt].visit = visCnt;
+                visVal[visCnt].val = temp;
+                visVal[visCnt].visit = visCnt;
+                visCnt++;
+
                 printfVisitPath(gridSize, gridColSize[0]);
                 printfBoard(gridSize, gridColSize[0]);
-                visCnt++;
             }
         }
     }
@@ -145,7 +298,7 @@ int largestIsland(int** grid, int gridSize, int* gridColSize)
 
     for (int i = 0; i < gridSize; i++) {
         for (int j = 0; j < gridColSize[0]; j++) {
-            if (g_board[i][j] == 1) {
+            if (board[i * gridColSize[0] + j] == 1) {
                 // 将 边界变为1
                 int temp = DfsVal(grid, gridSize, gridColSize, i, j);
                 res = fmax(res, temp);
@@ -153,9 +306,31 @@ int largestIsland(int** grid, int gridSize, int* gridColSize)
         }
     }
 
+    free(visit);
+    free(board);
+    free(visVal);
+    free(valAdded);
+    visit = NULL;
+    board = NULL;
+    visVal = NULL;
+    valAdded = NULL;
     return res;
 }
 // ---------------------------解法 结束---------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 #define MAX_LEN 201
 
