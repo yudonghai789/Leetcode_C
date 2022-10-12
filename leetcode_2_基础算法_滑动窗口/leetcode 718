@@ -1,0 +1,133 @@
+/******************************************************************************
+ * 版权所有 (c)
+ * 功能描述   : leetcode 707. 设计链表. https://leetcode.cn/problems/design-linked-list/
+ * 作    者   :
+ * 生成日期   :
+
+ ******************************************************************************/
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdbool.h>
+#include <uthash.h>
+#include <math.h>
+#include <assert.h>
+// 如需使用华为安全函数，请加上 #include "securec.h"
+#include "securec.h"
+
+
+int findLength(int* nums1, int nums1Size, int* nums2, int nums2Size)
+{
+    int nums1Left = nums1Size - 1;
+    int nums2Left = 0;
+
+    int res = 0;
+    for (; nums1Left >= 0; nums1Left--) {
+        int windowLen = nums1Size - nums1Left;
+        windowLen = fmin(windowLen, nums2Size);
+
+        int temp = 0;
+        for (int count = 0; count < windowLen; count++) {
+            if (nums1[nums1Left + count] == nums2[nums2Left + count]) {
+                temp++;
+                res = fmax(res, temp);
+            } else {
+                temp = 0;
+            }
+        }
+    }
+
+    nums1Left = 0;
+    for (nums2Left = 1; nums2Left < nums2Size; nums2Left++) {
+        int windowLen = nums2Size - nums2Left;
+        windowLen = fmin(windowLen, nums1Size);
+
+        int temp = 0;
+        for (int count = 0; count < windowLen; count++) {
+            if (nums1[nums1Left + count] == nums2[nums2Left + count]) {
+                temp++;
+                res = fmax(res, temp);
+            } else {
+                temp = 0;
+            }
+        }
+    }
+
+    return res;
+}
+
+
+// int maxLength(int* A, int* B, int addA, int addB, int len) {
+//     int ret = 0, k = 0;
+//     for (int i = 0; i < len; i++) {
+//         if (A[addA + i] == B[addB + i]) {
+//             k++;
+//         } else {
+//             k = 0;
+//         }
+//         ret = fmax(ret, k);
+//     }
+//     return ret;
+// }
+
+// int findLength(int* A, int ASize, int* B, int BSize) {
+//     int ret = 0;
+//     for (int i = 0; i < ASize; i++) {
+//         int len = fmin(BSize, ASize - i);
+//         int maxlen = maxLength(A, B, i, 0, len);
+//         ret = fmax(ret, maxlen);
+//     }
+//     for (int i = 0; i < BSize; i++) {
+//         int len = fmin(ASize, BSize - i);
+//         int maxlen = maxLength(A, B, 0, i, len);
+//         ret = fmax(ret, maxlen);
+//     }
+//     return ret;
+// }
+
+
+
+// ---------------------------解法一 结束--------------------------------------------------------
+int main() 
+{
+    int nums1_1[] = {1,2,3,2,1};
+    int nums1Size_1 = sizeof(nums1_1) / sizeof(nums1_1[0]);
+    int nums2_1[] = {3,2,1,4,7};
+    int nums2Size_1 = sizeof(nums2_1) / sizeof(nums2_1[0]);
+    int res_1 = findLength(nums1_1, nums1Size_1, nums2_1, nums2Size_1);
+    assert(res_1 == 3);
+
+
+    int nums1_2[] = {0,0,0,0,0};
+    int nums1Size_2 = sizeof(nums1_2) / sizeof(nums1_2[0]);
+    int nums2_2[] = {0,0,0,0,0};
+    int nums2Size_2 = sizeof(nums2_2) / sizeof(nums2_2[0]);
+    int res_2 = findLength(nums1_2, nums1Size_2, nums2_2, nums2Size_2);
+    assert(res_2 == 5);
+
+
+    int nums1_3[] = {1,2,3,4,5};
+    int nums1Size_3 = sizeof(nums1_3) / sizeof(nums1_3[0]);
+    int nums2_3[] = {4,3,4,5,1};
+    int nums2Size_3 = sizeof(nums2_3) / sizeof(nums2_3[0]);
+    int res_3 = findLength(nums1_3, nums1Size_3, nums2_3, nums2Size_3);
+    assert(res_3 == 3);
+
+
+    int nums1_4[] = {0,0,0,0,1};
+    int nums1Size_4 = sizeof(nums1_4) / sizeof(nums1_4[0]);
+    int nums2_4[] = {1,0,0,0,0};
+    int nums2Size_4 = sizeof(nums2_4) / sizeof(nums2_4[0]);
+    int res_4 = findLength(nums1_4, nums1Size_4, nums2_4, nums2Size_4);
+    assert(res_4 == 4);
+
+    int nums1_5[] = {1,0,1,1,0,1,1,0,1,0,1,1,0,1,0,0,0,1,1,0,0,1,1,1,0,0,0,0,1,0,0,0,0,0,1,0,0,1,1,1,1,1,1,1,0,0,0,0,0,0,1,1,1,1,0,1,1,1,0,0,1,1,1,0,0,1,0,1,1,1,1,1,0,1,1,0,0,1,1,0,0,1,0,0,0,0,0,0,0,1,0,0,0,1,1,1,1,1,1,0};
+    int nums1Size_5 = sizeof(nums1_5) / sizeof(nums1_5[0]);
+    int nums2_5[] = {1,1,1,1,1,0,1,0,1,1,1,0,1,0,0,0,1,1,0,0,0,1,0,1,0,1,0,1,0,1,0,0,1,1,0,1,1,1,0,0,1,1,0,1,0,0,1,0,0,1,1,1,0,0,1,0,1,0,0,1,1,1,1,1,0,1,1,1,1,1,0,0,0,1,0,1,0,0,1,1,0,0,1,1,0,0,0,0,1,0,0,0,0,1,0,1,1,0,0,0};
+    int nums2Size_5 = sizeof(nums2_5) / sizeof(nums2_5[0]);
+    int res_5 = findLength(nums1_5, nums1Size_5, nums2_5, nums2Size_5);
+    assert(res_5 == 11);
+
+
+    return 0;
+}
